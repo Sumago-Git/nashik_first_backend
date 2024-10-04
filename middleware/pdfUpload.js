@@ -1,10 +1,25 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 // Define storage for the uploaded files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/pdf'); // Specify your upload directory
+    const dir = 'uploads/pdf'; // Specify your upload directory
+
+    // Check if the directory exists, and create it if it doesn't
+    fs.access(dir, (error) => {
+      if (error) {
+        fs.mkdir(dir, { recursive: true }, (err) => {
+          if (err) {
+            return cb(err); // Error creating directory
+          }
+          cb(null, dir); // Directory created successfully
+        });
+      } else {
+        cb(null, dir); // Directory exists
+      }
+    });
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`); // Generate a unique filename
