@@ -5,7 +5,11 @@ const apiResponse = require("../helper/apiResponse");
 exports.addAnnualReport = async (req, res) => {
     try {
       const { label } = req.body;
-      const links = req.file.path; // Get the path of the uploaded PDF
+      const links = req.file ? req.file.path : null; // Get the path of the uploaded PDF
+
+      if (!links) {
+        return apiResponse.ErrorResponse(res, 'File upload is required');
+      }
   
       const annualReport = await AnnualReport.create({
         label,
@@ -21,7 +25,7 @@ exports.addAnnualReport = async (req, res) => {
       console.log('Add annual report failed', error);
       return apiResponse.ErrorResponse(res, 'Add annual report failed');
     }
-  };
+};
 
 // Update annual report
 exports.updateAnnualReport = async (req, res) => {
