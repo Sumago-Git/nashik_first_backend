@@ -10,12 +10,12 @@ exports.addAnnualReport = async (req, res) => {
       if (!links) {
         return apiResponse.ErrorResponse(res, 'File upload is required');
       }
-  
+
       const annualReport = await AnnualReport.create({
         label,
         links,
       });
-  
+
       return apiResponse.successResponseWithData(
         res,
         'Annual report added successfully',
@@ -26,6 +26,7 @@ exports.addAnnualReport = async (req, res) => {
       return apiResponse.ErrorResponse(res, 'Add annual report failed');
     }
 };
+
 
 // Update annual report
 exports.updateAnnualReport = async (req, res) => {

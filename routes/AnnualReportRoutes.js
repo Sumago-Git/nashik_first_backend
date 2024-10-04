@@ -14,13 +14,14 @@ const pdfUpload = require('../middleware/pdfUpload');
 const router = express.Router();
 
 // Add annual report
-router.post('/create-annualreport',pdfUpload, authenticateToken, validateAnnualReport, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, addAnnualReport);
+router.post('/create-annualreport', pdfUpload, authenticateToken, validateAnnualReport, (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+    }
+    next();
+  }, addAnnualReport);
+  
 
 // Update annual report
 router.put('/annualreport/:id', authenticateToken, pdfUpload, validateAnnualReportId, validateAnnualReport, (req, res, next) => {
