@@ -1,45 +1,87 @@
+// /routes/annualReportRoutes.js
+
 const express = require('express');
-const { 
-  addAnnualReport, 
-  updateAnnualReport, 
-  getAnnualReports, 
-  toggleActiveStatus, 
-  toggleDeleteStatus 
-} = require('../controllers/AnnualReportController');
-const { validateAnnualReport, validateAnnualReportId } = require('../validations/annualReportValidation');
+const router = express.Router();
+const upload = require('../middleware/upload');
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
-const authenticateToken = require('../middleware/auth');
-const pdfUpload = require('../middleware/pdfUpload'); 
-const router = express.Router();
+const authenticateToken = require('../middleware/auth'); // Assuming you have an auth middleware
+const {
+  addAnnualReport,
+  updateAnnualReport,
+  getAnnualReports,
+  toggleIsActive,
+  toggleIsDelete,
+} = require('../controllers/annualReportController');
+const {
+  validateAnnualReport,
+  validateAnnualReportId,
+} = require('../validations/annualReportValidation');
 
-// Add annual report
-router.post('/create-annualreport', pdfUpload, authenticateToken, validateAnnualReport, (req, res, next) => {
+// Add Annual Report
+router.post(
+  '/create-annualreport',
+  authenticateToken, // Protect the route
+  upload.single('pdf'), // 'pdf' is the field name in the form
+  validateAnnualReport, // Validate request body
+  (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      // If a file was uploaded but validation failed, delete the uploaded file
+      if (req.file) {
+        const fs = require('fs');
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error('Failed to delete uploaded file after validation error:', err);
+        });
+      }
       return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
     }
     next();
-  }, addAnnualReport);
-  
+  },
+  addAnnualReport
+);
 
-// Update annual report
-router.put('/annualreport/:id', authenticateToken, pdfUpload, validateAnnualReportId, validateAnnualReport, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, updateAnnualReport);
+// Update Annual Report
+router.put(
+  '/update-annualreport/:id',
+  authenticateToken, // Protect the route
+  upload.single('pdf'), // Allow updating the PDF
+  validateAnnualReportId, // Validate ID parameter
+  validateAnnualReport, // Validate request body
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // If a file was uploaded but validation failed, delete the uploaded file
+      if (req.file) {
+        const fs = require('fs');
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error('Failed to delete uploaded file after validation error:', err);
+        });
+      }
+      return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+    }
+    next();
+  },
+  updateAnnualReport
+);
 
-// Get all annual reports
-router.get('/get-annualreports', getAnnualReports);
-router.get('/find-annualreports', authenticateToken, getAnnualReports);
+// Get All Annual Reports
+router.get('/get-annualreports', authenticateToken, getAnnualReports);
 
-// Toggle active status
-router.put('/isactive-annual/:id', authenticateToken, validateAnnualReportId, toggleActiveStatus);
+// Toggle isActive Status
+router.put(
+  '/toggle-isactive/:id',
+  authenticateToken,
+  validateAnnualReportId,
+  toggleIsActive
+);
 
-// Toggle delete status
-router.delete('/isdelete-annual/:id', authenticateToken, validateAnnualReportId, toggleDeleteStatus);
+// Toggle isDelete Status
+router.delete(
+  '/toggle-isdelete/:id',
+  authenticateToken,
+  validateAnnualReportId,
+  toggleIsDelete
+);
 
 module.exports = router;
