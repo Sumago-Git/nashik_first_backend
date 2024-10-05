@@ -3,11 +3,12 @@ const apiResponse = require("../helper/apiResponse");
 
 exports.addContactDetails = async (req, res) => {
   try {
-    const { email, phone, address } = req.body;
+    const { email, phone, address, whatsapp } = req.body;
     const contactDetails = await ContactDetails.create({
       email,
       phone,
       address,
+      whatsapp,
       isActive: true,
       isDelete: false,
     });
@@ -34,6 +35,7 @@ exports.updateContactDetails = async (req, res) => {
     contactDetails.email = req.body.email;
     contactDetails.phone = req.body.phone;
     contactDetails.address = req.body.address;
+    contactDetails.whatsapp = req.body.whatsapp;
     await contactDetails.save();
     
     return apiResponse.successResponseWithData(

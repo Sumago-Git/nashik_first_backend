@@ -14,6 +14,10 @@ const ContactDetails = sequelize.define("ContactDetails", {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  whatsapp: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
