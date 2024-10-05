@@ -21,49 +21,60 @@ const {
 // Add Annual Report
 router.post(
   '/create-annualreport',
-  authenticateToken, // Protect the route
-  upload.single('pdf'), // 'pdf' is the field name in the form
-  validateAnnualReport, // Validate request body
+  authenticateToken,
+  upload.single('pdf'),
   (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // If a file was uploaded but validation failed, delete the uploaded file
-      if (req.file) {
-        const fs = require('fs');
-        fs.unlink(req.file.path, (err) => {
-          if (err) console.error('Failed to delete uploaded file after validation error:', err);
-        });
-      }
-      return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+    if (req.fileValidationError) {
+      return apiResponse.validationErrorWithData(res, 'Validation Error', [{ msg: req.fileValidationError }]);
+    }
+    if (!req.file) {
+      return apiResponse.validationErrorWithData(res, 'Validation Error', [{ msg: 'PDF file is required' }]);
     }
     next();
   },
+  validateAnnualReport,
   addAnnualReport
 );
 
 // Update Annual Report
-router.put(
-  '/update-annualreport/:id',
-  authenticateToken, // Protect the route
-  upload.single('pdf'), // Allow updating the PDF
-  validateAnnualReportId, // Validate ID parameter
-  validateAnnualReport, // Validate request body
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // If a file was uploaded but validation failed, delete the uploaded file
-      if (req.file) {
-        const fs = require('fs');
-        fs.unlink(req.file.path, (err) => {
-          if (err) console.error('Failed to delete uploaded file after validation error:', err);
+exports.updateAnnualReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const annualReport = await AnnualReport.findByPk(id);
+
+    if (!annualReport) {
+      return apiResponse.notFoundResponse(res, 'Annual Report not found');
+    }
+
+    const { financialYear } = req.body;
+    let pdfPath = annualReport.links; // Existing PDF path
+
+    if (req.file) {
+      // Optionally, delete the old PDF file from the server
+      if (annualReport.links) {
+        fs.unlink(path.resolve(annualReport.links), (err) => {
+          if (err) console.error('Failed to delete old PDF:', err);
         });
       }
-      return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+      pdfPath = req.file.path.replace(/\\/g, '/'); // Update to new file path
     }
-    next();
-  },
-  updateAnnualReport
-);
+
+    // Update fields
+    annualReport.financialYear = financialYear;
+    annualReport.links = pdfPath;
+
+    await annualReport.save();
+
+    return apiResponse.successResponseWithData(
+      res,
+      'Annual Report updated successfully',
+      annualReport
+    );
+  } catch (error) {
+    console.error('Update Annual Report failed:', error);
+    return apiResponse.ErrorResponse(res, 'Update Annual Report failed');
+  }
+};
 
 // Get All Annual Reports
 router.get('/get-annualreports', authenticateToken, getAnnualReports);
