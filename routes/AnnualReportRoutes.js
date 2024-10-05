@@ -37,44 +37,28 @@ router.post(
 );
 
 // Update Annual Report
-exports.updateAnnualReport = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const annualReport = await AnnualReport.findByPk(id);
-
-    if (!annualReport) {
-      return apiResponse.notFoundResponse(res, 'Annual Report not found');
-    }
-
-    const { financialYear } = req.body;
-    let pdfPath = annualReport.links; // Existing PDF path
-
-    if (req.file) {
-      // Optionally, delete the old PDF file from the server
-      if (annualReport.links) {
-        fs.unlink(path.resolve(annualReport.links), (err) => {
-          if (err) console.error('Failed to delete old PDF:', err);
+router.put(
+  '/update-annualreport/:id',
+  authenticateToken, // Protect the route
+  upload.single('pdf'), // Allow updating the PDF
+  validateAnnualReportId, // Validate ID parameter
+  validateAnnualReport, // Validate request body
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // If a file was uploaded but validation failed, delete the uploaded file
+      if (req.file) {
+        const fs = require('fs');
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error('Failed to delete uploaded file after validation error:', err);
         });
       }
-      pdfPath = req.file.path.replace(/\\/g, '/'); // Update to new file path
+      return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
     }
-
-    // Update fields
-    annualReport.financialYear = financialYear;
-    annualReport.links = pdfPath;
-
-    await annualReport.save();
-
-    return apiResponse.successResponseWithData(
-      res,
-      'Annual Report updated successfully',
-      annualReport
-    );
-  } catch (error) {
-    console.error('Update Annual Report failed:', error);
-    return apiResponse.ErrorResponse(res, 'Update Annual Report failed');
-  }
-};
+    next();
+  },
+  updateAnnualReport
+);
 
 // Get All Annual Reports
 router.get('/get-annualreports', authenticateToken, getAnnualReports);
