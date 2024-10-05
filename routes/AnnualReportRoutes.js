@@ -12,7 +12,7 @@ const {
   getAnnualReports,
   toggleIsActive,
   toggleIsDelete,
-} = require('../controllers/annualReportController');
+} = require('../controllers/AnnualReportController');
 const {
   validateAnnualReport,
   validateAnnualReportId,
