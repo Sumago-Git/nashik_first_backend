@@ -27,9 +27,7 @@ const homecounter = require("./routes/HomeCounterRoute");
 const gallery = require("./routes/photoGalleryRoutes");
 const supporter = require("./routes/supporterRoutes");
 const contactDetails = require("./routes/contactDetailsRoutes");
-const annualReport = require("./routes/AnnualReportRoutes");
 
-app.use('/annualreport', annualReport);
 app.use('/office', officeRoutes);
 app.use('/counter', homecounter);
 app.use('/gallery', gallery);
