@@ -24,6 +24,8 @@ const officeRoutes = require('./routes/officeRoutes');
 const homeBannerRoutes = require('./routes/homeBannerRoutes');
 const socialContactRoutes = require("./routes/SocialContactRoute");
 const homecounter = require("./routes/HomeCounterRoute");
+const homeyoutube = require("./routes/homeyoutubeRoute");
+
 const gallery = require("./routes/photoGalleryRoutes");
 const supporter = require("./routes/supporterRoutes");
 const contactDetails = require("./routes/contactDetailsRoutes");
@@ -32,6 +34,8 @@ app.use('/office', officeRoutes);
 app.use('/counter', homecounter);
 app.use('/gallery', gallery);
 app.use('/homeBanner', homeBannerRoutes);
+app.use('/homeyoutube', homeyoutube);
+
 app.use('/supporter', supporter);
 app.use("/auth", authRoutes);
 app.use("/social-contact", socialContactRoutes);
