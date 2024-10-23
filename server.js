@@ -6,22 +6,23 @@ const path = require("path");
 const port = process.env.PORT || 8000;
 const cors = require("cors");
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
-
 app.use(bodyParser.json());
-
 
 app.use("/uploads", express.static("uploads"));
 
 const sequelize = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
-const officeRoutes = require('./routes/officeRoutes');
-const homeBannerRoutes = require('./routes/homeBannerRoutes');
+const officeRoutes = require("./routes/officeRoutes");
+const homeBannerRoutes = require("./routes/homeBannerRoutes");
 const socialContactRoutes = require("./routes/SocialContactRoute");
 const homecounter = require("./routes/HomeCounterRoute");
 const homeyoutube = require("./routes/homeyoutubeRoute");
@@ -29,17 +30,25 @@ const homeyoutube = require("./routes/homeyoutubeRoute");
 const gallery = require("./routes/photoGalleryRoutes");
 const supporter = require("./routes/supporterRoutes");
 const contactDetails = require("./routes/contactDetailsRoutes");
+const holiday = require("./routes/HolidayRoutes");
+const slotSession = require("./routes/slots");
+const BookingForm = require("./routes/BookingFormRoutes");
+const AvailableSeat = require("./routes/AvailableSeatsRoutes");
 
-app.use('/office', officeRoutes);
-app.use('/counter', homecounter);
-app.use('/gallery', gallery);
-app.use('/homeBanner', homeBannerRoutes);
+app.use("/bookingform", BookingForm);
+app.use("/slots", slotSession);
+app.use("/holiday", holiday);
+app.use("/office", officeRoutes);
+app.use("/counter", homecounter);
+app.use("/gallery", gallery);
+app.use("/homeBanner", homeBannerRoutes);
 app.use('/homeyoutube', homeyoutube);
 
-app.use('/supporter', supporter);
+app.use("/supporter", supporter);
 app.use("/auth", authRoutes);
 app.use("/social-contact", socialContactRoutes);
 app.use("/contact-detail", contactDetails);
+app.use("/seats", AvailableSeat);
 
 // Test DB connection
 const testDbConnection = async () => {
