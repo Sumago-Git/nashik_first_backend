@@ -25,26 +25,48 @@ const officeRoutes = require("./routes/officeRoutes");
 const homeBannerRoutes = require("./routes/homeBannerRoutes");
 const socialContactRoutes = require("./routes/SocialContactRoute");
 const homecounter = require("./routes/HomeCounterRoute");
+const homeyoutube = require("./routes/homeyoutubeRoute");
+
 const gallery = require("./routes/photoGalleryRoutes");
+const thanksto = require("./routes/ThanksToRoutes");
+const objectiveofANF = require("./routes//ObjectiveOfANFRoutes");
+const PostEvents = require("./routes/PostEventsRoutes");
+const EventGallary = require("./routes/EventGallaryRoutes")
 const supporter = require("./routes/supporterRoutes");
 const contactDetails = require("./routes/contactDetailsRoutes");
 const holiday = require("./routes/HolidayRoutes");
 const slotSession = require("./routes/slots");
 const BookingForm = require("./routes/BookingFormRoutes");
 const AvailableSeat = require("./routes/AvailableSeatsRoutes");
-
+const news = require("./routes/NewsRoute")
+const Videos = require("./routes/VideosRoute")
+const Directors = require("./routes/DirectorsRoute")
+const Upcomming = require("./routes/UpcommingRoutes")
+const AnnualReport = require("./routes/AnnualReportRoutes")
+const AnnualReturn = require("./routes/AnnualReturnRoutes")
 app.use("/bookingform", BookingForm);
 app.use("/slots", slotSession);
 app.use("/holiday", holiday);
 app.use("/office", officeRoutes);
 app.use("/counter", homecounter);
 app.use("/gallery", gallery);
+app.use("/thanksto", thanksto);
+app.use("/objectiveofANF", objectiveofANF);
+app.use("/news", news);
+app.use("/Videos", Videos);
+app.use("/Directors",Directors)
+app.use("/PostEvents", PostEvents);
+app.use('/EventGallary',EventGallary)
 app.use("/homeBanner", homeBannerRoutes);
+app.use('/homeyoutube', homeyoutube);
+app.use('/Upcomming',Upcomming)
 app.use("/supporter", supporter);
 app.use("/auth", authRoutes);
 app.use("/social-contact", socialContactRoutes);
 app.use("/contact-detail", contactDetails);
 app.use("/seats", AvailableSeat);
+app.use("/AnnualReport",AnnualReport)
+app.use("/AnnualReturn",AnnualReturn)
 
 // Test DB connection
 const testDbConnection = async () => {
