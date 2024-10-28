@@ -1,12 +1,12 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Homeyoutube = sequelize.define("Homeyoutube", {
-  mediaurl: {
+const AnnualReturn = sequelize.define("AnnualReturn", {
+  label: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  title: {
+  links: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -20,4 +20,4 @@ const Homeyoutube = sequelize.define("Homeyoutube", {
   },
 });
 
-module.exports = Homeyoutube;
+module.exports = AnnualReturn;

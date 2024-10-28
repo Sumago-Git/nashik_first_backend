@@ -1,10 +1,10 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const Homeyoutube = sequelize.define("Homeyoutube", {
-  mediaurl: {
+const PostEvents = sequelize.define('PostEvents', {
+  img: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   title: {
     type: DataTypes.STRING,
@@ -18,6 +18,8 @@ const Homeyoutube = sequelize.define("Homeyoutube", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+}, {
+  timestamps: true,
 });
 
-module.exports = Homeyoutube;
+module.exports = PostEvents;

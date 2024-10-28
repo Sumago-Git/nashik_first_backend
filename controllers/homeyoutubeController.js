@@ -1,117 +1,125 @@
-const homeyoutube = require("../models/homeyoutube");
+const Homeyoutube = require("../models/homeyoutube");
 const apiResponse = require("../helper/apiResponse");
 
 exports.addhomeyoutube = async (req, res) => {
   try {
-    const { mediaurl, title} = req.body;
-    const homeyoutube = await homeyoutube.create({
+    const Homeyoutube = require("../models/homeyoutube");
+    const { title, mediaurl } = req.body;
+    const Homeyoutube1 = await Homeyoutube.create({
+      title,
       mediaurl,
-      title,     
       isActive: true,
       isDelete: false,
     });
     return apiResponse.successResponseWithData(
       res,
-      "home youtube added successfully",
-      homeyoutube
+      "Home Counter added successfully",
+      Homeyoutube1
     );
   } catch (error) {
-    console.log("Add home youtube failed", error);
-    return apiResponse.ErrorResponse(res, "Add home youtube failed");
+    console.log("Add Home Counter failed", error);
+    return apiResponse.ErrorResponse(res, "Add Home Counter failed");
   }
 };
 
 exports.updatehomeyoutube = async (req, res) => {
   try {
     const { id } = req.params;
-    const homeyoutube = await homeyoutube.findByPk(id);
-    
-    if (!homeyoutube) {
-      return apiResponse.notFoundResponse(res, "Social contact not found");
+    const homeyoutubeInstance = await Homeyoutube.findByPk(id);
+
+    // Check if the instance was found
+    if (!homeyoutubeInstance) {
+      return apiResponse.notFoundResponse(res, "Home counter not found");
     }
 
-    homeyoutube.mediaurl = req.body.mediaurl;
-    homeyoutube.title = req.body.title;
+    // Update fields
+    homeyoutubeInstance.title = req.body.title;
+    homeyoutubeInstance.mediaurl = req.body.mediaurl;
 
-    await homeyoutube.save();
-    
+    // Save the updated instance
+    await homeyoutubeInstance.save();
+
+    // Return success response
     return apiResponse.successResponseWithData(
       res,
-      "home youtube updated successfully",
-      homeyoutube
+      "Home Counter updated successfully",
+      homeyoutubeInstance
     );
   } catch (error) {
-    console.log("Update home youtube failed", error);
-    return apiResponse.ErrorResponse(res, "Update home youtube failed");
+    console.log("Update Home Counter failed", error);
+    return apiResponse.ErrorResponse(res, "Update Home Counter failed");
   }
 };
 
+
 exports.gethomeyoutube = async (req, res) => {
   try {
-    const homeyoutube = await homeyoutube.findAll({
+    const Homeyoutube1 = await Homeyoutube.findAll({
       where: { isDelete: false },
     });
     return apiResponse.successResponseWithData(
       res,
-      "home youtube retrieved successfully",
-      homeyoutube
+      "home counter retrieved successfully",
+      Homeyoutube1
     );
   } catch (error) {
-    console.log("Get home youtube failed", error);
-    return apiResponse.ErrorResponse(res, "Get home youtube failed");
+    console.log("Get home counter failed", error);
+    return apiResponse.ErrorResponse(res, "Get home counter failed");
   }
 };
 
-// Toggle isActive status
+
 exports.isActiveStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const homeyoutube = await homeyoutube.findByPk(id);
+    const Homeyoutube1 = await Homeyoutube.findByPk(id);
 
-    if (!homeyoutube) {
-      return apiResponse.notFoundResponse(res, "home youtube not found");
+    if (!Homeyoutube) {
+      return apiResponse.notFoundResponse(res, "home counter not found");
     }
 
-    homeyoutube.isActive = !homeyoutube.isActive;
-    await homeyoutube.save();
+    Homeyoutube.isActive = !Homeyoutube.isActive;
+    await Homeyoutube1.save();
 
     return apiResponse.successResponseWithData(
       res,
-      "home youtube status updated successfully",
-      homeyoutube
+      "home counter status updated successfully",
+      Homeyoutube1
     );
   } catch (error) {
-    console.log("Toggle home youtube status failed", error);
-    return apiResponse.ErrorResponse(res, "Toggle home youtube status failed");
+    console.log("Toggle home counter status failed", error);
+    return apiResponse.ErrorResponse(res, "Toggle home counter status failed");
   }
 };
+
 
 // Toggle isDelete status
 exports.isDeleteStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find the homeyoutube by its primary key
-    const homeyoutube = await homeyoutube.findByPk(id);
+    // Find the Homeyoutube by its primary key
+    const homeyoutubeInstance = await Homeyoutube.findByPk(id);
 
-    if (!homeyoutube) {
-      return apiResponse.notFoundResponse(res, "home youtube not found");
+    // Check if the instance was found
+    if (!homeyoutubeInstance) {
+      return apiResponse.notFoundResponse(res, "Home counter not found");
     }
 
     // Toggle the isDelete status
-    homeyoutube.isDelete = !homeyoutube.isDelete;
+    homeyoutubeInstance.isDelete = !homeyoutubeInstance.isDelete;
 
-    // Save the updated homeyoutube
-    await homeyoutube.save();
+    // Save the updated Homeyoutube instance
+    await homeyoutubeInstance.save();
 
-    // Respond with success message and updated homeyoutube object
+    // Respond with success message and updated Homeyoutube object
     return apiResponse.successResponseWithData(
       res,
-      "home youtube delete status updated successfully",
-      homeyoutube
+      "Home counter delete status updated successfully",
+      homeyoutubeInstance
     );
   } catch (error) {
-    console.log("Toggle home youtube delete status failed", error);
-    return apiResponse.ErrorResponse(res, "Toggle home youtube delete status failed");
+    console.log("Toggle home counter delete status failed", error);
+    return apiResponse.ErrorResponse(res, "Toggle home counter delete status failed");
   }
 };
