@@ -3,7 +3,7 @@ const apiResponse = require("../helper/apiResponse");
 
 exports.addBookingForm = async (req, res) => {
   try {
-    const { learningNo, fname, mname, lname, email, phone, vehicletype, slotdate, slotsession } = req.body;
+    const { learningNo, fname, mname, lname, email, phone, vehicletype, slotdate, slotsession, category } = req.body;
     
     // Convert the vehicletype array to a comma-separated string
     const vehicletypeString = Array.isArray(vehicletype) ? vehicletype.join(",") : vehicletype;
@@ -18,6 +18,7 @@ exports.addBookingForm = async (req, res) => {
       vehicletype: vehicletypeString,
       slotdate,
       slotsession,
+      category,
       isActive: true,
       isDelete: false,
     });
