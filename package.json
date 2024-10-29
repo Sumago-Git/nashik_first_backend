@@ -20,6 +20,8 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.10.2",
     "nodemailer": "^6.9.14",
-    "sequelize": "^6.37.3"
+    "pdf-parse": "^1.1.1",
+    "sequelize": "^6.37.3",
+    "xlsx": "^0.18.5"
   }
 }

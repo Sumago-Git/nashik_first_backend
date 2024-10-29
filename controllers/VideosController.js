@@ -19,10 +19,10 @@ exports.addVideos = async (req, res) => {
 };
 
 // Update Videos with img and title
-exports.updateVideos = async (req, res) => {
+exports.updateVideos  = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title,mediaurl } = req.body;
+    const { title, mediaurl } = req.body;
 
     // Fetch the Videos record by its ID
     const VideosRecord = await Videos.findByPk(id);
@@ -30,10 +30,14 @@ exports.updateVideos = async (req, res) => {
       return apiResponse.notFoundResponse(res, 'Videos not found');
     }
 
-    // Only update img if a new file is uploaded
- 
-    VideosRecord.title = title; // Update the title
-    mediaurl.title=mediaurl;
+    // Update the title and mediaurl only if they are provided
+    if (title) {
+      VideosRecord.title = title; // Update the title if provided
+    }
+    if (mediaurl) {
+      VideosRecord.mediaurl = mediaurl; // Update the mediaurl if provided
+    }
+
     // Save the updated record
     await VideosRecord.save();
 

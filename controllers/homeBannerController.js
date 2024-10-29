@@ -1,14 +1,14 @@
 const HomeBanner = require('../models/homeBanner');
 const apiResponse = require('../helper/apiResponse');
 
-// Add HomeBanner with bannerweb and bannermob
+// Add HomeBanner with img1 and img2
 exports.addHomeBanner = async (req, res) => {
   try {
-    const { bannerweb, bannermob } = req.files;
+    const { img1, img2 } = req.files;
 
     const homeBanner = await HomeBanner.create({
-      bannerweb: bannerweb ? bannerweb[0].path : null,
-      bannermob: bannermob ? bannermob[0].path : null,
+      img1: img1 ? img1[0].path : null,
+      img2: img2 ? img2[0].path : null,
     });
 
     return apiResponse.successResponseWithData(res, 'HomeBanner added successfully', homeBanner);
@@ -18,19 +18,19 @@ exports.addHomeBanner = async (req, res) => {
   }
 };
 
-// Update HomeBanner with bannerweb and bannermob
+// Update HomeBanner with img1 and img2
 exports.updateHomeBanner = async (req, res) => {
   try {
     const { id } = req.params;
-    const { bannerweb, bannermob } = req.files;
+    const { img1, img2 } = req.files;
 
     const homeBanner = await HomeBanner.findByPk(id);
     if (!homeBanner) {
       return apiResponse.notFoundResponse(res, 'HomeBanner not found');
     }
 
-    homeBanner.bannerweb = bannerweb ? bannerweb[0].path : homeBanner.bannerweb;
-    homeBanner.bannermob = bannermob ? bannermob[0].path : homeBanner.bannermob;
+    homeBanner.img1 = img1 ? img1[0].path : homeBanner.img1;
+    homeBanner.img2 = img2 ? img2[0].path : homeBanner.img2;
 
     await homeBanner.save();
 
@@ -99,8 +99,8 @@ exports.getHomeBanners = async (req, res) => {
       const baseUrl = `${req.protocol}://${req.get('host')}/`;
       const homeBannersWithBaseUrl = homeBanners.map(homeBanner => ({
         ...homeBanner.toJSON(),
-        bannerweb: homeBanner.bannerweb ? baseUrl + homeBanner.bannerweb.replace(/\\/g, '/') : null,
-        bannermob: homeBanner.bannermob ? baseUrl + homeBanner.bannermob.replace(/\\/g, '/') : null,
+        img1: homeBanner.img1 ? baseUrl + homeBanner.img1.replace(/\\/g, '/') : null,
+        img2: homeBanner.img2 ? baseUrl + homeBanner.img2.replace(/\\/g, '/') : null,
       }));
   
       return apiResponse.successResponseWithData(res, 'HomeBanners retrieved successfully', homeBannersWithBaseUrl);

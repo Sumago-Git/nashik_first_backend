@@ -32,13 +32,14 @@ const fileFilter = (req, file, cb) => {
 
 // Multer configuration for handling both single and multiple image uploads
 const uploadSingle = multer({ storage, fileFilter }).single('img');
-const uploadMultiple = multer({ 
-  storage, 
-  fileFilter 
+const uploadMultiple = multer({
+  storage,
+  fileFilter
 }).fields([
   { name: 'img1', maxCount: 1 },
   { name: 'img2', maxCount: 1 }
 ]);
+const uploadSinglePDF = multer({ storage, fileFilter }).single('file'); // Change 'img' to 'file'
 
 // Export both configurations
-module.exports = { uploadSingle, uploadMultiple };
+module.exports = { uploadSingle, uploadMultiple, uploadSinglePDF};

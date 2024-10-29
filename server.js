@@ -44,6 +44,7 @@ const Directors = require("./routes/DirectorsRoute")
 const Upcomming = require("./routes/UpcommingRoutes")
 const AnnualReport = require("./routes/AnnualReportRoutes")
 const AnnualReturn = require("./routes/AnnualReturnRoutes")
+const Sessionslot = require("./routes/Sessionslot")
 app.use("/bookingform", BookingForm);
 app.use("/slots", slotSession);
 app.use("/holiday", holiday);
@@ -67,6 +68,7 @@ app.use("/contact-detail", contactDetails);
 app.use("/seats", AvailableSeat);
 app.use("/AnnualReport",AnnualReport)
 app.use("/AnnualReturn",AnnualReturn)
+app.use("/Sessionslot",Sessionslot)
 
 // Test DB connection
 const testDbConnection = async () => {
