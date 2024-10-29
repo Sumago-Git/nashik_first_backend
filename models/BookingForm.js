@@ -41,6 +41,10 @@ const BookingForm = sequelize.define("BookingForm", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
