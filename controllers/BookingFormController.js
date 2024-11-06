@@ -9,7 +9,7 @@ const xlsx = require('xlsx');
 
 exports.uploadOrAddBookingForm = async (req, res) => {
   try {
-    const { learningNo, fname, mname, lname, email, phone, vehicletype, slotdate, slotsession } = req.body;
+    const { learningNo, fname, mname, lname, email, phone, vehicletype, slotdate, slotsession, category } = req.body;
 
     // Case 1: Handle file upload (XLSX)
     if (req.file) {
@@ -32,6 +32,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             lname: item.lname,
             email: item.email,
             phone: item.phone,
+            category: category,
             vehicletype: vehicletypeString,
             slotdate: slotdate,           // Override with form input
             slotsession: slotsession,      // Override with form input
@@ -63,6 +64,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       email,
       phone,
       vehicletype: vehicletypeString,
+      category: category,
       slotdate,
       slotsession,
       isActive: true,
@@ -136,7 +138,7 @@ exports.uploadXLSX = async (req, res) => {
 exports.addBookingForm = async (req, res) => {
   try {
     const { learningNo, fname, mname, lname, email, phone, vehicletype, slotdate, slotsession, category } = req.body;
-    
+
     // Convert the vehicletype array to a comma-separated string
     const vehicletypeString = Array.isArray(vehicletype) ? vehicletype.join(",") : vehicletype;
 
