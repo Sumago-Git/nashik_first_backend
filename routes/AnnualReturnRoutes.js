@@ -1,43 +1,32 @@
 const express = require('express');
-const { 
-  addAnnualReturn, 
-  updateAnnualReturn, 
-  getAnnualReturns, 
-  toggleActiveStatus, 
-  toggleDeleteStatus 
+const {
+  addAnnualReturn,
+  getAnnualReturns,
+  getActiveAnnualReturns,
+  updateAnnualReturn, // Ensure this is included
+  toggleAnnualReturnStatus,
+  toggleAnnualReturnDelete
 } = require('../controllers/AnnualReturnController');
-const { AnnualReturnValidation, AnnualReturnValidationId } = require('../validations/AnnualReturnValidation');
-const { validationResult } = require('express-validator');
-const apiResponse = require('../helper/apiResponse');
 const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// Add annual report
-router.post('/create-AnnualReturn', AnnualReturnValidation, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, addAnnualReturn);
+// Route to create a new Annual Return (POST)
+router.post('/create-annualReturn', authenticateToken, addAnnualReturn);
 
-// Update annual report
-router.put('/AnnualReturn/:id', authenticateToken, AnnualReturnValidationId, AnnualReturnValidation, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, updateAnnualReturn);
+// Route to get all Annual Returns (GET)
+router.get('/get-annualReturns', getAnnualReturns);
 
-// Get all annual reports
-router.get('/get-AnnualReturns', getAnnualReturns);
+// Route to get all active Annual Returns (GET)
+router.get('/get-active-annualReturns', getActiveAnnualReturns);
 
-// Toggle active status
-router.put('/isactive-annual/:id', authenticateToken, AnnualReturnValidationId, toggleActiveStatus);
+// Route to update an existing Annual Return (PUT)
+router.put('/update-annualReturn/:id', authenticateToken, updateAnnualReturn); 
 
-// Toggle delete status
-router.delete('/isdelete-annual/:id', authenticateToken, AnnualReturnValidationId, toggleDeleteStatus);
+// Route to toggle isActive status (PUT)
+router.put('/annualReturn-status/:id', authenticateToken, toggleAnnualReturnStatus);
+
+// Route to toggle isDelete status (DELETE)
+router.delete('/annualReturn-delete/:id', authenticateToken, toggleAnnualReturnDelete);
 
 module.exports = router;

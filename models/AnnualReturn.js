@@ -1,12 +1,12 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const AnnualReturn = sequelize.define("AnnualReturn", {
-  label: {
+const AnnualReturn = sequelize.define('AnnualReturn', {
+  file: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  links: {
+  financialYear: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -18,6 +18,8 @@ const AnnualReturn = sequelize.define("AnnualReturn", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+}, {
+  timestamps: true, // Enable createdAt and updatedAt fields
 });
 
 module.exports = AnnualReturn;
