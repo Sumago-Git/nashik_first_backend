@@ -45,13 +45,11 @@ const Upcomming = require("./routes/UpcommingRoutes")
 const AnnualReport = require("./routes/AnnualReportRoutes")
 const AnnualReturn = require("./routes/AnnualReturnRoutes")
 const Sessionslot = require("./routes/Sessionslot")
-const BookingEntries = require("./routes/BookingRoute")
 const ContactForm = require("./routes/contactFormRoutes")
 const Trainer = require("./routes/trainerRoutes")
 app.use("/trainer", Trainer);
 app.use("/contactform", ContactForm);
 app.use("/bookingform", BookingForm);
-app.use("/bookingentries", BookingEntries);
 app.use("/slots", slotSession);
 app.use("/holiday", holiday);
 app.use("/office", officeRoutes);
