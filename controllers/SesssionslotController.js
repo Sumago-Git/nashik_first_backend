@@ -6,6 +6,8 @@ const apiResponse = require("../helper/apiResponse");
 exports.addSessionslot = async (req, res) => {
   try {
     const { time, title, capacity, deadlineTime, trainer, category, slotdate } = req.body;
+    console.log("slotdate", slotdate);
+    
     const slot = await Sessionslot.create({
       time,
       title, capacity, deadlineTime, trainer, category, slotdate,
@@ -98,21 +100,24 @@ exports.toggleIsDelete = async (req, res) => {
 // Get Sessionslots by Category
 exports.getSessionslotsByCategory = async (req, res) => {
   try {
-    const { category } = req.params;
+    const { category, slotdate } = req.body;  // Assuming both parameters are in the URL path
+
+    // Retrieve sessionslot based on category and slotdate
     const sessionslots = await Sessionslot.findAll({
       where: {
         category,
-        isDelete: false
-      }
+        slotdate,  // Filter by slotdate as well
+        isDelete: false,  // Only non-deleted slots
+      },
     });
 
     if (!sessionslots || sessionslots.length === 0) {
-      return apiResponse.notFoundResponse(res, "No session slots found for this category");
+      return apiResponse.notFoundResponse(res, "No session slots found for this category and slotdate");
     }
 
-    return apiResponse.successResponseWithData(res, "Sessionslots retrieved successfully by category", sessionslots);
+    return apiResponse.successResponseWithData(res, "Sessionslots retrieved successfully by category and slotdate", sessionslots);
   } catch (error) {
-    console.log("Get Sessionslots by category failed", error);
-    return apiResponse.ErrorResponse(res, "Get Sessionslots by category failed");
+    console.log("Get Sessionslots by category and slotdate failed", error);
+    return apiResponse.ErrorResponse(res, "Get Sessionslots by category and slotdate failed");
   }
 };

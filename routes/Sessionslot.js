@@ -28,8 +28,7 @@ router.put('/Sessionslot/:id', authenticateToken,    (req, res, next) => {
 }, updateSessionslot);
 
 
-router.get('/sessionslots/category/:category',getSessionslotsByCategory);
-
+router.post("/sessionslots", getSessionslotsByCategory);
 // Get all SessionSessionslot
 router.get('/get-SessionSessionslot', getSessionSessionslot);
 
