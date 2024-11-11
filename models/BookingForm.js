@@ -45,9 +45,33 @@ const BookingForm = sequelize.define("BookingForm", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  user_id: {
-    type: DataTypes.INTEGER,
-    defaultValue: 55, // Default user_id
+  institution_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  institution_email: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  institution_phone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  hm_principal_manager_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  hm_principal_manager_mobile: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  coordinator_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  coordinator_mobile: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   status: {
     type: DataTypes.STRING,

@@ -116,6 +116,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       slotdate,
       slotsession,
       category,
+      institution_name,
+      institution_email,
+      institution_phone,
+      coordinator_mobile,
+      coordinator_name,
+      hm_principal_manager_mobile,
+      hm_principal_manager_name
     } = req.body;
 
     // Default starting values for user_id and certificate_no
@@ -161,6 +168,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               slotsession: slotsession,
               certificate_no: certificateNo, // Incremented for each record
               user_id: userId, // Incremented for each record
+              institution_name,
+              institution_email,
+              institution_phone,
+              coordinator_mobile,
+              coordinator_name,
+              hm_principal_manager_mobile,
+              hm_principal_manager_name
             });
 
             return newRecord;
@@ -198,6 +212,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       slotsession,
       certificate_no: nextCertificateNo, // First record uses starting certificate_no
       user_id: nextUserId, // First record uses starting user_id
+      institution_name,
+      institution_email,
+      institution_phone,
+      coordinator_mobile,
+      coordinator_name,
+      hm_principal_manager_mobile,
+      hm_principal_manager_name,
       isActive: true,
       isDelete: false,
     });
@@ -240,6 +261,7 @@ exports.uploadXLSX = async (req, res) => {
             vehicletype: item.vehicletype,
             slotdate: item.slotdate,
             slotsession: item.slotsession,
+            
           });
         } catch (error) {
           console.error(
@@ -280,6 +302,13 @@ exports.addBookingForm = async (req, res) => {
       slotdate,
       slotsession,
       category,
+      institution_name,
+      institution_email,
+      institution_phone,
+      coordinator_mobile,
+      coordinator_name,
+      hm_principal_manager_mobile,
+      hm_principal_manager_name
     } = req.body;
 
     // Convert the vehicletype array to a comma-separated string
@@ -298,6 +327,13 @@ exports.addBookingForm = async (req, res) => {
       slotdate,
       slotsession,
       category,
+      institution_name,
+      institution_email,
+      institution_phone,
+      coordinator_mobile,
+      coordinator_name,
+      hm_principal_manager_mobile,
+      hm_principal_manager_name,
       isActive: true,
       isDelete: false,
     });
