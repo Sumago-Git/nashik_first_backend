@@ -1,43 +1,32 @@
 const express = require('express');
-const { 
-  addAnnualReport, 
-  updateAnnualReport, 
-  getAnnualReports, 
-  toggleActiveStatus, 
-  toggleDeleteStatus 
+const {
+  addAnnualReport,
+  getAnnualReports,
+  getActiveAnnualReports,
+  updateAnnualReport, // Ensure this is included
+  toggleAnnualReportStatus,
+  toggleAnnualReportDelete
 } = require('../controllers/AnnualReportController');
-const { validateAnnualReport, validateAnnualReportId } = require('../validations/annualReportValidation');
-const { validationResult } = require('express-validator');
-const apiResponse = require('../helper/apiResponse');
 const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
-// Add annual report
-router.post('/create-annualreport', validateAnnualReport, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, addAnnualReport);
+// Route to create a new Annual Report (POST)
+router.post('/create-annualReport', authenticateToken, addAnnualReport);
 
-// Update annual report
-router.put('/annualreport/:id', authenticateToken, validateAnnualReportId, validateAnnualReport, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, updateAnnualReport);
+// Route to get all Annual Reports (GET)
+router.get('/get-annualReports', getAnnualReports);
 
-// Get all annual reports
-router.get('/get-annualreports', getAnnualReports);
+// Route to get all active Annual Reports (GET)
+router.get('/get-active-annualReports', getActiveAnnualReports);
 
-// Toggle active status
-router.put('/isactive-annual/:id', authenticateToken, validateAnnualReportId, toggleActiveStatus);
+// Route to update an existing Annual Report (PUT)
+router.put('/update-annualReport/:id', authenticateToken, updateAnnualReport); 
 
-// Toggle delete status
-router.delete('/isdelete-annual/:id', authenticateToken, validateAnnualReportId, toggleDeleteStatus);
+// Route to toggle isActive status (PUT)
+router.put('/annualReport-status/:id', authenticateToken, toggleAnnualReportStatus);
+
+// Route to toggle isDelete status (DELETE)
+router.delete('/annualReport-delete/:id', authenticateToken, toggleAnnualReportDelete);
 
 module.exports = router;

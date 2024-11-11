@@ -1,113 +1,180 @@
-const AnnualReturn = require("../models/AnnualReturn");
-const apiResponse = require("../helper/apiResponse");
+const AnnualReturn = require('../models/AnnualReturn');
+const apiResponse = require('../helper/apiResponse');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+// Multer storage and file filter configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'uploads/annualreturn';
+    // Check if the directory exists; if not, create it
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname)); // Appends the original file extension
+  }
+});
 
-// Add new annual report
-exports.addAnnualReturn = async (req, res) => {
-  try {
-    const { label, links } = req.body;
-    const annualReturn = await AnnualReturn.create({
-      label,
-      links,
-      isActive: true,
-      isDelete: false,
-    });
-    return apiResponse.successResponseWithData(
-      res,
-      "Annual report added successfully",
-      annualReturn
-    );
-  } catch (error) {
-    console.log("Add annual report failed", error);
-    return apiResponse.ErrorResponse(res, "Add annual report failed");
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true); // Accept the file
+  } else {
+    cb(new Error('Only PDF files are allowed!'), false); // Reject files that are not PDFs
   }
 };
 
-// Update annual report
-exports.updateAnnualReturn = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const annualReturn = await AnnualReturn.findByPk(id);
+// Initialize Multer with the defined storage, file filter, and limits
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB file size limit
+  fileFilter: fileFilter
+}).single('file'); // 'file' should match the field name in the form submission
 
-    if (!annualReturn) {
-      return apiResponse.notFoundResponse(res, "Annual report not found");
+// Create a new Annual Report (POST)
+exports.addAnnualReturn = (req, res) => {
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return apiResponse.ErrorResponse(res, `Upload Error: ${err.message}`);
+    } else if (err) {
+      return apiResponse.ErrorResponse(res, `Upload Error: ${err.message}`);
     }
 
-    AnnualReturn.label = req.body.label;
-    AnnualReturn.links = req.body.links;
-    await annualReturn.save();
+    try {
+      const { financialYear } = req.body;
+      const file = req.file ? req.file.path : null;
 
-    return apiResponse.successResponseWithData(
-      res,
-      "Annual report updated successfully",
-      annualReturn
-    );
-  } catch (error) {
-    console.log("Update annual report failed", error);
-    return apiResponse.ErrorResponse(res, "Update annual report failed");
-  }
+      const report = await AnnualReturn.create({
+        file: file,
+        financialYear: financialYear,
+      });
+
+      return apiResponse.successResponseWithData(res, 'Annual Report added successfully', report);
+    } catch (error) {
+      console.error('Add Annual Report failed', error);
+      return apiResponse.ErrorResponse(res, 'Add Annual Report failed');
+    }
+  });
 };
 
-// Get all annual reports
+exports.updateAnnualReturn = (req, res) => {
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return apiResponse.ErrorResponse(res, `Upload Error: ${err.message}`);
+    } else if (err) {
+      return apiResponse.ErrorResponse(res, `Upload Error: ${err.message}`);
+    }
+
+    try {
+      const { id } = req.params;
+      const { financialYear } = req.body;
+
+      // Find the existing report by ID
+      const report = await AnnualReturn.findByPk(id);
+      if (!report) {
+        return apiResponse.notFoundResponse(res, 'Annual Report not found');
+      }
+
+      // Update the report fields
+      if (req.file) {
+        report.file = req.file.path; // Update file if a new one is uploaded
+      }
+
+      // Update other fields (e.g., financialYear)
+      if (financialYear) {
+        report.financialYear = financialYear; // Only update if provided
+      }
+
+      // Save the updated report to the database
+      await report.save();
+
+      // Return the success response with the updated data
+      return apiResponse.successResponseWithData(res, 'Annual Report updated successfully', report);
+    } catch (error) {
+      console.error('Update Annual Report failed', error);
+      return apiResponse.ErrorResponse(res, 'Update Annual Report failed');
+    }
+  });
+};
+// Get all Annual Reports (GET)
 exports.getAnnualReturns = async (req, res) => {
   try {
-    const AnnualReturns = await AnnualReturn.findAll({
+    const reports = await AnnualReturn.findAll({
       where: { isDelete: false },
     });
-    return apiResponse.successResponseWithData(
-      res,
-      "Annual reports retrieved successfully",
-      AnnualReturns
-    );
+
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const reportsWithBaseUrl = reports.map(report => ({
+      ...report.toJSON(),
+      file: report.file ? baseUrl + report.file.replace(/\\/g, '/') : null,
+    }));
+
+    return apiResponse.successResponseWithData(res, 'Annual Reports retrieved successfully', reportsWithBaseUrl);
   } catch (error) {
-    console.log("Get annual reports failed", error);
-    return apiResponse.ErrorResponse(res, "Get annual reports failed");
+    console.error('Get Annual Reports failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Annual Reports failed');
   }
 };
 
-// Toggle isActive status
-exports.toggleActiveStatus = async (req, res) => {
+// Get all active Annual Reports (GET)
+exports.getActiveAnnualReturns = async (req, res) => {
   try {
-    const { id } = req.params;
-    const AnnualReturn = await AnnualReturn.findByPk(id);
+    const reports = await AnnualReturn.findAll({
+      where: { isDelete: false, isActive: true },
+    });
 
-    if (!AnnualReturn) {
-      return apiResponse.notFoundResponse(res, "Annual report not found");
-    }
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const reportsWithBaseUrl = reports.map(report => ({
+      ...report.toJSON(),
+      file: report.file ? baseUrl + report.file.replace(/\\/g, '/') : null,
+    }));
 
-    AnnualReturn.isActive = !AnnualReturn.isActive;
-    await AnnualReturn.save();
-
-    return apiResponse.successResponseWithData(
-      res,
-      "Annual report status updated successfully",
-      AnnualReturn
-    );
+    return apiResponse.successResponseWithData(res, 'Active Annual Reports retrieved successfully', reportsWithBaseUrl);
   } catch (error) {
-    console.log("Toggle active status failed", error);
-    return apiResponse.ErrorResponse(res, "Toggle active status failed");
+    console.error('Get Active Annual Reports failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Active Annual Reports failed');
   }
 };
 
-// Toggle isDelete status
-exports.toggleDeleteStatus = async (req, res) => {
+// Toggle isActive status of Annual Report (PUT)
+exports.toggleAnnualReturnStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const AnnualReturn = await AnnualReturn.findByPk(id);
+    const report = await AnnualReturn.findByPk(id);
 
-    if (!AnnualReturn) {
-      return apiResponse.notFoundResponse(res, "Annual report not found");
+    if (!report) {
+      return apiResponse.notFoundResponse(res, 'Annual Report not found');
     }
 
-    AnnualReturn.isDelete = !AnnualReturn.isDelete;
-    await AnnualReturn.save();
+    report.isActive = !report.isActive;
+    await report.save();
 
-    return apiResponse.successResponseWithData(
-      res,
-      "Annual report delete status updated successfully",
-      AnnualReturn
-    );
+    return apiResponse.successResponseWithData(res, 'Annual Report status updated successfully', report);
   } catch (error) {
-    console.log("Toggle delete status failed", error);
-    return apiResponse.ErrorResponse(res, "Toggle delete status failed");
+    console.error('Toggle Annual Report status failed', error);
+    return apiResponse.ErrorResponse(res, 'Toggle Annual Report status failed');
+  }
+};
+
+// Toggle isDelete status of Annual Report (DELETE)
+exports.toggleAnnualReturnDelete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const report = await AnnualReturn.findByPk(id);
+
+    if (!report) {
+      return apiResponse.notFoundResponse(res, 'Annual Report not found');
+    }
+
+    report.isDelete = !report.isDelete;
+    await report.save();
+
+    return apiResponse.successResponseWithData(res, 'Annual Report delete status updated successfully', report);
+  } catch (error) {
+    console.error('Toggle Annual Report delete status failed', error);
+    return apiResponse.ErrorResponse(res, 'Toggle Annual Report delete status failed');
   }
 };

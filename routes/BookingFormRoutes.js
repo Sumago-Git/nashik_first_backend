@@ -1,5 +1,5 @@
 const express = require('express');
-const { addBookingForm, updateBookingForm, getBookingForm, isActiveStatus, isDeleteStatus, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
+const { addBookingForm, updateBookingForm, getBookingForm, getBookingEntriesByDateAndCategory, isActiveStatus, isDeleteStatus, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
 const { validateBookingForm, validateBookingFormId } = require('../validations/bookingFormValidation');
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
@@ -17,6 +17,10 @@ router.post('/create-bookingform', uploadSingleXLSX, validateBookingForm, (req, 
   }
   next();
 }, addBookingForm);
+
+// Route to get booking entries by date and category using POST method
+router.post('/get-bookingentries-by-date-category', authenticateToken, getBookingEntriesByDateAndCategory);
+
 
 // Update booking form
 router.put('/bookingform/:id', authenticateToken, validateBookingFormId, validateBookingForm, (req, res, next) => {
