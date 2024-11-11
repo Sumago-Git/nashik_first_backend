@@ -60,28 +60,44 @@ exports.addAnnualReturn = (req, res) => {
   });
 };
 
-exports.updateAnnualReturn = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { financialYear } = req.body;
-
-    const report = await AnnualReturn.findByPk(id);
-    if (!report) {
-      return apiResponse.notFoundResponse(res, 'Annual Report not found');
+exports.updateAnnualReturn = (req, res) => {
+  upload(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      return apiResponse.ErrorResponse(res, `Upload Error: ${err.message}`);
+    } else if (err) {
+      return apiResponse.ErrorResponse(res, `Upload Error: ${err.message}`);
     }
 
-    if (req.file) {
-      report.file = req.file.path; // Update the file path if a new file is uploaded
+    try {
+      const { id } = req.params;
+      const { financialYear } = req.body;
+
+      // Find the existing report by ID
+      const report = await AnnualReturn.findByPk(id);
+      if (!report) {
+        return apiResponse.notFoundResponse(res, 'Annual Report not found');
+      }
+
+      // Update the report fields
+      if (req.file) {
+        report.file = req.file.path; // Update file if a new one is uploaded
+      }
+
+      // Update other fields (e.g., financialYear)
+      if (financialYear) {
+        report.financialYear = financialYear; // Only update if provided
+      }
+
+      // Save the updated report to the database
+      await report.save();
+
+      // Return the success response with the updated data
+      return apiResponse.successResponseWithData(res, 'Annual Report updated successfully', report);
+    } catch (error) {
+      console.error('Update Annual Report failed', error);
+      return apiResponse.ErrorResponse(res, 'Update Annual Report failed');
     }
-
-    report.financialYear = financialYear; // Update the financial year
-    await report.save();
-
-    return apiResponse.successResponseWithData(res, 'Annual Report updated successfully', report);
-  } catch (error) {
-    console.error('Update Annual Report failed', error);
-    return apiResponse.ErrorResponse(res, 'Update Annual Report failed');
-  }
+  });
 };
 // Get all Annual Reports (GET)
 exports.getAnnualReturns = async (req, res) => {
