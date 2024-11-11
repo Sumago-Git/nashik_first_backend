@@ -5,10 +5,10 @@ const apiResponse = require("../helper/apiResponse");
 
 exports.addSessionslot = async (req, res) => {
   try {
-    const { time, title, capacity, deadlineTime, trainer, category } = req.body;
+    const { time, title, capacity, deadlineTime, trainer, category, slotdate } = req.body;
     const slot = await Sessionslot.create({
       time,
-      title, capacity, deadlineTime, trainer, category,
+      title, capacity, deadlineTime, trainer, category, slotdate,
       isActive: true,
       isDelete: false,
     });
@@ -27,15 +27,15 @@ exports.updateSessionslot = async (req, res) => {
     if (!slot || slot.isDelete) {
       return apiResponse.notFoundResponse(res, "Slot not found");
     }
-
+    slot.slotdate = req.body.slotdate;
     slot.time = req.body.time;
     slot.category = req.body.category;
     slot.trainer = req.body.trainer;
     slot.deadlineTime = req.body.deadlineTime;
     slot.capacity = req.body.capacity;
-    slot.title= req.body.title,
-  
-    await slot.save();
+    slot.title = req.body.title,
+
+      await slot.save();
 
     return apiResponse.successResponseWithData(res, "Slot updated successfully", slot);
   } catch (error) {
@@ -92,5 +92,27 @@ exports.toggleIsDelete = async (req, res) => {
   } catch (error) {
     console.log("Toggle slot delete status failed", error);
     return apiResponse.ErrorResponse(res, "Toggle slot delete status failed");
+  }
+};
+
+// Get Sessionslots by Category
+exports.getSessionslotsByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const sessionslots = await Sessionslot.findAll({
+      where: {
+        category,
+        isDelete: false
+      }
+    });
+
+    if (!sessionslots || sessionslots.length === 0) {
+      return apiResponse.notFoundResponse(res, "No session slots found for this category");
+    }
+
+    return apiResponse.successResponseWithData(res, "Sessionslots retrieved successfully by category", sessionslots);
+  } catch (error) {
+    console.log("Get Sessionslots by category failed", error);
+    return apiResponse.ErrorResponse(res, "Get Sessionslots by category failed");
   }
 };

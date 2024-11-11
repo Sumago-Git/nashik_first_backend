@@ -20,6 +20,10 @@ const Sessionslot = sequelize.define("Sessionslot", {
     allowNull: false, // assuming time is required
 
   },
+  slotdate: {
+    type: DataTypes.STRING,
+    allowNull: false, // assuming time is required
+  },
   trainer: {
     type: DataTypes.STRING,
     allowNull: false, // assuming time is required

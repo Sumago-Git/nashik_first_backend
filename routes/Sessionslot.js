@@ -1,5 +1,5 @@
 const express = require('express');
-const { addSessionslot, updateSessionslot, getSessionSessionslot, toggleIsActive, toggleIsDelete } = require('../controllers/SesssionslotController');
+const { addSessionslot, updateSessionslot, getSessionSessionslot, toggleIsActive, toggleIsDelete ,getSessionslotsByCategory} = require('../controllers/SesssionslotController');
 const { validationResult } = require('express-validator');
 const {    Id } = require('../validations/slotValidation'); // Assuming validations are similar
 
@@ -27,6 +27,9 @@ router.put('/Sessionslot/:id', authenticateToken,    (req, res, next) => {
   next();
 }, updateSessionslot);
 
+
+router.get('/sessionslots/category/:category',getSessionslotsByCategory);
+
 // Get all SessionSessionslot
 router.get('/get-SessionSessionslot', getSessionSessionslot);
 
@@ -35,5 +38,7 @@ router.put('/isactive-Sessionslot/:id', authenticateToken, toggleIsActive);
 
 // Toggle Sessionslot delete status (soft delete)
 router.delete('/isdelete-Sessionslot/:id', authenticateToken,  toggleIsDelete);
+
+
 
 module.exports = router;
