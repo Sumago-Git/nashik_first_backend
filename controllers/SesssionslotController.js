@@ -47,8 +47,8 @@ exports.updateSessionslot = async (req, res) => {
 // Get All Sessionslot
 exports.getSessionSessionslot = async (req, res) => {
   try {
-    const Sessionslot = await Sessionslot.findAll({ where: { isDelete: false } });
-    return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", Sessionslot);
+    const sessionslot = await Sessionslot.findAll({ where: { isDelete: false } });
+    return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", sessionslot);
   } catch (error) {
     console.log("Get Sessionslot failed", error);
     return apiResponse.ErrorResponse(res, "Get Sessionslot failed");
