@@ -7,7 +7,7 @@ exports.addSessionslot = async (req, res) => {
   try {
     const { time, title, capacity, deadlineTime, trainer, category, slotdate } = req.body;
     console.log("slotdate", slotdate);
-    
+
     const slot = await Sessionslot.create({
       time,
       title, capacity, deadlineTime, trainer, category, slotdate,
@@ -49,6 +49,7 @@ exports.updateSessionslot = async (req, res) => {
 // Get All Sessionslot
 exports.getSessionSessionslot = async (req, res) => {
   try {
+
     const sessionslot = await Sessionslot.findAll({ where: { isDelete: false } });
     return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", sessionslot);
   } catch (error) {
@@ -56,7 +57,18 @@ exports.getSessionSessionslot = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Get Sessionslot failed");
   }
 };
+exports.getSessionbySessionslot = async (req, res) => {
+  try {
+    const Slotdate = req.body.slotdate
+    const Category = req.body.category
+    const sessionslot = await Sessionslot.findAll({ where: { slotdate: Slotdate, category: Category } });
 
+    return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", sessionslot);
+  } catch (error) {
+    console.log("Get Sessionslot failed", error);
+    return apiResponse.ErrorResponse(res, "Get Sessionslot failed");
+  }
+};
 // Toggle isActive status
 exports.toggleIsActive = async (req, res) => {
   try {

@@ -30,7 +30,7 @@ const BookingForm = sequelize.define("BookingForm", {
     allowNull: false,
   },
   vehicletype: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING, 
     allowNull: false,
   },
   slotdate: {
