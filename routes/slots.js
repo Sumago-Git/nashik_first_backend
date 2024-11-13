@@ -1,5 +1,5 @@
 const express = require('express');
-const { addSlot, updateSlot, getSlots, toggleIsActive, toggleIsDelete } = require('../controllers/SlotsController');
+const { addSlot, updateSlot, getSlots, toggleIsActive, toggleIsDelete, } = require('../controllers/SlotsController');
 const { validateSlot, validateSlotId } = require('../validations/slotValidation'); // Assuming validations are similar
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
@@ -30,6 +30,8 @@ router.get('/get-slots', getSlots);
 
 // Toggle slot active status
 router.put('/isactive-slot/:id', authenticateToken, validateSlotId, toggleIsActive);
+
+
 
 // Toggle slot delete status (soft delete)
 router.delete('/isdelete-slot/:id', authenticateToken, validateSlotId, toggleIsDelete);

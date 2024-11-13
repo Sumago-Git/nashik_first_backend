@@ -1,108 +1,11 @@
 const BookingForm = require("../models/BookingForm");
 const apiResponse = require("../helper/apiResponse");
-
+const Sessionslot = require("../models/sesssionslot")
 const path = require("path");
 const fs = require("fs");
 const xlsx = require("xlsx");
 
-// exports.uploadOrAddBookingForm = async (req, res) => {
-//   try {
-//     const {
-//       learningNo,
-//       fname,
-//       mname,
-//       lname,
-//       email,
-//       phone,
-//       vehicletype,
-//       slotdate,
-//       slotsession,
-//       category,
-//     } = req.body;
 
-//     // Case 1: Handle file upload (XLSX)
-//     if (req.file) {
-//       const filePath = req.file.path; // Get file path from request
-//       const workbook = xlsx.readFile(filePath);
-//       const sheetName = workbook.SheetNames[0]; // Get the first sheet name
-//       const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]); // Convert to JSON
-
-//       // Log the extracted data
-//       console.log("Parsed data from XLSX:", data);
-
-//       // Store data in the database, but override slotdate and slotsession with form values
-//       const createdRecords = await Promise.all(
-//         data.map(async (item) => {
-//           try {
-//             const vehicletypeString = Array.isArray(item.vehicletype)
-//               ? item.vehicletype.join(",")
-//               : item.vehicletype;
-//             return await BookingForm.create({
-//               learningNo: item.learningNo,
-//               fname: item.fname,
-//               mname: item.mname,
-//               lname: item.lname,
-//               email: item.email,
-//               phone: item.phone,
-//               category: category,
-//               vehicletype: vehicletypeString,
-//               slotdate: slotdate, // Override with form input
-//               slotsession: slotsession, // Override with form input
-
-//             });
-//           } catch (error) {
-//             console.error(
-//               "Error creating record:",
-//               error.errors ? error.errors : error
-//             );
-//             return null; // Return null for failed creations
-//           }
-//         })
-//       );
-
-//       // Filter out any null records (failed creations)
-//       const successfulRecords = createdRecords.filter(
-//         (record) => record !== null
-//       );
-
-//       // Respond with the count of created records
-//       return res.json({
-//         message: `${successfulRecords.length} records created successfully from the file.`,
-//         data: successfulRecords,
-//       });
-//     }
-
-//     // Case 2: Handle JSON input directly from form submission
-//     const vehicletypeString = Array.isArray(vehicletype)
-//       ? vehicletype.join(",")
-//       : vehicletype;
-
-//     const bookingForm = await BookingForm.create({
-//       learningNo,
-//       fname,
-//       mname,
-//       lname,
-//       email,
-//       phone,
-//       vehicletype: vehicletypeString,
-//       category: category,
-//       slotdate,
-//       slotsession,
-//       isActive: true,
-//       isDelete: false,
-//     });
-
-//     return res.json({
-//       message: "Booking form added successfully",
-//       data: bookingForm,
-//     });
-//   } catch (error) {
-//     console.log("Error occurred:", error);
-//     return res
-//       .status(500)
-//       .json({ message: "An error occurred", error: error.message });
-//   }
-// };
 exports.uploadOrAddBookingForm = async (req, res) => {
   try {
     const {
@@ -135,7 +38,23 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Calculate the next available user_id and certificate_no
     const nextUserId = startingUserId + totalBookingForms;
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
+    const sessionSlot = await Sessionslot.findOne({
+      where: { slotdate, title: slotsession, category }
+    });
 
+    if (!sessionSlot) {
+      return res.status(404).json({ message: "Session slot not found" });
+      console.log("Session slot not found")
+    }
+
+    if (sessionSlot.available_seats <= 0) {
+      return res.status(400).json({ message: "No available seats for this session slot" });
+      console.log("No available seats for this session slot")
+    }
+
+    // Decrement available_seats by 1
+    await sessionSlot.update({ available_seats: sessionSlot.available_seats - 1 });
+    console.log("done")
     // Case 1: Handle file upload (XLSX)
     if (req.file) {
       const filePath = req.file.path;
@@ -261,7 +180,7 @@ exports.uploadXLSX = async (req, res) => {
             vehicletype: item.vehicletype,
             slotdate: item.slotdate,
             slotsession: item.slotsession,
-            
+
           });
         } catch (error) {
           console.error(
@@ -385,7 +304,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 exports.updateBookingForm = async (req, res) => {
   try {
     console.log("sssssssssssssssssssssssssssssssssssssssssssssssss");
-    
+
     const { id } = req.params;
     const bookingForm = await BookingForm.findByPk(id);
 

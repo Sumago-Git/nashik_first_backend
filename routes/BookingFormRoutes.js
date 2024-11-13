@@ -19,7 +19,7 @@ router.post('/create-bookingform', uploadSingleXLSX, validateBookingForm, (req, 
 }, addBookingForm);
 
 // Route to get booking entries by date and category using POST method
-router.post('/get-bookingentries-by-date-category', authenticateToken, getBookingEntriesByDateAndCategory);
+router.post('/get-bookingentries-by-date-category', getBookingEntriesByDateAndCategory);
 
 
 // Update booking form
