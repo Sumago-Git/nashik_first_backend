@@ -6,6 +6,10 @@ const Holiday = sequelize.define("Holiday", {
     type: DataTypes.STRING, // Keeping it as STRING for storing dates
     allowNull: false,
   },
+  tempdate: {
+    type: DataTypes.DATE,
+    allowNull: false, // assuming time is required
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,

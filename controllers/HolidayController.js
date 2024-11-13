@@ -7,6 +7,7 @@ exports.addHoliday = async (req, res) => {
     const { holiday_date } = req.body; // Expecting a single string
     const holiday = await Holiday.create({
       holiday_date,
+      tempdate: holiday_date,
       isActive: true,
       isDelete: false,
     });
