@@ -156,6 +156,9 @@ exports.getAvailableslots = async (req, res) => {
       },
     });
 
+
+    
+
     // Fetch all holidays for the given month and year
     const holidays = await Holiday.findAll({
       where: {
