@@ -63,7 +63,7 @@ exports.getSessionbySessionslot = async (req, res) => {
   try {
     const Slotdate = req.body.slotdate
     const Category = req.body.category
-    const sessionslot = await Sessionslot.findAll({ where: { slotdate: Slotdate, category: Category } });
+    const sessionslot = await Sessionslot.findAll({ where: { slotdate: Slotdate, category: Category,isDelete: false } });
 
     return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", sessionslot);
   } catch (error) {
