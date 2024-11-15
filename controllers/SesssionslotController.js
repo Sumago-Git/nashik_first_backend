@@ -5,23 +5,86 @@ const Holiday = require("../models/Holiday");
 const { Op } = require('sequelize');
 // Add Slot
 
+// exports.addSessionslot = async (req, res) => {
+//   try {
+//     const { time, title, capacity, deadlineTime, trainer, category, slotdate } = req.body;
+//     console.log("slotdate", slotdate);
+
+//     const slot = await Sessionslot.create({
+//       time,
+//       title, capacity, deadlineTime, trainer, category, slotdate, tempdate: slotdate, available_seats: capacity,
+//       isActive: true,
+//       isDelete: false,
+//     });
+//     return apiResponse.successResponseWithData(res, "Slot added successfully", slot);
+//   } catch (error) {
+//     console.log("Add slot failed", error);
+//     return apiResponse.ErrorResponse(res, "Add slot failed");
+//   }
+// };
+
 exports.addSessionslot = async (req, res) => {
   try {
-    const { time, title, capacity, deadlineTime, trainer, category, slotdate, tempdate } = req.body;
+    const { time, title, capacity, deadlineTime, trainer, category, slotdate } = req.body;
     console.log("slotdate", slotdate);
 
+    // Check if a slot already exists for the same category between the requested time and deadlineTime
+    const existingSlot = await Sessionslot.findOne({
+      where: {
+        isDelete: false,
+        slotdate, // Ensure it's the same date
+        category, // Ensure it's the same category
+        [Op.or]: [
+          {
+            time: {
+              [Op.between]: [time, deadlineTime], // Check if time overlaps
+            },
+          },
+          {
+            deadlineTime: {
+              [Op.between]: [time, deadlineTime], // Check if deadline overlaps
+            },
+          },
+          {
+            time: {
+              [Op.lte]: time, // Check if the slot starts before or at the requested time
+            },
+            deadlineTime: {
+              [Op.gte]: deadlineTime, // Check if the slot ends after or at the requested deadlineTime
+            },
+          },
+        ],
+      },
+    });
+
+    // If an overlapping slot is found in the same category and date, return an error
+    if (existingSlot) {
+      return apiResponse.ErrorResponse(res, `A slot in the same category exists between ${existingSlot.time} and ${existingSlot.deadlineTime}. Please select another time.`);
+    }
+
+    // If no conflicting slot is found, create the new slot
     const slot = await Sessionslot.create({
       time,
-      title, capacity, deadlineTime, trainer, category, slotdate, tempdate: slotdate, available_seats: capacity,
+      title,
+      capacity,
+      deadlineTime,
+      trainer,
+      category,
+      slotdate,
+      tempdate: slotdate,
+      available_seats: capacity,
       isActive: true,
       isDelete: false,
     });
+
     return apiResponse.successResponseWithData(res, "Slot added successfully", slot);
   } catch (error) {
     console.log("Add slot failed", error);
     return apiResponse.ErrorResponse(res, "Add slot failed");
   }
 };
+
+
 
 exports.updateSessionslot = async (req, res) => {
   try {
@@ -37,6 +100,7 @@ exports.updateSessionslot = async (req, res) => {
     slot.trainer = req.body.trainer;
     slot.deadlineTime = req.body.deadlineTime;
     slot.capacity = req.body.capacity;
+    slot.available_seats = req.body.capacity;
     slot.title = req.body.title,
 
       await slot.save();
@@ -63,7 +127,7 @@ exports.getSessionbySessionslot = async (req, res) => {
   try {
     const Slotdate = req.body.slotdate
     const Category = req.body.category
-    const sessionslot = await Sessionslot.findAll({ where: { slotdate: Slotdate, category: Category,isDelete: false } });
+    const sessionslot = await Sessionslot.findAll({ where: { slotdate: Slotdate, category: Category, isDelete: false } });
 
     return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", sessionslot);
   } catch (error) {
@@ -157,7 +221,7 @@ exports.getAvailableslots = async (req, res) => {
     });
 
 
-    
+
 
     // Fetch all holidays for the given month and year
     const holidays = await Holiday.findAll({
