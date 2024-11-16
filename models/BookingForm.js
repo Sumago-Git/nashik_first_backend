@@ -6,6 +6,10 @@ const BookingForm = sequelize.define("BookingForm", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  sessionSlotId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   fname: {
     type: DataTypes.STRING,
     allowNull: false,

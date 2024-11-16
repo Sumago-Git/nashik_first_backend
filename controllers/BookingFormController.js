@@ -9,6 +9,7 @@ const xlsx = require("xlsx");
 exports.uploadOrAddBookingForm = async (req, res) => {
   try {
     const {
+      sessionSlotId,
       learningNo,
       fname,
       mname,
@@ -25,7 +26,8 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name
+      hm_principal_manager_name,
+
     } = req.body;
 
     // Default starting values for user_id and certificate_no
@@ -38,9 +40,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Calculate the next available user_id and certificate_no
     const nextUserId = startingUserId + totalBookingForms;
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
-    const sessionSlot = await Sessionslot.findOne({
-      where: { slotdate, title: slotsession, category }
-    });
+    const sessionSlot = await Sessionslot.findByPk(sessionSlotId)
 
     if (!sessionSlot) {
       return res.status(404).json({ message: "Session slot not found" });
@@ -138,6 +138,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       coordinator_name,
       hm_principal_manager_mobile,
       hm_principal_manager_name,
+      sessionSlotId: sessionSlot.id,
       isActive: true,
       isDelete: false,
     });
@@ -270,7 +271,7 @@ exports.addBookingForm = async (req, res) => {
 
 exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
-    const { slotsession } = req.body;
+    const { slotsession, sessionSlotId, category, } = req.body;
 
     if (!slotsession) {
       return apiResponse.validationErrorWithData(
@@ -282,7 +283,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
     const bookingEntries = await BookingForm.findAll({
       where: {
-        slotsession
+        slotsession,sessionSlotId,category
       },
     });
 
