@@ -1,26 +1,23 @@
+// models/SocialContact.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const SocialContact = sequelize.define("SocialContact", {
-  instagram: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
   facebook: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
-  email: {
+  instagram: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
-  whatsapp: {
+  youtube: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
-  linkedin: {
+  twitter: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
   isActive: {
     type: DataTypes.BOOLEAN,

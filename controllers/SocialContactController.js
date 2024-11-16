@@ -1,15 +1,15 @@
+// controllers/SocialContactController.js
 const SocialContact = require("../models/SocialContact");
 const apiResponse = require("../helper/apiResponse");
 
 exports.addSocialContact = async (req, res) => {
   try {
-    const { instagram, facebook, email, whatsapp, linkedin } = req.body;
+    const { facebook, instagram, youtube, twitter } = req.body;
     const socialContact = await SocialContact.create({
-      instagram,
       facebook,
-      email,
-      whatsapp,
-      linkedin,
+      instagram,
+      youtube,
+      twitter,
       isActive: true,
       isDelete: false,
     });
@@ -19,8 +19,8 @@ exports.addSocialContact = async (req, res) => {
       socialContact
     );
   } catch (error) {
-    console.log("Add social contact failed", error);
-    return apiResponse.ErrorResponse(res, "Add social contact failed");
+    console.log("Add Social Contact failed", error);
+    return apiResponse.ErrorResponse(res, "Add Social Contact failed");
   }
 };
 
@@ -28,26 +28,26 @@ exports.updateSocialContact = async (req, res) => {
   try {
     const { id } = req.params;
     const socialContact = await SocialContact.findByPk(id);
-    
+
     if (!socialContact) {
       return apiResponse.notFoundResponse(res, "Social contact not found");
     }
 
-    socialContact.instagram = req.body.instagram;
     socialContact.facebook = req.body.facebook;
-    socialContact.email = req.body.email;
-    socialContact.whatsapp = req.body.whatsapp;
-    socialContact.linkedin = req.body.linkedin;
+    socialContact.instagram = req.body.instagram;
+    socialContact.youtube = req.body.youtube;
+    socialContact.twitter = req.body.twitter;
+
     await socialContact.save();
-    
+
     return apiResponse.successResponseWithData(
       res,
       "Social contact updated successfully",
       socialContact
     );
   } catch (error) {
-    console.log("Update social contact failed", error);
-    return apiResponse.ErrorResponse(res, "Update social contact failed");
+    console.log("Update Social Contact failed", error);
+    return apiResponse.ErrorResponse(res, "Update Social Contact failed");
   }
 };
 
@@ -62,12 +62,11 @@ exports.getSocialContact = async (req, res) => {
       socialContacts
     );
   } catch (error) {
-    console.log("Get social contacts failed", error);
-    return apiResponse.ErrorResponse(res, "Get social contacts failed");
+    console.log("Get Social Contact failed", error);
+    return apiResponse.ErrorResponse(res, "Get Social Contact failed");
   }
 };
 
-// Toggle isActive status
 exports.isActiveStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -91,10 +90,10 @@ exports.isActiveStatus = async (req, res) => {
   }
 };
 
-// Toggle isDelete status
 exports.isDeleteStatus = async (req, res) => {
   try {
     const { id } = req.params;
+
     const socialContact = await SocialContact.findByPk(id);
 
     if (!socialContact) {

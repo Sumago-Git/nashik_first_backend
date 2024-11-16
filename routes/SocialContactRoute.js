@@ -1,3 +1,4 @@
+// routes/socialContact.js
 const express = require('express');
 const { addSocialContact, updateSocialContact, getSocialContact, isActiveStatus, isDeleteStatus } = require('../controllers/SocialContactController');
 const { validateSocialContact, validateSocialContactId } = require('../validations/socialContactValidation');
@@ -25,15 +26,13 @@ router.put('/socialcontact/:id', authenticateToken, validateSocialContactId, val
   next();
 }, updateSocialContact);
 
-// Get social contacts
-router.get('/get-socialcontacts', getSocialContact);
-// Get social contacts
-router.get('/find-socialcontacts', authenticateToken, getSocialContact);
+// Get all social contacts
+router.get('/socialcontacts', getSocialContact);
 
-// Toggle social contact status
-router.put('/isactive-social/:id', authenticateToken, validateSocialContactId, isActiveStatus);
+// Toggle social contact active status
+router.put('/socialcontact/:id/status/active', authenticateToken, validateSocialContactId, isActiveStatus);
 
 // Toggle social contact delete status
-router.delete('/isdelete-social/:id', authenticateToken, validateSocialContactId, isDeleteStatus);
+router.put('/socialcontact/:id/status/delete', authenticateToken, validateSocialContactId, isDeleteStatus);
 
 module.exports = router;
