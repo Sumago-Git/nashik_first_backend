@@ -270,20 +270,19 @@ exports.addBookingForm = async (req, res) => {
 
 exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
-    const { slotdate, category } = req.body;
+    const { slotsession } = req.body;
 
-    if (!slotdate || !category) {
+    if (!slotsession) {
       return apiResponse.validationErrorWithData(
         res,
-        "Date and category are required",
+        "slotsession is required",
         {}
       );
     }
 
     const bookingEntries = await BookingForm.findAll({
       where: {
-        category,
-        slotdate,
+        slotsession
       },
     });
 
@@ -300,6 +299,8 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
     );
   }
 };
+
+
 
 exports.updateBookingForm = async (req, res) => {
   try {
