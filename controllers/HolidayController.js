@@ -90,13 +90,16 @@ exports.isActiveStatus = async (req, res) => {
 // Toggle isDelete status
 exports.isDeleteStatus = async (req, res) => {
   try {
-    const { id } = req.params;
-    const holiday = await Holiday.findByPk(id);
+    const { holiday_date } = req.body;
+
+    // Use findOne if holiday_date is not a primary key
+    const holiday = await Holiday.findOne({ where: { holiday_date } });
 
     if (!holiday) {
       return apiResponse.notFoundResponse(res, "Holiday not found");
     }
 
+    // Toggle isDelete status
     holiday.isDelete = !holiday.isDelete;
     await holiday.save();
 
@@ -106,7 +109,7 @@ exports.isDeleteStatus = async (req, res) => {
       holiday
     );
   } catch (error) {
-    console.log("Toggle holiday delete status failed", error);
+    console.error("Toggle holiday delete status failed:", error);
     return apiResponse.ErrorResponse(res, "Toggle holiday delete status failed");
   }
 };

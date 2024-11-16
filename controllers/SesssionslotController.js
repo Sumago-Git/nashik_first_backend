@@ -278,6 +278,7 @@ exports.getAvailableslots = async (req, res) => {
       // Calculate total capacity and total available seats for the day
       const totalCapacity = slotsForDay.reduce((total, slot) => total + parseInt(slot.capacity, 10), 0);
       const totalAvailableSeats = slotsForDay.reduce((total, slot) => total + parseInt(slot.available_seats, 10), 0);
+      const totalSlots = slotsForDay.length;  // Total number of slots for the day
 
       // Add to monthly totals
       totalMonthlyCapacity += totalCapacity;
@@ -298,6 +299,7 @@ exports.getAvailableslots = async (req, res) => {
         status,
         totalCapacity,
         totalAvailableSeats,
+        totalSlots
       };
     });
 

@@ -105,7 +105,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       );
 
       const successfulRecords = createdRecords.filter((record) => record !== null);
-
+      await sessionSlot.update({ available_seats: sessionSlot.available_seats === 0 });
       return res.json({
         message: `${successfulRecords.length} records created successfully from the file.`,
         data: successfulRecords,

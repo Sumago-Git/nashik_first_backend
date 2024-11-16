@@ -22,10 +22,10 @@ const Sessionslot = sequelize.define("Sessionslot", {
     type: DataTypes.STRING,
     allowNull: false, // assuming time is required
   },
-  tempdate: {
-    type: DataTypes.DATE,  // Keeping as DATE since it should store a full date and time
-    allowNull: false, 
-  },
+  // tempdate: {
+  //   type: DataTypes.DATE,  // Keeping as DATE since it should store a full date and time
+  //   allowNull: false, 
+  // },
   slotdate: {
     type: DataTypes.STRING,  // If you need to store the date as a string, keep it as STRING
     allowNull: false,

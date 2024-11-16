@@ -32,7 +32,6 @@ router.get('/find-holidays', authenticateToken, getHolidays);
 // Toggle holiday isActive status
 router.put('/isactive-holiday/:id', authenticateToken, validateHolidayId, isActiveStatus);
 
-// Toggle holiday isDelete status
-router.delete('/isdelete-holiday/:id', authenticateToken, validateHolidayId, isDeleteStatus);
-
+// Using DELETE route for toggling isDelete status
+router.put('/toggle-holiday-status', authenticateToken, validateHolidayId, isDeleteStatus);
 module.exports = router;
