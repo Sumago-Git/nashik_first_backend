@@ -27,7 +27,7 @@ exports.getIndividuals = async (req, res) => {
   try {
    
 
-    const Individual = await Individuals.findAll();
+    const Individual = await Individuals.findAll({ isDelete: false });
 
     // Formatting any image URLs if necessary
     // Assuming there might be an image field to handle
