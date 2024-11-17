@@ -243,7 +243,8 @@ exports.getAvailableslots = async (req, res) => {
 
     // Create a map to hold all days in the month (1 to 31)
     const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
-
+    let totalMonthlyCapacity = 0;
+    let totalMonthlyAvailableSeats = 0;
     // Process each slot and determine its status (available or closed)
     const data = daysInMonth.map((day) => {
       const currentDate = new Date(year, month - 1, day);  // Create current date for comparison (month is 0-indexed)
@@ -265,10 +266,6 @@ exports.getAvailableslots = async (req, res) => {
         // Construct the requested date in YYYY-MM-DD format
         const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        // Log dates for debugging
-        console.log("Normalized Temp Date:", normalizedTempDate);
-        console.log("Normalized Slot Date:", normalizedSlotDate);
-        console.log("Formatted Requested Date:", formattedRequestedDate);
 
         // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
@@ -277,6 +274,11 @@ exports.getAvailableslots = async (req, res) => {
       // Calculate total capacity and total available seats for the day
       const totalCapacity = slotsForDay.reduce((total, slot) => total + parseInt(slot.capacity, 10), 0);
       const totalAvailableSeats = slotsForDay.reduce((total, slot) => total + parseInt(slot.available_seats, 10), 0);
+      const totalSlots = slotsForDay.length;  // Total number of slots for the day
+
+      // Add to monthly totals
+      totalMonthlyCapacity += totalCapacity;
+      totalMonthlyAvailableSeats += totalAvailableSeats;
 
       let status = "available"; // Default to "closed"
       if (isHoliday) {
@@ -293,6 +295,7 @@ exports.getAvailableslots = async (req, res) => {
         status,
         totalCapacity,
         totalAvailableSeats,
+        totalSlots
       };
     });
 

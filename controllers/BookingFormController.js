@@ -156,6 +156,7 @@ const sendEmail = require("../middleware/nodemailer"); // Adjust the path as per
 exports.uploadOrAddBookingForm = async (req, res) => {
   try {
     const {
+      sessionSlotId,
       learningNo,
       fname,
       mname,
@@ -185,9 +186,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Calculate the next available user_id and certificate_no
     const nextUserId = startingUserId + totalBookingForms;
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
-    const sessionSlot = await Sessionslot.findOne({
-      where: { slotdate, title: slotsession, category },
-    });
+    const sessionSlot = await Sessionslot.findByPk(sessionSlotId)
 
     if (!sessionSlot) {
       console.log("Session slot not found");
@@ -284,10 +283,8 @@ exports.uploadOrAddBookingForm = async (req, res) => {
         })
       );
 
-      const successfulRecords = createdRecords.filter(
-        (record) => record !== null
-      );
-
+      const successfulRecords = createdRecords.filter((record) => record !== null);
+      await sessionSlot.update({ available_seats: sessionSlot.available_seats === 0 });
       return res.json({
         message: `${successfulRecords.length} records created successfully from the file.`,
         data: successfulRecords,
@@ -320,6 +317,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       coordinator_name,
       hm_principal_manager_mobile,
       hm_principal_manager_name,
+      sessionSlotId: sessionSlot.id,
       isActive: true,
       isDelete: false,
     });
@@ -482,7 +480,7 @@ exports.addBookingForm = async (req, res) => {
 
 exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
-    const { slotsession } = req.body;
+    const { slotsession, sessionSlotId, category, } = req.body;
 
     if (!slotsession) {
       return apiResponse.validationErrorWithData(
@@ -494,7 +492,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
     const bookingEntries = await BookingForm.findAll({
       where: {
-        slotsession,
+        slotsession,sessionSlotId,category
       },
     });
 
