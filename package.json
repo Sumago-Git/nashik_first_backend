@@ -19,7 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.10.2",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^6.9.16",
     "read-excel-file": "^5.8.6",
     "sequelize": "^6.37.3",
     "xlsx": "^0.18.5"

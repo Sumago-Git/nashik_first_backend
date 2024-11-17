@@ -1,33 +1,25 @@
-const nodemailer = require('nodemailer');
+// utils/email.js
+const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_SECURE === 'true', // Ensure secure is a boolean
+  service: "gmail", // or use "smtp" if you're using an SMTP server
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, 
-  }
+    user: process.env.EMAIL_USER, // Your email address
+    pass: "asd123!@#$.~;-", // Your email password or app-specific password
+    // pass: process.env.EMAIL_PASSWORD, // Your email password or app-specific password
+  },
 });
 
-// Middleware to send an email
-const sendEmail = async (req, res, next) => {
-  const { to, subject, text } = req.emailOptions;
+const sendEmail = async (to, subject, text, html) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    text,
+    html,
+  };
 
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      text,
-    });
-
-    console.log('Email sent successfully');
-    next(); // Call next to proceed to the next middleware or controller
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    next(error); // Pass the error to the next middleware
-  }
+  return transporter.sendMail(mailOptions);
 };
 
 module.exports = sendEmail;
