@@ -47,6 +47,7 @@ const AnnualReturn = require("./routes/AnnualReturnRoutes")
 const Sessionslot = require("./routes/Sessionslot")
 const ContactForm = require("./routes/contactFormRoutes")
 const Trainer = require("./routes/trainerRoutes")
+const Individuals = require('./routes/IndividualsRoutes')
 app.use("/trainer", Trainer);
 app.use("/contactform", ContactForm);
 app.use("/bookingform", BookingForm);
@@ -59,21 +60,21 @@ app.use("/thanksto", thanksto);
 app.use("/objectiveofANF", objectiveofANF);
 app.use("/news", news);
 app.use("/Videos", Videos);
-app.use("/Directors",Directors)
+app.use("/Directors", Directors)
 app.use("/PostEvents", PostEvents);
-app.use('/EventGallary',EventGallary)
+app.use('/EventGallary', EventGallary)
 app.use("/homeBanner", homeBannerRoutes);
 app.use('/homeyoutube', homeyoutube);
-app.use('/Upcomming',Upcomming)
+app.use('/Upcomming', Upcomming)
 app.use("/supporter", supporter);
 app.use("/auth", authRoutes);
 app.use("/social-contact", socialContactRoutes);
 app.use("/contact-detail", contactDetails);
 app.use("/seats", AvailableSeat);
-app.use("/AnnualReport",AnnualReport)
-app.use("/AnnualReturn",AnnualReturn)
-app.use("/Sessionslot",Sessionslot)
-
+app.use("/AnnualReport", AnnualReport)
+app.use("/AnnualReturn", AnnualReturn)
+app.use("/Sessionslot", Sessionslot)
+app.use("/Individuals", Individuals)
 // Test DB connection
 const testDbConnection = async () => {
   try {

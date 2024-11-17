@@ -85,6 +85,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               vehicletype: vehicletypeString,
               slotdate: slotdate,
               slotsession: slotsession,
+              sessionSlotId:sessionSlotId,
               certificate_no: certificateNo, // Incremented for each record
               user_id: userId, // Incremented for each record
               institution_name,
