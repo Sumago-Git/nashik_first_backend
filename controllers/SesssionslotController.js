@@ -266,10 +266,6 @@ exports.getAvailableslots = async (req, res) => {
         // Construct the requested date in YYYY-MM-DD format
         const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        // Log dates for debugging
-        console.log("Normalized Temp Date:", normalizedTempDate);
-        console.log("Normalized Slot Date:", normalizedSlotDate);
-        console.log("Formatted Requested Date:", formattedRequestedDate);
 
         // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
