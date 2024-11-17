@@ -237,7 +237,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               vehicletype: vehicletypeString,
               slotdate: slotdate,
               slotsession: slotsession,
-              sessionSlotId:sessionSlotId,
+              sessionSlotId: sessionSlotId,
               certificate_no: certificateNo, // Incremented for each record
               user_id: userId, // Incremented for each record
               institution_name,
@@ -481,7 +481,7 @@ exports.addBookingForm = async (req, res) => {
 
 exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
-    const { slotsession, sessionSlotId, category, } = req.body;
+    const { sessionSlotId, category, } = req.body;
 
     if (!slotsession) {
       return apiResponse.validationErrorWithData(
@@ -493,7 +493,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
     const bookingEntries = await BookingForm.findAll({
       where: {
-        slotsession,sessionSlotId,category
+        sessionSlotId, category
       },
     });
 
