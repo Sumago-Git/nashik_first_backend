@@ -25,9 +25,7 @@ exports.addIndividuals = async (req, res) => {
 
 exports.getIndividuals = async (req, res) => {
   try {
-    if (isFindRoute) {
-      queryConditions.isActive = true;
-    }
+   
 
     const Individual = await Individuals.findAll();
 
