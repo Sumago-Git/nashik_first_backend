@@ -483,13 +483,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
     const { sessionSlotId, category, } = req.body;
 
-    if (!slotsession) {
-      return apiResponse.validationErrorWithData(
-        res,
-        "slotsession is required",
-        {}
-      );
-    }
+ 
 
     const bookingEntries = await BookingForm.findAll({
       where: {
