@@ -25,12 +25,12 @@ exports.addIndividuals = async (req, res) => {
 
 exports.getIndividuals = async (req, res) => {
   try {
-   
-
-    const Individual = await Individuals.findAll({ isDelete: false });
+    // Adding the filter to exclude deleted individuals
+    const Individual = await Individuals.findAll({ 
+      where: { isDelete: false }
+    });
 
     // Formatting any image URLs if necessary
-    // Assuming there might be an image field to handle
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
     const IndividualWithBaseUrl = Individual.map(contactDetail => ({
       ...contactDetail.toJSON(),
@@ -43,6 +43,7 @@ exports.getIndividuals = async (req, res) => {
     return apiResponse.ErrorResponse(res, 'Get Contact Details failed');
   }
 };
+
 
 
 
