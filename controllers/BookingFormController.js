@@ -515,11 +515,7 @@ exports.updateBookingForm = async (req, res) => {
     }
 
     // Convert the vehicletype array to a comma-separated string
-    if (req.body.vehicletype) {
-      req.body.vehicletype = Array.isArray(req.body.vehicletype)
-        ? req.body.vehicletype.join(",")
-        : req.body.vehicletype;
-    }
+
 
     Object.assign(bookingForm, req.body);
     await bookingForm.save();
