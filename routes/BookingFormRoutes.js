@@ -23,13 +23,7 @@ router.post('/get-bookingentries-by-date-category', getBookingEntriesByDateAndCa
 
 
 // Update booking form
-router.put('/bookingform/:id', authenticateToken, validateBookingFormId, validateBookingForm, (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
-  }
-  next();
-}, updateBookingForm);
+router.put('/bookingform/:id', authenticateToken, updateBookingForm);
 
 // Get booking forms
 router.get('/get-bookingforms', authenticateToken, getBookingForm);
