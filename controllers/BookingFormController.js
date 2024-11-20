@@ -516,8 +516,29 @@ exports.updateTrainingStatus = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Update training_status and let the hook handle certificate_no generation
+    // Update training_status
     bookingForm.training_status = trainingStatus;
+
+    if (trainingStatus === "Attended") {
+      // Calculate the certificate_no when training_status is "Attended"
+      const startingCertificateNo = 22;
+
+      // Count existing "Attended" records, excluding the current one
+      const attendedCount = await BookingForm.count({
+        where: {
+          training_status: "Attended",
+          id: { [sequelize.Op.ne]: bookingForm.id }, // Exclude current record
+        },
+      });
+
+      // Calculate the next certificate_no
+      const nextCertificateNo = startingCertificateNo + attendedCount;
+
+      // Update the certificate_no for the current record
+      bookingForm.certificate_no = nextCertificateNo;
+    }
+
+    // Save changes to the database
     await bookingForm.save({ transaction });
 
     // Commit the transaction
@@ -528,7 +549,7 @@ exports.updateTrainingStatus = async (req, res) => {
       data: bookingForm,
     });
   } catch (error) {
-    // Rollback the transaction
+    // Rollback the transaction on error
     await transaction.rollback();
     console.error("Error updating training status:", error);
     return res.status(500).json({ message: "An error occurred", error: error.message });

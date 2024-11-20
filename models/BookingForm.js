@@ -34,7 +34,7 @@ const BookingForm = sequelize.define("BookingForm", {
     allowNull: false,
   },
   vehicletype: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING, 
     allowNull: true,
   },
   slotdate: {
@@ -95,6 +95,7 @@ const BookingForm = sequelize.define("BookingForm", {
     allowNull: false,
     defaultValue: 22,
   },
+  
   training_status: {
     type: DataTypes.STRING,
     defaultValue: "Confirmed", // Default training status
@@ -108,33 +109,5 @@ const BookingForm = sequelize.define("BookingForm", {
     defaultValue: false,
   },
 });
-BookingForm.afterUpdate(async (bookingForm, options) => {
-  if (bookingForm.training_status === "Attended" && bookingForm.changed("training_status")) {
-    try {
-      const startingCertificateNo = 22;
 
-      // Count records where training_status is "Attended" AND exclude the current record
-      const attendedCount = await BookingForm.count({
-        where: {
-          training_status: "Attended",
-          id: { [sequelize.Op.ne]: bookingForm.id }, // Exclude current record
-        },
-      });
-
-      // Calculate the next certificate_no
-      const nextCertificateNo = startingCertificateNo + attendedCount;
-
-      // Update only the current record's certificate_no
-      bookingForm.certificate_no = nextCertificateNo;
-      await bookingForm.save({ transaction: options.transaction });
-
-      console.log(
-        `Certificate number updated to ${nextCertificateNo} for booking ID ${bookingForm.id}`
-      );
-    } catch (error) {
-      console.error("Error updating certificate_no:", error);
-      throw error;
-    }
-  }
-});
-
+module.exports = BookingForm;
