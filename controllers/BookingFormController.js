@@ -4,7 +4,7 @@ const Sessionslot = require("../models/sesssionslot");
 const path = require("path");
 const fs = require("fs");
 const xlsx = require("xlsx");
-
+const sequelize = require('../config/database');
 // exports.uploadOrAddBookingForm = async (req, res) => {
 //   try {
 //     const {
@@ -526,8 +526,7 @@ exports.updateTrainingStatus = async (req, res) => {
       // Count existing "Attended" records, excluding the current one
       const attendedCount = await BookingForm.count({
         where: {
-          training_status: "Attended",
-          id: { [sequelize.Op.ne]: bookingForm.id }, // Exclude current record
+          training_status: "Attended" // Exclude current record
         },
       });
 

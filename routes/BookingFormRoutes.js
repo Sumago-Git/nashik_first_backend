@@ -30,7 +30,7 @@ router.get('/get-bookingforms', authenticateToken, getBookingForm);
 
 // Toggle booking form status
 router.put('/isactive-booking/:id', authenticateToken, validateBookingFormId, isActiveStatus);
-router.put('/updateTrainingStatus',authenticateToken,updateTrainingStatus)
+router.put('/updateTrainingStatus',updateTrainingStatus)
 // Toggle booking form delete status
 router.delete('/isdelete-booking/:id', authenticateToken, validateBookingFormId, isDeleteStatus);
 
