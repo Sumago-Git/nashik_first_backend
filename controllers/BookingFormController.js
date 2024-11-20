@@ -178,7 +178,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
     // Default starting values for user_id and certificate_no
     const startingUserId = 55;
-    const startingCertificateNo = 22;
+    const startingCertificateNo = 0;
 
     // Get the count of existing records to determine the next user_id and certificate_no
     const totalBookingForms = await BookingForm.count();
@@ -238,7 +238,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               slotdate: slotdate,
               slotsession: slotsession,
               sessionSlotId: sessionSlotId,
-              certificate_no: certificateNo, // Incremented for each record
+              certificate_no: startingCertificateNo, // Incremented for each record
               user_id: userId, // Incremented for each record
               institution_name,
               institution_email,
@@ -483,7 +483,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
     const { sessionSlotId, category, } = req.body;
 
- 
+
 
     const bookingEntries = await BookingForm.findAll({
       where: {
