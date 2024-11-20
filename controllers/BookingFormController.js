@@ -504,6 +504,35 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
     );
   }
 };
+exports.updateTrainingStatus = async (req, res) => {
+  try {
+    const { bookingId, trainingStatus } = req.body;
+
+    // Fetch the BookingForm by ID
+    const bookingForm = await BookingForm.findByPk(bookingId);
+
+    if (!bookingForm) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Check if the status is changing to "Attended"
+    if (trainingStatus === "Attended" && bookingForm.training_status !== "Attended") {
+      bookingForm.training_status = trainingStatus;
+      await bookingForm.save(); // The afterUpdate hook will be triggered here, updating the certificate_no
+    } else {
+      bookingForm.training_status = trainingStatus;
+      await bookingForm.save();
+    }
+
+    return res.json({
+      message: `Training status updated to ${trainingStatus}`,
+      data: bookingForm,
+    });
+  } catch (error) {
+    console.error("Error updating training status:", error);
+    return res.status(500).json({ message: "An error occurred", error: error.message });
+  }
+};
 
 exports.updateBookingForm = async (req, res) => {
   try {

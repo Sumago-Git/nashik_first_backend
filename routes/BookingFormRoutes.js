@@ -1,5 +1,5 @@
 const express = require('express');
-const { addBookingForm, updateBookingForm, getBookingForm, getBookingEntriesByDateAndCategory, isActiveStatus, isDeleteStatus, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
+const { addBookingForm, updateBookingForm, getBookingForm, getBookingEntriesByDateAndCategory,updateTrainingStatus, isActiveStatus, isDeleteStatus, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
 const { validateBookingForm, validateBookingFormId } = require('../validations/bookingFormValidation');
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
@@ -30,7 +30,7 @@ router.get('/get-bookingforms', authenticateToken, getBookingForm);
 
 // Toggle booking form status
 router.put('/isactive-booking/:id', authenticateToken, validateBookingFormId, isActiveStatus);
-
+router.put('/updateTrainingStatus/:id',authenticateToken,updateTrainingStatus)
 // Toggle booking form delete status
 router.delete('/isdelete-booking/:id', authenticateToken, validateBookingFormId, isDeleteStatus);
 
