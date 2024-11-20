@@ -48,6 +48,8 @@ const Sessionslot = require("./routes/Sessionslot")
 const ContactForm = require("./routes/contactFormRoutes")
 const Trainer = require("./routes/trainerRoutes")
 const Individuals = require('./routes/IndividualsRoutes')
+const certification = require('./routes/certificateRoutes')
+app.use("/certificate", certification);
 app.use("/trainer", Trainer);
 app.use("/contactform", ContactForm);
 app.use("/bookingform", BookingForm);
