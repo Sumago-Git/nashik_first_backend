@@ -111,25 +111,30 @@ const BookingForm = sequelize.define("BookingForm", {
 BookingForm.afterUpdate(async (bookingForm, options) => {
   if (bookingForm.training_status === "Attended" && bookingForm.changed("training_status")) {
     try {
-      const startingCertificateNo = 0;
+      const startingCertificateNo = 22;
 
+      // Count records where training_status is "Attended" AND exclude the current record
       const attendedCount = await BookingForm.count({
-        where: { training_status: "Attended" },
+        where: {
+          training_status: "Attended",
+          id: { [sequelize.Op.ne]: bookingForm.id }, // Exclude current record
+        },
       });
 
+      // Calculate the next certificate_no
       const nextCertificateNo = startingCertificateNo + attendedCount;
 
-      // Update certificate_no in the database
-      await bookingForm.update({ certificate_no: nextCertificateNo }, { transaction: options.transaction });
+      // Update only the current record's certificate_no
+      bookingForm.certificate_no = nextCertificateNo;
+      await bookingForm.save({ transaction: options.transaction });
 
       console.log(
         `Certificate number updated to ${nextCertificateNo} for booking ID ${bookingForm.id}`
       );
     } catch (error) {
-      console.error("Error updating certificate_no in hook:", error);
+      console.error("Error updating certificate_no:", error);
       throw error;
     }
   }
 });
 
-module.exports = BookingForm;

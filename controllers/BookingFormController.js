@@ -505,34 +505,36 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   }
 };
 exports.updateTrainingStatus = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { bookingId, trainingStatus } = req.body;
 
     // Fetch the BookingForm by ID
-    const bookingForm = await BookingForm.findByPk(bookingId);
+    const bookingForm = await BookingForm.findByPk(bookingId, { transaction });
 
     if (!bookingForm) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Check if the status is changing to "Attended"
-    if (trainingStatus === "Attended" && bookingForm.training_status !== "Attended") {
-      bookingForm.training_status = trainingStatus;
-      await bookingForm.save(); // The afterUpdate hook will be triggered here, updating the certificate_no
-    } else {
-      bookingForm.training_status = trainingStatus;
-      await bookingForm.save();
-    }
+    // Update training_status and let the hook handle certificate_no generation
+    bookingForm.training_status = trainingStatus;
+    await bookingForm.save({ transaction });
+
+    // Commit the transaction
+    await transaction.commit();
 
     return res.json({
       message: `Training status updated to ${trainingStatus}`,
       data: bookingForm,
     });
   } catch (error) {
+    // Rollback the transaction
+    await transaction.rollback();
     console.error("Error updating training status:", error);
     return res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
 
 exports.updateBookingForm = async (req, res) => {
   try {
