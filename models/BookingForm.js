@@ -95,11 +95,6 @@ const BookingForm = sequelize.define("BookingForm", {
     allowNull: false,
     defaultValue: 22,
   },
-  certificate_no: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 22,
-  },
   training_status: {
     type: DataTypes.STRING,
     defaultValue: "Confirmed", // Default training status
