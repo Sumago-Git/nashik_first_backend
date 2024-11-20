@@ -113,8 +113,8 @@ BookingForm.afterUpdate(async (bookingForm, options) => {
     try {
       // Generate certificate_no based on the existing booking count and starting point
       const totalBookingForms = await BookingForm.count();
-      const startingCertificateNo = 22;
-      const nextCertificateNo = startingCertificateNo + totalBookingForms;
+
+      const nextCertificateNo = totalBookingForms + 1;
 
       // Update certificate_no when status is updated to Attended
       await bookingForm.update({ certificate_no: nextCertificateNo });
