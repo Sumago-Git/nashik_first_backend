@@ -521,7 +521,7 @@ exports.updateTrainingStatus = async (req, res) => {
 
     if (trainingStatus === "Attended") {
       // Calculate the certificate_no when training_status is "Attended"
-      const startingCertificateNo = 22;
+      const startingCertificateNo = 0;
 
       // Count existing "Attended" records, excluding the current one
       const attendedCount = await BookingForm.count({
