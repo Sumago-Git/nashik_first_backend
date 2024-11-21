@@ -2,6 +2,11 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const ContactForm = sequelize.define("ContactForm", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true, // This ensures that the ID is auto-incremented
+  },
   firstName: {
     type: DataTypes.STRING,
     allowNull: false,
