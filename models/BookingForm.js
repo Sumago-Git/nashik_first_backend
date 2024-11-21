@@ -4,7 +4,8 @@ const sequelize = require("../config/database");
 const BookingForm = sequelize.define("BookingForm", {
   learningNo: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
+    
   },
   sessionSlotId: {
     type: DataTypes.STRING,
