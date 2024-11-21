@@ -1,9 +1,11 @@
 const ContactForm = require("../models/ContactForm");
 const apiResponse = require("../helper/apiResponse");
-
+const sendEmail = require("../middleware/nodemailer");
 exports.addContactForm = async (req, res) => {
   try {
     const { firstName, email, contact, age, subject, profession, suggestions } = req.body;
+
+    // Create the contact form
     const contactForm = await ContactForm.create({
       firstName,
       email,
@@ -15,13 +17,47 @@ exports.addContactForm = async (req, res) => {
       isActive: true,
       isDelete: false,
     });
+
+    // Prepare the email content for the admin
+    const adminEmail = process.env.EMAIL_SENT_TO; // Replace with your admin's email address
+    const emailSubject = "New Contact Form Submission";
+    const emailText = `A new contact form has been submitted:
+
+    Name: ${firstName}
+    Email: ${email}
+    Contact: ${contact}
+    Age: ${age}
+    Subject: ${subject}
+    Profession: ${profession}
+    Suggestions: ${suggestions}
+`;
+
+    const emailHtml = `<p>A new contact form has been submitted:</p>
+    <ul>
+      <li><strong>Name:</strong> ${firstName}</li>
+      <li><strong>Email:</strong> ${email}</li>
+      <li><strong>Contact:</strong> ${contact}</li>
+      <li><strong>Age:</strong> ${age}</li>
+      <li><strong>Subject:</strong> ${subject}</li>
+      <li><strong>Profession:</strong> ${profession}</li>
+      <li><strong>Suggestions:</strong> ${suggestions}</li>
+    </ul>`;
+
+    // Send the email to the admin
+    await sendEmail(adminEmail, emailSubject, emailText, emailHtml);
+
+    // Log a message to the console to confirm email sent
+    console.log(`Email sent successfully to ${adminEmail} with the contact form details.`);
+
     return apiResponse.successResponseWithData(
       res,
-      "Contact form submitted successfully",
+      "Contact form submitted successfully and email sent to the admin",
       contactForm
     );
   } catch (error) {
-    console.log("Add Contact Form failed", error);
+    // Log the error if sending the email fails
+    console.log("Error while sending email: ", error);
+
     return apiResponse.ErrorResponse(res, "Add Contact Form failed");
   }
 };
