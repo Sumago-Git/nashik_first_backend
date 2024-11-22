@@ -4,7 +4,7 @@ const Sessionslot = require("../models/sesssionslot");
 const path = require("path");
 const fs = require("fs");
 const xlsx = require("xlsx");
-const sequelize = require('../config/database');
+const sequelize = require("../config/database");
 // exports.uploadOrAddBookingForm = async (req, res) => {
 //   try {
 //     const {
@@ -186,7 +186,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Calculate the next available user_id and certificate_no
     const nextUserId = startingUserId + totalBookingForms;
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
-    const sessionSlot = await Sessionslot.findByPk(sessionSlotId)
+    const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
 
 
     if (!sessionSlot) {
@@ -273,7 +273,9 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             console.log("Sending email to", item.email);
             try {
               await sendEmail(item.email, emailSubject, emailText, emailHtml);
-              console.log(`Confirmation email sent successfully to ${item.email}`);
+              console.log(
+                `Confirmation email sent successfully to ${item.email}`
+              );
             } catch (error) {
               console.error(`Error sending email to ${item.email}:`, error);
             }
@@ -286,8 +288,12 @@ exports.uploadOrAddBookingForm = async (req, res) => {
         })
       );
 
-      const successfulRecords = createdRecords.filter((record) => record !== null);
-      await sessionSlot.update({ available_seats: sessionSlot.available_seats === 0 });
+      const successfulRecords = createdRecords.filter(
+        (record) => record !== null
+      );
+      await sessionSlot.update({
+        available_seats: sessionSlot.available_seats === 0,
+      });
       return res.json({
         message: `${successfulRecords.length} records created successfully from the file.`,
         data: successfulRecords,
@@ -368,7 +374,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       .json({ message: "An error occurred", error: error.message });
   }
 };
-
 
 exports.uploadXLSX = async (req, res) => {
   try {
@@ -488,13 +493,12 @@ exports.addBookingForm = async (req, res) => {
 
 exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
-    const { sessionSlotId, category, } = req.body;
-
-
+    const { sessionSlotId, category } = req.body;
 
     const bookingEntries = await BookingForm.findAll({
       where: {
-        sessionSlotId, category
+        sessionSlotId,
+        category,
       },
     });
 
@@ -508,6 +512,27 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
     return apiResponse.ErrorResponse(
       res,
       "Get booking entries by date and category failed"
+    );
+  }
+};
+exports.getAllEntriesByCategory = async (req, res) => {
+  try {
+    const { category } = req.body;
+
+    const bookingEntries = await BookingForm.findAll({
+      where: { category },
+    });
+
+    return apiResponse.successResponseWithData(
+      res,
+      "Booking entries by category retrieved successfully",
+      bookingEntries
+    );
+  } catch (error) {
+    console.log("Get booking entries by category failed", error);
+    return apiResponse.ErrorResponse(
+      res,
+      "Get booking entries by category failed"
     );
   }
 };
@@ -567,10 +592,11 @@ exports.updateTrainingStatus = async (req, res) => {
     // Rollback the transaction on error
     await transaction.rollback();
     console.error("Error updating training status:", error);
-    return res.status(500).json({ message: "An error occurred", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "An error occurred", error: error.message });
   }
 };
-
 
 exports.updateBookingForm = async (req, res) => {
   try {
@@ -582,7 +608,6 @@ exports.updateBookingForm = async (req, res) => {
     }
 
     // Convert the vehicletype array to a comma-separated string
-
 
     Object.assign(bookingForm, req.body);
     await bookingForm.save();
