@@ -5,7 +5,7 @@ const BookingForm = sequelize.define("BookingForm", {
   learningNo: {
     type: DataTypes.STRING,
     allowNull: true,
-    
+
   },
   sessionSlotId: {
     type: DataTypes.STRING,
@@ -25,17 +25,17 @@ const BookingForm = sequelize.define("BookingForm", {
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     validate: {
       isEmail: true,
     },
   },
   phone: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   vehicletype: {
-    type: DataTypes.STRING, 
+    type: DataTypes.STRING,
     allowNull: true,
   },
   slotdate: {
@@ -96,7 +96,7 @@ const BookingForm = sequelize.define("BookingForm", {
     allowNull: false,
     defaultValue: 22,
   },
-  
+
   training_status: {
     type: DataTypes.STRING,
     defaultValue: "Confirmed", // Default training status

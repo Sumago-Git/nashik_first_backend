@@ -41,7 +41,7 @@ exports.updateHoliday = async (req, res) => {
       holiday
     );
   } catch (error) {
-    console.log("Update holiday failed", error);
+    console.log("Update holiday failed", error) ;
     return apiResponse.ErrorResponse(res, "Update holiday failed");
   }
 };
