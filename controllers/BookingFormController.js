@@ -188,6 +188,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
     const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
 
+
     if (!sessionSlot) {
       console.log("Session slot not found");
       return res.status(404).json({ message: "Session slot not found" });
@@ -214,6 +215,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
       console.log("Processing records from the file...");
 
+     
       // Store data in the database with unique user_id and certificate_no
       const createdRecords = await Promise.all(
         data.map(async (item, index) => {
@@ -297,7 +299,12 @@ exports.uploadOrAddBookingForm = async (req, res) => {
         data: successfulRecords,
       });
     }
-
+    const existingLearningNo = await BookingForm.findOne({ where: { learningNo } });
+    if (existingLearningNo) {
+      return res.status(400).json({
+        message: `The learning number "${learningNo}" already exists. Please use a unique learning number.`,
+      });
+    }
     // Case 2: Handle JSON input directly from form submission
     const vehicletypeString = Array.isArray(vehicletype)
       ? vehicletype.join(",")
@@ -545,21 +552,30 @@ exports.updateTrainingStatus = async (req, res) => {
     bookingForm.training_status = trainingStatus;
 
     if (trainingStatus === "Attended") {
-      // Calculate the certificate_no when training_status is "Attended"
-      const startingCertificateNo = 0;
+      const validCategories = [
+        "RTO – Learner Driving License Holder Training",
+        "RTO – Suspended Driving License Holders Training",
+        "RTO – Training for School Bus Driver",
+        "College/Organization Training – Group"
+      ];
 
-      // Count existing "Attended" records, excluding the current one
-      const attendedCount = await BookingForm.count({
-        where: {
-          training_status: "Attended", // Exclude current record
-        },
-      });
+      if (validCategories.includes(bookingForm.category)) {
+        // Obtain a database lock to avoid race conditions
+        const startingCertificateNo = 0;
 
-      // Calculate the next certificate_no
-      const nextCertificateNo = startingCertificateNo + attendedCount;
+        // Lock table or use transaction isolation to ensure unique numbers
+        const attendedCount = await BookingForm.count({
+          where: { training_status: "Attended" },
+          lock: transaction.LOCK.UPDATE, // Locking mechanism
+          transaction
+        });
 
-      // Update the certificate_no for the current record
-      bookingForm.certificate_no = nextCertificateNo;
+        // Calculate the next certificate_no
+        const nextCertificateNo = startingCertificateNo + attendedCount + 1;
+
+        // Update the certificate_no for the current record
+        bookingForm.certificate_no = nextCertificateNo;
+      }
     }
 
     // Save changes to the database

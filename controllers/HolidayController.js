@@ -41,7 +41,7 @@ exports.updateHoliday = async (req, res) => {
       holiday
     );
   } catch (error) {
-    console.log("Update holiday failed", error);
+    console.log("Update holiday failed", error) ;
     return apiResponse.ErrorResponse(res, "Update holiday failed");
   }
 };
@@ -92,24 +92,21 @@ exports.isDeleteStatus = async (req, res) => {
   try {
     const { holiday_date } = req.body;
 
-    // Use findOne if holiday_date is not a primary key
-    const holiday = await Holiday.findOne({ where: { holiday_date } });
+    // Attempt to delete the record(s) matching the given holiday_date
+    const deletedCount = await Holiday.destroy({
+      where: { holiday_date },
+    });
 
-    if (!holiday) {
-      return apiResponse.notFoundResponse(res, "Holiday not found");
+    if (deletedCount === 0) {
+      return apiResponse.notFoundResponse(res, "No holiday found with the given date");
     }
 
-    // Toggle isDelete status
-    holiday.isDelete = !holiday.isDelete;
-    await holiday.save();
-
-    return apiResponse.successResponseWithData(
+    return apiResponse.successResponse(
       res,
-      "Holiday delete status updated successfully",
-      holiday
+      `Holiday with date ${holiday_date} deleted successfully`
     );
   } catch (error) {
-    console.error("Toggle holiday delete status failed:", error);
-    return apiResponse.ErrorResponse(res, "Toggle holiday delete status failed");
+    console.error("Delete holiday failed:", error);
+    return apiResponse.ErrorResponse(res, "Delete holiday failed");
   }
 };
