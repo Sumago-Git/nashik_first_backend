@@ -2,10 +2,9 @@ const BookingForm = require("../models/BookingForm");
 const apiResponse = require("../helper/apiResponse");
 const Sessionslot = require("../models/sesssionslot");
 const path = require("path");
+const moment = require('moment');
 const fs = require("fs");
 const xlsx = require("xlsx");
-const { Op } = require("sequelize");
-
 const sequelize = require("../config/database");
 // exports.uploadOrAddBookingForm = async (req, res) => {
 //   try {
@@ -521,17 +520,8 @@ exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
-    // Get the current date
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); // Start of today for accurate comparison
-
     const bookingEntries = await BookingForm.findAll({
-      where: {
-        category,
-        slotdate: {
-          [Op.gte]: currentDate, // Slot date greater than or equal to current date
-        },
-      },
+      where: { category },
     });
 
     return apiResponse.successResponseWithData(
@@ -703,5 +693,46 @@ exports.isDeleteStatus = async (req, res) => {
       res,
       "Toggle booking form delete status failed"
     );
+  }
+};
+
+exports.deleteBookingForm = async (req, res) => {
+  try {
+    // Parse today's date
+    const today = moment().startOf('day'); // Start of the current day
+
+    // Find booking forms matching the criteria
+    const bookingFormsToDelete = await BookingForm.findAll({
+      where: {
+        training_status: "Confirmed", // Training status is "Confirmed"
+        slotdate: {
+          [Op.lt]: today.format("MM/DD/YYYY"), // Slot date is earlier than today
+        },
+        isActive: true, // Ensure the booking form is active
+        isDelete: false, // Ensure the booking form is not marked as deleted
+      },
+    });
+
+    if (bookingFormsToDelete.length === 0) {
+      return apiResponse.notFoundResponse(
+        res,
+        "No booking forms found matching the criteria"
+      );
+    }
+
+    // Delete all matching booking forms
+    const deletedCount = await BookingForm.destroy({
+      where: {
+        id: bookingFormsToDelete.map((form) => form.id), // Delete by IDs
+      },
+    });
+
+    return apiResponse.successResponse(
+      res,
+      `${deletedCount} booking forms deleted successfully`
+    );
+  } catch (error) {
+    console.error("Delete booking form failed", error);
+    return apiResponse.ErrorResponse(res, "Delete booking form failed");
   }
 };
