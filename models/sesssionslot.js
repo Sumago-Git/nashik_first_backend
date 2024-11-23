@@ -6,13 +6,17 @@ const Sessionslot = sequelize.define("Sessionslot", {
     type: DataTypes.STRING,
     allowNull: false, // assuming time is required
   },
+  slotType: {
+    type: DataTypes.STRING,
+    allowNull: false, // assuming title is required
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false, // assuming title is required
   },
   capacity: {
     type: DataTypes.INTEGER,  // Change to INTEGER to represent numeric values
-    allowNull: false, 
+    allowNull: false,
   },
   available_seats: {
     type: DataTypes.INTEGER,  // Change to INTEGER to represent numeric values
@@ -24,7 +28,7 @@ const Sessionslot = sequelize.define("Sessionslot", {
   },
   tempdate: {
     type: DataTypes.DATE,  // Keeping as DATE since it should store a full date and time
-    allowNull: false, 
+    allowNull: false,
   },
   slotdate: {
     type: DataTypes.STRING,  // If you need to store the date as a string, keep it as STRING
@@ -32,11 +36,11 @@ const Sessionslot = sequelize.define("Sessionslot", {
   },
   trainer: {
     type: DataTypes.STRING,
-    allowNull: false, 
+    allowNull: false,
   },
   category: {
     type: DataTypes.STRING,
-    allowNull: false, 
+    allowNull: false,
   },
   isActive: {
     type: DataTypes.BOOLEAN,
