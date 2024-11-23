@@ -4,6 +4,8 @@ const Sessionslot = require("../models/sesssionslot");
 const path = require("path");
 const fs = require("fs");
 const xlsx = require("xlsx");
+const { Op } = require("sequelize");
+
 const sequelize = require("../config/database");
 // exports.uploadOrAddBookingForm = async (req, res) => {
 //   try {
@@ -519,8 +521,17 @@ exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
+    // Get the current date
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Start of today for accurate comparison
+
     const bookingEntries = await BookingForm.findAll({
-      where: { category },
+      where: {
+        category,
+        slotdate: {
+          [Op.gte]: currentDate, // Slot date greater than or equal to current date
+        },
+      },
     });
 
     return apiResponse.successResponseWithData(
