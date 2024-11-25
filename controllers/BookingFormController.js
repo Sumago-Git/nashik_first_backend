@@ -216,7 +216,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
       console.log("Processing records from the file...");
 
-     
+
       // Store data in the database with unique user_id and certificate_no
       const createdRecords = await Promise.all(
         data.map(async (item, index) => {
@@ -516,12 +516,22 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
     );
   }
 };
+const { Op } = require('sequelize'); // Import Sequelize operators
+
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
+    // Get today's date at the start of the day
+    const today = moment().startOf('day').format("MM/DD/YYYY");
+
     const bookingEntries = await BookingForm.findAll({
-      where: { category },
+      where: {
+        category,
+        slotdate: {
+          [Op.gte]: today, // Fetch entries where slotdate is today or later
+        },
+      },
     });
 
     return apiResponse.successResponseWithData(
