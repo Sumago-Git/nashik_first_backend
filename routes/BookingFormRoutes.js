@@ -1,5 +1,5 @@
 const express = require('express');
-const { addBookingForm, updateBookingForm, getBookingForm, getBookingEntriesByDateAndCategory,updateTrainingStatus, getAllEntriesByCategory, isActiveStatus, isDeleteStatus, deleteBookingForm, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
+const { addBookingForm, getSlotInfo, registerSlotInfo, updateBookingForm, getBookingForm, getBookingEntriesByDateAndCategory, updateTrainingStatus, getAllEntriesByCategory, isActiveStatus, isDeleteStatus, deleteBookingForm, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
 const { validateBookingForm, validateBookingFormId } = require('../validations/bookingFormValidation');
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
@@ -8,6 +8,8 @@ const { uploadSingleXLSX } = require('../middleware/multerPDF')
 const router = express.Router();
 
 router.post('/create-uploadXLSX', uploadSingleXLSX, uploadXLSX);
+router.post('/registerSlotInfo', registerSlotInfo);
+router.post('/getSlotInfo', getSlotInfo)
 router.post('/create-uploadOrAddBookingForm', uploadSingleXLSX, uploadOrAddBookingForm);
 // Add booking form
 router.post('/create-bookingform', uploadSingleXLSX, validateBookingForm, (req, res, next) => {
@@ -33,7 +35,7 @@ router.get('/get-bookingforms', authenticateToken, getBookingForm);
 
 // Toggle booking form status
 router.put('/isactive-booking/:id', authenticateToken, validateBookingFormId, isActiveStatus);
-router.put('/updateTrainingStatus',updateTrainingStatus)
+router.put('/updateTrainingStatus', updateTrainingStatus)
 // Toggle booking form delete status
 router.delete('/isdelete-booking/:id', authenticateToken, validateBookingFormId, isDeleteStatus);
 router.delete('/delete-booking/:id', authenticateToken, validateBookingFormId, deleteBookingForm);
