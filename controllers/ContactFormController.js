@@ -3,9 +3,23 @@ const apiResponse = require("../helper/apiResponse");
 const sendEmail = require("../middleware/nodemailer");
 exports.addContactForm = async (req, res) => {
   try {
-    const { firstName, email, contact, age, subject, profession, suggestions } = req.body;
+    const {
+      firstName,
+      email,
+      contact,
+      age,
+      subject,
+      profession,
+      suggestions,
+    } = req.body;
 
-    // Create the contact form
+    console.log("req.body.suggestionfile", req.body.suggestionfile);
+
+    // Extract the path starting from '/uploads'
+    const suggestionFilePath = req.body.suggestionfile
+      ? req.body.suggestionfile.split("\\uploads").pop().replace(/\\/g, "/")
+      : null;
+
     const contactForm = await ContactForm.create({
       firstName,
       email,
@@ -14,24 +28,14 @@ exports.addContactForm = async (req, res) => {
       subject,
       profession,
       suggestions,
+      suggestionfile: suggestionFilePath ? `uploads${suggestionFilePath}` : null,
       isActive: true,
       isDelete: false,
     });
 
-    // Prepare the email content for the admin
-    const adminEmail = process.env.EMAIL_SENT_TO; // Replace with your admin's email address
+    // Email logic
+    const adminEmail = process.env.EMAIL_SENT_TO;
     const emailSubject = "New Contact Form Submission";
-    const emailText = `A new contact form has been submitted:
-
-    Name: ${firstName}
-    Email: ${email}
-    Contact: ${contact}
-    Age: ${age}
-    Subject: ${subject}
-    Profession: ${profession}
-    Suggestions: ${suggestions}
-`;
-
     const emailHtml = `<p>A new contact form has been submitted:</p>
     <ul>
       <li><strong>Name:</strong> ${firstName}</li>
@@ -42,12 +46,7 @@ exports.addContactForm = async (req, res) => {
       <li><strong>Profession:</strong> ${profession}</li>
       <li><strong>Suggestions:</strong> ${suggestions}</li>
     </ul>`;
-
-    // Send the email to the admin
-    await sendEmail(adminEmail, emailSubject, emailText, emailHtml);
-
-    // Log a message to the console to confirm email sent
-    console.log(`Email sent successfully to ${adminEmail} with the contact form details.`);
+    await sendEmail(adminEmail, emailSubject, "", emailHtml);
 
     return apiResponse.successResponseWithData(
       res,
@@ -55,12 +54,11 @@ exports.addContactForm = async (req, res) => {
       contactForm
     );
   } catch (error) {
-    // Log the error if sending the email fails
-    console.log("Error while sending email: ", error);
-
+    console.error("Error while adding contact form:", error);
     return apiResponse.ErrorResponse(res, "Add Contact Form failed");
   }
 };
+
 
 exports.updateContactForm = async (req, res) => {
   try {
@@ -71,13 +69,20 @@ exports.updateContactForm = async (req, res) => {
       return apiResponse.notFoundResponse(res, "Contact form not found");
     }
 
-    contactForm.firstName = req.body.firstName;
-    contactForm.email = req.body.email;
-    contactForm.contact = req.body.contact;
-    contactForm.age = req.body.age;
-    contactForm.subject = req.body.subject;
-    contactForm.profession = req.body.profession;
-    contactForm.suggestions = req.body.suggestions;
+    // Update fields
+    contactForm.firstName = req.body.firstName || contactForm.firstName;
+    contactForm.email = req.body.email || contactForm.email;
+    contactForm.contact = req.body.contact || contactForm.contact;
+    contactForm.age = req.body.age || contactForm.age;
+    contactForm.subject = req.body.subject || contactForm.subject;
+    contactForm.profession = req.body.profession || contactForm.profession;
+    contactForm.suggestions = req.body.suggestions || contactForm.suggestions;
+
+    // Update file path if new file is uploaded
+    if (req.body.suggestionfile) {
+      contactForm.suggestionfile = req.body.suggestionfile;
+    }
+
     await contactForm.save();
 
     return apiResponse.successResponseWithData(
@@ -86,23 +91,36 @@ exports.updateContactForm = async (req, res) => {
       contactForm
     );
   } catch (error) {
-    console.log("Update Contact Form failed", error);
+    console.error("Error while updating contact form:", error);
     return apiResponse.ErrorResponse(res, "Update Contact Form failed");
   }
 };
+
 
 exports.getContactForms = async (req, res) => {
   try {
     const contactForms = await ContactForm.findAll({
       where: { isDelete: false },
     });
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const updatedContactForms = contactForms.map((form) => {
+      const data = form.toJSON(); // Convert Sequelize instance to plain object
+      return {
+        ...data,
+        suggestionfile: data.suggestionfile
+          ? `${baseUrl}/${data.suggestionfile.replace(/\\/g, "/")}` // Normalize the file path
+          : null, // Handle undefined or null suggestionfile
+      };
+    });
+
     return apiResponse.successResponseWithData(
       res,
       "Contact forms retrieved successfully",
-      contactForms
+      updatedContactForms
     );
   } catch (error) {
-    console.log("Get Contact Forms failed", error);
+    console.error("Get Contact Forms failed", error);
     return apiResponse.ErrorResponse(res, "Get Contact Forms failed");
   }
 };
@@ -152,6 +170,9 @@ exports.isDeleteStatus = async (req, res) => {
     );
   } catch (error) {
     console.log("Toggle contact form delete status failed", error);
-    return apiResponse.ErrorResponse(res, "Toggle contact form delete status failed");
+    return apiResponse.ErrorResponse(
+      res,
+      "Toggle contact form delete status failed"
+    );
   }
 };
