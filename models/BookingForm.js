@@ -112,3 +112,9 @@ const BookingForm = sequelize.define("BookingForm", {
 });
 
 module.exports = BookingForm;
+
+
+const Sessionslot = require("./sesssionslot");
+
+BookingForm.belongsTo(Sessionslot, { foreignKey: 'sessionSlotId' });
+

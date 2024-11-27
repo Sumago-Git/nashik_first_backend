@@ -15,11 +15,11 @@ const Sessionslot = sequelize.define("Sessionslot", {
     allowNull: false, // assuming title is required
   },
   capacity: {
-    type: DataTypes.INTEGER,  // Change to INTEGER to represent numeric values
+    type: DataTypes.INTEGER, // Change to INTEGER to represent numeric values
     allowNull: false,
   },
   available_seats: {
-    type: DataTypes.INTEGER,  // Change to INTEGER to represent numeric values
+    type: DataTypes.INTEGER, // Change to INTEGER to represent numeric values
     allowNull: false,
   },
   time: {
@@ -27,11 +27,11 @@ const Sessionslot = sequelize.define("Sessionslot", {
     allowNull: false, // assuming time is required
   },
   tempdate: {
-    type: DataTypes.DATE,  // Keeping as DATE since it should store a full date and time
+    type: DataTypes.DATE, // Keeping as DATE since it should store a full date and time
     allowNull: false,
   },
   slotdate: {
-    type: DataTypes.STRING,  // If you need to store the date as a string, keep it as STRING
+    type: DataTypes.STRING, // If you need to store the date as a string, keep it as STRING
     allowNull: false,
   },
   trainer: {
@@ -53,3 +53,6 @@ const Sessionslot = sequelize.define("Sessionslot", {
 });
 
 module.exports = Sessionslot;
+const BookingForm = require("./BookingForm");
+
+Sessionslot.hasMany(BookingForm, { foreignKey: "sessionSlotId" });
