@@ -56,3 +56,16 @@ module.exports = Sessionslot;
 const BookingForm = require("./BookingForm");
 
 Sessionslot.hasMany(BookingForm, { foreignKey: "sessionSlotId" });
+
+
+const SlotRegisterInfo = require("./SlotRegisterInfo");
+
+Sessionslot.hasMany(SlotRegisterInfo, {
+  foreignKey: "sessionSlotId",
+  as: "slotRegisterInfos", // Alias for eager loading
+});
+
+SlotRegisterInfo.belongsTo(Sessionslot, {
+  foreignKey: "sessionSlotId",
+  as: "sessionSlot", // Alias for eager loading
+});

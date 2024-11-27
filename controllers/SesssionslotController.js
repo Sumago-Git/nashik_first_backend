@@ -287,7 +287,7 @@ exports.getSessionSessionslot = async (req, res) => {
 exports.getSessionbySessionslot = async (req, res) => {
   try {
     const { slotdate, category, slotType } = req.body;
-    const slotTypeFilter = slotType ? { SlotType: slotType } : {}; // Optional filter for SlotType
+    const slotTypeFilter = slotType ? { slotType: slotType } : {}; // Use lowercase 'slotType'
 
     // Fetch sessions with related SlotRegisterInfo
     const sessionslot = await Sessionslot.findAll({
@@ -295,12 +295,12 @@ exports.getSessionbySessionslot = async (req, res) => {
         slotdate,
         category,
         isDelete: false,
-        ...slotTypeFilter,
+        ...slotTypeFilter, // Apply optional filter for slotType
       },
       include: [
         {
           model: SlotRegisterInfo,
-          as: 'slotDetails', // Alias defined in the association
+          as: 'slotRegisterInfos', // Ensure this alias matches the association
           attributes: [
             'slotdate',
             'slotsession',
@@ -316,10 +316,15 @@ exports.getSessionbySessionslot = async (req, res) => {
       ],
     });
 
+    // Check if any sessions were found
+    if (sessionslot.length === 0) {
+      return apiResponse.ErrorResponse(res, 'No sessions found matching the criteria');
+    }
+
     return apiResponse.successResponseWithData(res, 'Sessionslot retrieved successfully', sessionslot);
   } catch (error) {
     console.log('Get Sessionslot failed', error);
-    return apiResponse.ErrorResponse(res, 'Get Sessionslot failed');
+    return apiResponse.ErrorResponse(res, `Get Sessionslot failed: ${error.message}`);
   }
 };
 
