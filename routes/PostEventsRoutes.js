@@ -6,6 +6,7 @@ const {
   togglePostEventsStatus,
   togglePostEventsDelete,
   getPostEvents,
+  getActivePostEvents,
 } = require("../controllers/PostEventsController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active PhotoGalleries
-router.get("/get-PostEvents", getPostEvents);
+router.get("/get-PostEvents", getActivePostEvents);
 
 // Route to get all active PhotoGalleries
 router.get("/find-PostEvents", authenticateToken, getPostEvents);

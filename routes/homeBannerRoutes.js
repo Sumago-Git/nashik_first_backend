@@ -6,6 +6,7 @@ const {
   toggleHomeBannerStatus,
   toggleHomeBannerDelete,
   getHomeBanners,
+  getActiveHomeBanners
 } = require("../controllers/homeBannerController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active HomeBanners
-router.get("/get-homeBanners", getHomeBanners);
+router.get("/get-homeBanners", getActiveHomeBanners);
 
 // Route to get all active HomeBanners
 router.get("/find-homeBanners", authenticateToken, getHomeBanners);

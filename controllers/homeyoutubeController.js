@@ -68,29 +68,52 @@ exports.gethomeyoutube = async (req, res) => {
   }
 };
 
+exports.getActiveHomeYoutube = async (req, res) => {
+  try {
+    // Fetch records where isDelete is false and isActive is true
+    const activeHomeYoutubeRecords = await Homeyoutube.findAll({
+      where: {
+        isDelete: false,
+        isActive: true,
+      },
+    });
+
+    return apiResponse.successResponseWithData(
+      res,
+      "Active Home YouTube records retrieved successfully",
+      activeHomeYoutubeRecords
+    );
+  } catch (error) {
+    console.log("Get Active Home YouTube records failed", error);
+    return apiResponse.ErrorResponse(res, "Get Active Home YouTube records failed");
+  }
+};
+
 
 exports.isActiveStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const Homeyoutube1 = await Homeyoutube.findByPk(id);
+    const homeYoutube = await Homeyoutube.findByPk(id); // Updated naming for consistency.
 
-    if (!Homeyoutube) {
-      return apiResponse.notFoundResponse(res, "home counter not found");
+    if (!homeYoutube) {
+      return apiResponse.notFoundResponse(res, "Home counter not found");
     }
 
-    Homeyoutube.isActive = !Homeyoutube.isActive;
-    await Homeyoutube1.save();
+    // Toggle the isActive status
+    homeYoutube.isActive = !homeYoutube.isActive;
+    await homeYoutube.save(); // Save the updated object
 
     return apiResponse.successResponseWithData(
       res,
-      "home counter status updated successfully",
-      Homeyoutube1
+      "Home counter status updated successfully",
+      homeYoutube
     );
   } catch (error) {
-    console.log("Toggle home counter status failed", error);
+    console.error("Toggle home counter status failed", error);
     return apiResponse.ErrorResponse(res, "Toggle home counter status failed");
   }
 };
+
 
 
 // Toggle isDelete status

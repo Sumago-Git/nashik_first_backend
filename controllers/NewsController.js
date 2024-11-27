@@ -78,6 +78,33 @@ exports.getNews = async (req, res) => {
   }
 };
 
+exports.getActiveNews = async (req, res) => {
+  try {
+    // Fetch only active News records where isDelete is false
+    const activeNewsRecords = await News.findAll({
+      where: {
+        isDelete: false,
+        isActive: true,
+      },
+    });
+
+    // Construct the base URL for image paths
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const activeNewsWithBaseUrl = activeNewsRecords.map(news => ({
+      ...news.toJSON(),
+      img: news.img ? baseUrl + news.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
+    }));
+
+    return apiResponse.successResponseWithData(
+      res,
+      'Active News records retrieved successfully',
+      activeNewsWithBaseUrl
+    );
+  } catch (error) {
+    console.error('Get Active News failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Active News failed');
+  }
+};
 
 // Toggle isActive status of News
 exports.toggleNewsStatus = async (req, res) => {

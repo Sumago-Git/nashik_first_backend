@@ -6,6 +6,7 @@ const {
   togglePhotoGalleryStatus,
   togglePhotoGalleryDelete,
   getPhotoGalleries,
+  getActivePhotoGalleries,
 } = require("../controllers/photoGalleryController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active PhotoGalleries
-router.get("/get-photoGalleries", getPhotoGalleries);
+router.get("/get-photoGalleries", getActivePhotoGalleries);
 
 // Route to get all active PhotoGalleries
 router.get("/find-photoGalleries", authenticateToken, getPhotoGalleries);

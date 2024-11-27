@@ -6,6 +6,7 @@ const {
   toggleUpcommingStatus,
   toggleUpcommingDelete,
   getUpcommingEntries,
+  getActiveUpcomingEntries
 } = require("../controllers/UpcommingController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active Upcomming entries
-router.get("/get-Upcomming", getUpcommingEntries);
+router.get("/get-Upcomming", getActiveUpcomingEntries);
 
 // Route to get active Upcomming entries with authentication
 router.get("/find-Upcomming", authenticateToken, getUpcommingEntries);

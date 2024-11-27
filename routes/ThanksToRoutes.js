@@ -6,6 +6,7 @@ const {
   toggleThanksToStatus,
   toggleThanksToDelete,
   getPhotoGalleries,
+  getActivePhotoGalleries,
 } = require("../controllers/ThanksToController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active PhotoGalleries
-router.get("/get-ThanksTo", getPhotoGalleries);
+router.get("/get-ThanksTo", getActivePhotoGalleries);
 
 // Route to get all active PhotoGalleries
 router.get("/find-ThanksTo", authenticateToken, getPhotoGalleries);

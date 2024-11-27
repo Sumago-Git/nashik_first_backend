@@ -2,7 +2,7 @@ const BookingForm = require("../models/BookingForm");
 const apiResponse = require("../helper/apiResponse");
 const Sessionslot = require("../models/sesssionslot");
 const path = require("path");
-const moment = require('moment');
+const moment = require("moment");
 const fs = require("fs");
 const xlsx = require("xlsx");
 const sequelize = require("../config/database");
@@ -44,7 +44,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
     const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
 
-
     if (!sessionSlot) {
       console.log("Session slot not found");
       return res.status(404).json({ message: "Session slot not found" });
@@ -62,7 +61,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
       console.log("Processing records from the file...");
-
 
       // Store data in the database with unique user_id and certificate_no
       const createdRecords = await Promise.all(
@@ -147,7 +145,9 @@ exports.uploadOrAddBookingForm = async (req, res) => {
         data: successfulRecords,
       });
     }
-    const existingLearningNo = await BookingForm.findOne({ where: { learningNo } });
+    const existingLearningNo = await BookingForm.findOne({
+      where: { learningNo },
+    });
     if (existingLearningNo) {
       return res.status(400).json({
         message: `The learning number "${learningNo}" already exists. Please use a unique learning number.`,
@@ -348,12 +348,26 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
         sessionSlotId,
         category,
       },
+      include: [
+        {
+          model: Sessionslot,
+          attributes: ["time"], // Ensure 'time' is included from Sessionslot
+        },
+      ],
+    });
+
+    // Ensure that you include the time data from Sessionslot in the response
+    const responseData = bookingEntries.map((entry) => {
+      return {
+        ...entry.dataValues,
+        sessionSlotTime: entry.Sessionslot ? entry.Sessionslot.time : null, // Extracting time from the associated session slot
+      };
     });
 
     return apiResponse.successResponseWithData(
       res,
       "Booking entries retrieved successfully",
-      bookingEntries
+      responseData
     );
   } catch (error) {
     console.log("Get booking entries by date and category failed", error);
@@ -363,14 +377,15 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
     );
   }
 };
-const { Op } = require('sequelize'); // Import Sequelize operators
+
+const { Op } = require("sequelize"); // Import Sequelize operators
 
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
     // Get today's date at the start of the day
-    const today = moment().startOf('day').format("MM/DD/YYYY");
+    const today = moment().startOf("day").format("MM/DD/YYYY");
 
     const bookingEntries = await BookingForm.findAll({
       where: {
@@ -414,7 +429,7 @@ exports.updateTrainingStatus = async (req, res) => {
         "RTO – Learner Driving License Holder Training",
         "RTO – Suspended Driving License Holders Training",
         "RTO – Training for School Bus Driver",
-        "College/Organization Training – Group"
+        "College/Organization Training – Group",
       ];
 
       if (validCategories.includes(bookingForm.category)) {
@@ -425,7 +440,7 @@ exports.updateTrainingStatus = async (req, res) => {
         const attendedCount = await BookingForm.count({
           where: { training_status: "Attended" },
           lock: transaction.LOCK.UPDATE, // Locking mechanism
-          transaction
+          transaction,
         });
 
         // Calculate the next certificate_no
@@ -556,7 +571,7 @@ exports.isDeleteStatus = async (req, res) => {
 exports.deleteBookingForm = async (req, res) => {
   try {
     // Parse today's date
-    const today = moment().startOf('day'); // Start of the current day
+    const today = moment().startOf("day"); // Start of the current day
 
     // Find booking forms matching the criteria
     const bookingFormsToDelete = await BookingForm.findAll({

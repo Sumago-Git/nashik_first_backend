@@ -74,6 +74,31 @@ exports.getVideos = async (req, res) => {
   }
 };
 
+exports.getActiveVideos = async (req, res) => {
+  try {
+    // Fetch only active and non-deleted video records
+    const activeVideos = await Videos.findAll({
+      where: {
+        isDelete: false,
+        isActive: true,
+      },
+    });
+
+    // Construct the base URL for video thumbnails
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const formattedVideos = activeVideos.map(video => ({
+      ...video.toJSON(),
+      thumbnail: video.thumbnail ? baseUrl + video.thumbnail.replace(/\\/g, '/') : null,
+    }));
+
+    return apiResponse.successResponseWithData(res, 'Active videos retrieved successfully', formattedVideos);
+  } catch (error) {
+    console.error('Get Active Videos failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Active Videos failed');
+  }
+};
+
+
 
 // Toggle isActive status of Videos
 exports.toggleVideosStatus = async (req, res) => {

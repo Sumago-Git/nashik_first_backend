@@ -124,3 +124,24 @@ exports.togglePostEventsDelete = async (req, res) => {
   }
 };
 
+exports.getActivePostEvents = async (req, res) => {
+  try {
+    // Build the query conditions for active entries
+    const queryConditions = { isActive: true, isDelete: false };
+
+    // Fetch the active PostEvents records
+    const activePostEvents = await PostEvents.findAll({ where: queryConditions });
+
+    // Construct the base URL for image paths
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const activePostEventsWithBaseUrl = activePostEvents.map(event => ({
+      ...event.toJSON(),
+      img: event.img ? baseUrl + event.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
+    }));
+
+    return apiResponse.successResponseWithData(res, 'Active PostEvents retrieved successfully', activePostEventsWithBaseUrl);
+  } catch (error) {
+    console.error('Get Active PostEvents failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Active PostEvents failed');
+  }
+};

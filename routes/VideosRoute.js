@@ -6,6 +6,7 @@ const {
   toggleVideosStatus,
   toggleVideosDelete,
   getVideos,
+  getActiveVideos,
 } = require("../controllers/VideosController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active PhotoGalleries
-router.get("/get-Videos", getVideos);
+router.get("/get-Videos", getActiveVideos);
 
 // Route to get all active PhotoGalleries
 router.get("/find-Videos", authenticateToken, getVideos);

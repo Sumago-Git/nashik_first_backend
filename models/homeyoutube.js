@@ -2,6 +2,11 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Homeyoutube = sequelize.define("Homeyoutube", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   mediaurl: {
     type: DataTypes.STRING,
     allowNull: false,
