@@ -53,3 +53,13 @@ const Sessionslot = sequelize.define("Sessionslot", {
 });
 
 module.exports = Sessionslot;
+const SlotRegisterInfo = require('./SlotRegisterInfo'); // Import SlotRegisterInfo model
+
+Sessionslot.hasMany(SlotRegisterInfo, {
+  foreignKey: 'sessionSlotId',
+  as: 'slotDetails',
+});
+SlotRegisterInfo.belongsTo(Sessionslot, {
+  foreignKey: 'sessionSlotId',
+  as: 'sessionSlot',
+});

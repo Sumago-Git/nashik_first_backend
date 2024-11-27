@@ -50,14 +50,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       return res.status(404).json({ message: "Session slot not found" });
     }
 
-    if (sessionSlot.available_seats <= 0) {
-      console.log("No available seats for this session slot");
-      return res
-        .status(400)
-        .json({ message: "No available seats for this session slot" });
-    }
-
-    // Decrement available_seats by 1
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats - 1,
     });
@@ -647,6 +639,10 @@ exports.registerSlotInfo = async (req, res) => {
       coordinator_name,
       hm_principal_manager_mobile,
       hm_principal_manager_name,
+    });
+    const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
+    await sessionSlot.update({
+      available_seats: sessionSlot.available_seats === 0,
     });
 
     return res.status(201).json({
