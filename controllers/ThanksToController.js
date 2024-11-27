@@ -77,6 +77,36 @@ exports.getPhotoGalleries = async (req, res) => {
   }
 };
 
+exports.getActivePhotoGalleries = async (req, res) => {
+  try {
+    // Fetch only active PhotoGallery records where isDelete is false
+    const activePhotoGalleries = await ThanksTo.findAll({
+      where: {
+        isDelete: false,
+        isActive: true, // Only include active photo galleries
+      },
+    });
+
+    // Construct the base URL for image paths
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const photoGalleriesWithBaseUrl = activePhotoGalleries.map(photoGallery => ({
+      ...photoGallery.toJSON(),
+      img: photoGallery.img ? baseUrl + photoGallery.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
+    }));
+
+    return apiResponse.successResponseWithData(
+      res,
+      'Active Photo Galleries retrieved successfully',
+      photoGalleriesWithBaseUrl
+    );
+  } catch (error) {
+    console.error('Get Active Photo Galleries failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Active Photo Galleries failed');
+  }
+};
+
+
+
 // Toggle isActive status of ThanksTo
 exports.toggleThanksToStatus = async (req, res) => {
   try {

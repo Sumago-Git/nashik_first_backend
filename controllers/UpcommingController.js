@@ -78,6 +78,25 @@ exports.getUpcommingEntries = async (req, res) => {
   }
 };
 
+exports.getActiveUpcomingEntries = async (req, res) => {
+  try {
+    const queryConditions = { isDelete: false, isActive: true };
+
+    const activeUpcomingEntries = await Upcomming.findAll({ where: queryConditions });
+
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const formattedEntries = activeUpcomingEntries.map(entry => ({
+      ...entry.toJSON(),
+      img: entry.img ? baseUrl + entry.img.replace(/\\/g, '/') : null, // Format the image path with base URL
+    }));
+
+    return apiResponse.successResponseWithData(res, 'Active upcoming entries retrieved successfully', formattedEntries);
+  } catch (error) {
+    console.error('Get active upcoming entries failed', error);
+    return apiResponse.ErrorResponse(res, 'Get active upcoming entries failed');
+  }
+};
+
 // Toggle isActive status of Upcomming
 exports.toggleUpcommingStatus = async (req, res) => {
   try {

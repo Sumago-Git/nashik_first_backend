@@ -1,5 +1,5 @@
 const express = require('express');
-const { addhomeyoutube, updatehomeyoutube, gethomeyoutube, isActiveStatus, isDeleteStatus } = require('../controllers/homeyoutubeController');
+const { addhomeyoutube, updatehomeyoutube, gethomeyoutube, isActiveStatus, isDeleteStatus, getActiveHomeYoutube } = require('../controllers/homeyoutubeController');
 const { validatehomeyoutube, validatehomeyoutubeId } = require('../validations/homeyoutubeValidation');
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
@@ -27,7 +27,7 @@ router.put('/update-homeyoutube/:id', authenticateToken, validatehomeyoutubeId, 
 }, updatehomeyoutube);
 
 // Get home counters
-router.get('/get-homeyoutube', gethomeyoutube);
+router.get('/get-homeyoutube', getActiveHomeYoutube);
 // Get home counters
 router.get('/find-homeyoutube', authenticateToken, gethomeyoutube);
 

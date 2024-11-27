@@ -110,3 +110,24 @@ exports.getHomeBanners = async (req, res) => {
     }
   };
   
+  exports.getActiveHomeBanners = async (req, res) => {
+    try {
+      // Build the query conditions for active entries
+      const queryConditions = { isActive: true, isDelete: false };
+  
+      // Fetch the active HomeBanners
+      const activeHomeBanners = await HomeBanner.findAll({ where: queryConditions });
+  
+      const baseUrl = `${req.protocol}://${req.get('host')}/`;
+      const activeHomeBannersWithBaseUrl = activeHomeBanners.map(homeBanner => ({
+        ...homeBanner.toJSON(),
+        img1: homeBanner.img1 ? baseUrl + homeBanner.img1.replace(/\\/g, '/') : null,
+        img2: homeBanner.img2 ? baseUrl + homeBanner.img2.replace(/\\/g, '/') : null,
+      }));
+  
+      return apiResponse.successResponseWithData(res, 'Active HomeBanners retrieved successfully', activeHomeBannersWithBaseUrl);
+    } catch (error) {
+      console.error('Get Active HomeBanners failed', error);
+      return apiResponse.ErrorResponse(res, 'Get Active HomeBanners failed');
+    }
+  };

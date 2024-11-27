@@ -113,3 +113,23 @@ exports.togglePhotoGalleryDelete = async (req, res) => {
     return apiResponse.ErrorResponse(res, 'Toggle PhotoGallery delete status failed');
   }
 };
+exports.getActivePhotoGalleries = async (req, res) => {
+  try {
+    // Build the query conditions for active entries
+    const queryConditions = { isActive: true, isDelete: false };
+
+    // Fetch the active PhotoGalleries
+    const activePhotoGalleries = await PhotoGallery.findAll({ where: queryConditions });
+
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const activePhotoGalleriesWithBaseUrl = activePhotoGalleries.map(photoGallery => ({
+      ...photoGallery.toJSON(),
+      img: photoGallery.img ? baseUrl + photoGallery.img.replace(/\\/g, '/') : null,
+    }));
+
+    return apiResponse.successResponseWithData(res, 'Active PhotoGalleries retrieved successfully', activePhotoGalleriesWithBaseUrl);
+  } catch (error) {
+    console.error('Get Active PhotoGalleries failed', error);
+    return apiResponse.ErrorResponse(res, 'Get Active PhotoGalleries failed');
+  }
+};

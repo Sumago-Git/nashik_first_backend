@@ -6,6 +6,7 @@ const {
   toggleNewsStatus,
   toggleNewsDelete,
   getNews,
+  getActiveNews,
 } = require("../controllers/NewsController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active PhotoGalleries
-router.get("/get-news", getNews);
+router.get("/get-news", getActiveNews);
 
 // Route to get all active PhotoGalleries
 router.get("/find-news", authenticateToken, getNews);
