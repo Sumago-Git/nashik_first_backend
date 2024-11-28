@@ -351,7 +351,8 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
       include: [
         {
           model: Sessionslot,
-          attributes: ["time"], // Ensure 'time' is included from Sessionslot
+          as: 'Sessionslot', // Include the alias here
+          attributes: ['time'], // Ensure 'time' is included from Sessionslot
         },
       ],
     });
@@ -366,17 +367,18 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
     return apiResponse.successResponseWithData(
       res,
-      "Booking entries retrieved successfully",
+      'Booking entries retrieved successfully',
       responseData
     );
   } catch (error) {
-    console.log("Get booking entries by date and category failed", error);
+    console.log('Get booking entries by date and category failed', error);
     return apiResponse.ErrorResponse(
       res,
-      "Get booking entries by date and category failed"
+      'Get booking entries by date and category failed'
     );
   }
 };
+
 
 const { Op } = require("sequelize"); // Import Sequelize operators
 

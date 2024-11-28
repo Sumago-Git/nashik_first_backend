@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const Sessionslot = require("./sesssionslot");
 
 const BookingForm = sequelize.define("BookingForm", {
   learningNo: {
@@ -110,11 +111,10 @@ const BookingForm = sequelize.define("BookingForm", {
     defaultValue: false,
   },
 });
-
+BookingForm.belongsTo(Sessionslot, {
+  foreignKey: "sessionSlotId",
+  as: "Sessionslot",
+});
 module.exports = BookingForm;
 
-
-const Sessionslot = require("./sesssionslot");
-
-BookingForm.belongsTo(Sessionslot, { foreignKey: 'sessionSlotId' });
 
