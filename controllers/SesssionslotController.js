@@ -3,6 +3,7 @@ const apiResponse = require("../helper/apiResponse");
 const sequelize = require('../config/database'); // Make sure to import sequelize from your DB config file
 const Holiday = require("../models/Holiday");
 const { Op } = require('sequelize');
+const SlotRegisterInfo = require("../models/SlotRegisterInfo");
 // Add Slot
 
 // exports.addSessionslot = async (req, res) => {
@@ -262,7 +263,7 @@ exports.updateSessionslot = async (req, res) => {
     slot.available_seats = capacity; // Reset available seats to the new capacity
     slot.title = title;
     slot.slotType = slotType;
-
+    slot.tempdate = slotdate
     await slot.save();
 
     return apiResponse.successResponseWithData(res, "Slot updated successfully", slot);
@@ -285,24 +286,53 @@ exports.getSessionSessionslot = async (req, res) => {
 };
 exports.getSessionbySessionslot = async (req, res) => {
   try {
-    const Slotdate = req.body.slotdate
-    const Category = req.body.category
-    const SlotType = req.body.slotType
-    const slotTypeFilter = SlotType ? { SlotType } : {}; // If no slotType provided, don't filter by it
+    const { slotdate, category, slotType } = req.body;
+    const slotTypeFilter = slotType ? { slotType: slotType } : {}; // Use lowercase 'slotType'
 
-    const sessionslot = await Sessionslot.findAll({ where: { slotdate: Slotdate, category: Category, isDelete: false, ...slotTypeFilter, } });
+    // Fetch sessions with related SlotRegisterInfo
+    const sessionslot = await Sessionslot.findAll({
+      where: {
+        slotdate,
+        category,
+        isDelete: false,
+        ...slotTypeFilter, // Apply optional filter for slotType
+      },
+      include: [
+        {
+          model: SlotRegisterInfo,
+          as: 'slotRegisterInfos', // Ensure this alias matches the association
+          attributes: [
+            'slotdate',
+            'slotsession',
+            'institution_name',
+            'institution_email',
+            'institution_phone',
+            'coordinator_mobile',
+            'coordinator_name',
+            'hm_principal_manager_mobile',
+            'hm_principal_manager_name',
+          ], // Fetch only required fields
+        },
+      ],
+    });
 
-    return apiResponse.successResponseWithData(res, "Sessionslot retrieved successfully", sessionslot);
+    // Check if any sessions were found
+    if (sessionslot.length === 0) {
+      return apiResponse.ErrorResponse(res, 'No sessions found matching the criteria');
+    }
+
+    return apiResponse.successResponseWithData(res, 'Sessionslot retrieved successfully', sessionslot);
   } catch (error) {
-    console.log("Get Sessionslot failed", error);
-    return apiResponse.ErrorResponse(res, "Get Sessionslot failed");
+    console.log('Get Sessionslot failed', error);
+    return apiResponse.ErrorResponse(res, `Get Sessionslot failed: ${error.message}`);
   }
 };
+
 
 exports.getSessionbySessionslot2 = async (req, res) => {
   try {
     const Slotdate = req.body.slotdate
-  
+
     const SlotType = req.body.slotType
     const slotTypeFilter = SlotType ? { SlotType } : {}; // If no slotType provided, don't filter by it
 
@@ -429,7 +459,7 @@ exports.getAvailableslots = async (req, res) => {
     let totalMonthlyAvailableSeats = 0;
     // Process each slot and determine its status (available or closed)
     const data = daysInMonth.map((day) => {
-      const currentDate = new Date(year, month - 1, day);  // Create current date for comparison (month is 0-indexed)
+      const currentDate = new Date(year, month - 1, day); // Create current date for comparison (month is 0-indexed)
       const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
 
       // Check if the day is a holiday
@@ -448,7 +478,6 @@ exports.getAvailableslots = async (req, res) => {
         // Construct the requested date in YYYY-MM-DD format
         const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-
         // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
       });
@@ -456,18 +485,24 @@ exports.getAvailableslots = async (req, res) => {
       // Calculate total capacity and total available seats for the day
       const totalCapacity = slotsForDay.reduce((total, slot) => total + parseInt(slot.capacity, 10), 0);
       const totalAvailableSeats = slotsForDay.reduce((total, slot) => total + parseInt(slot.available_seats, 10), 0);
-      const totalSlots = slotsForDay.length;  // Total number of slots for the day
+      const totalSlots = slotsForDay.length; // Total number of slots for the day
 
       // Add to monthly totals
       totalMonthlyCapacity += totalCapacity;
       totalMonthlyAvailableSeats += totalAvailableSeats;
 
-      let status = "available"; // Default to "closed"
+      // Include slots with time and available seats
+      const slotsDetails = slotsForDay.map((slot) => ({
+        time: slot.time,
+        deadlineTime: slot.deadlineTime, // Assuming there's a 'time' field in your database
+        availableSeats: slot.available_seats,
+      }));
+
+      let status = "available"; // Default to "available"
       if (isHoliday) {
         // If it's a holiday, set status to "Holiday"
         status = "Holiday";
-
-      } else if (totalAvailableSeats == 0) {
+      } else if (totalAvailableSeats === 0) {
         // Mark as closed if no available seats
         status = "closed";
       }
@@ -477,9 +512,11 @@ exports.getAvailableslots = async (req, res) => {
         status,
         totalCapacity,
         totalAvailableSeats,
-        totalSlots
+        totalSlots,
+        slots: slotsDetails, // Include slots information
       };
     });
+
 
     res.status(200).json({
       message: "Monthly session slots retrieved successfully",
@@ -495,14 +532,14 @@ exports.getAvailableslots = async (req, res) => {
 
 exports.getAvailableslots2 = async (req, res) => {
   try {
-    const {  year, month, slotType } = req.body;
+    const { year, month, slotType } = req.body;
 
     // Fetch all session slots for the given month and year
     const slotTypeFilter = slotType ? { slotType } : {}; // If no slotType provided, don't filter by it
 
     const sessionslots = await Sessionslot.findAll({
       where: {
-   
+
         ...slotTypeFilter,
         isDelete: false,
         slotdate: {
@@ -585,6 +622,7 @@ exports.getAvailableslots2 = async (req, res) => {
       }
 
       return {
+        slotsForDay,
         day,
         status,
         totalCapacity,

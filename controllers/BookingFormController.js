@@ -49,14 +49,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       return res.status(404).json({ message: "Session slot not found" });
     }
 
-    if (sessionSlot.available_seats <= 0) {
-      console.log("No available seats for this session slot");
-      return res
-        .status(400)
-        .json({ message: "No available seats for this session slot" });
-    }
-
-    // Decrement available_seats by 1
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats - 1,
     });
@@ -359,7 +351,8 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
       include: [
         {
           model: Sessionslot,
-          attributes: ["time"], // Ensure 'time' is included from Sessionslot
+          as: 'Sessionslot', // Include the alias here
+          attributes: ['time'], // Ensure 'time' is included from Sessionslot
         },
       ],
     });
@@ -374,17 +367,18 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
     return apiResponse.successResponseWithData(
       res,
-      "Booking entries retrieved successfully",
+      'Booking entries retrieved successfully',
       responseData
     );
   } catch (error) {
-    console.log("Get booking entries by date and category failed", error);
+    console.log('Get booking entries by date and category failed', error);
     return apiResponse.ErrorResponse(
       res,
-      "Get booking entries by date and category failed"
+      'Get booking entries by date and category failed'
     );
   }
 };
+
 
 const { Op } = require("sequelize"); // Import Sequelize operators
 
@@ -662,6 +656,10 @@ exports.registerSlotInfo = async (req, res) => {
       coordinator_name,
       hm_principal_manager_mobile,
       hm_principal_manager_name,
+    });
+    const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
+    await sessionSlot.update({
+      available_seats: sessionSlot.available_seats === 0,
     });
 
     return res.status(201).json({

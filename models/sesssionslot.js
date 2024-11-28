@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
+const SlotRegisterInfo = require("./SlotRegisterInfo");
 
 const Sessionslot = sequelize.define("Sessionslot", {
   deadlineTime: {
@@ -52,7 +53,26 @@ const Sessionslot = sequelize.define("Sessionslot", {
   },
 });
 
-module.exports = Sessionslot;
-const BookingForm = require("./BookingForm");
+Sessionslot.hasMany(SlotRegisterInfo, {
+  foreignKey: "sessionSlotId",
+  as: "slotRegisterInfos", // Alias for eager loading
+});
 
-Sessionslot.hasMany(BookingForm, { foreignKey: "sessionSlotId" });
+SlotRegisterInfo.belongsTo(Sessionslot, {
+  foreignKey: "sessionSlotId",
+  as: "sessionSlot", // Alias for eager loading
+});
+module.exports = Sessionslot;
+
+
+
+
+
+
+
+// const BookingForm = require("./BookingForm");
+
+// Sessionslot.hasMany(BookingForm, {
+//   foreignKey: "sessionSlotId", // Foreign key in BookingForm
+//   as: "bookingForms", // Alias for eager loading
+// });
