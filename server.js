@@ -52,6 +52,8 @@ const ContactForm = require("./routes/contactFormRoutes")
 const Trainer = require("./routes/trainerRoutes")
 const Individuals = require('./routes/IndividualsRoutes')
 const certification = require('./routes/certificateRoutes')
+const Counts = require('./routes/CountRoute')
+app.use("/counts", Counts);
 app.use("/certificate", certification);
 app.use("/trainer", Trainer);
 app.use("/contactform", ContactForm);
