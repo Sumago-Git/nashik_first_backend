@@ -1,16 +1,31 @@
 const Holiday = require("../models/Holiday");
 const apiResponse = require("../helper/apiResponse");
-
+const SessionSlot = require("../models/sesssionslot")
 // Add holiday
 exports.addHoliday = async (req, res) => {
   try {
     const { holiday_date } = req.body; // Expecting a single string
+
+    // Check if holiday_date exists in SessionSlot table as slotdate
+    const sessionSlotExists = await SessionSlot.findOne({
+      where: { slotdate: holiday_date },
+    });
+
+    if (sessionSlotExists) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Cannot add holiday. A session slot is already scheduled on this date."
+      );
+    }
+
+    // Proceed to add holiday if no session slot exists for the given date
     const holiday = await Holiday.create({
       holiday_date,
       tempdate: holiday_date,
       isActive: true,
       isDelete: false,
     });
+
     return apiResponse.successResponseWithData(
       res,
       "Holiday added successfully",
@@ -21,6 +36,7 @@ exports.addHoliday = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Add holiday failed");
   }
 };
+
 
 // Update holiday
 exports.updateHoliday = async (req, res) => {
@@ -41,7 +57,7 @@ exports.updateHoliday = async (req, res) => {
       holiday
     );
   } catch (error) {
-    console.log("Update holiday failed", error) ;
+    console.log("Update holiday failed", error);
     return apiResponse.ErrorResponse(res, "Update holiday failed");
   }
 };

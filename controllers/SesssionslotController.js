@@ -253,17 +253,31 @@ exports.updateSessionslot = async (req, res) => {
       console.log("Onsite slot type; skipping category and time conflict check.");
     }
 
-    // Update the slot with new data
+    if (capacity !== slot.capacity) {
+      const capacityDifference = capacity - slot.capacity;
+
+      if (capacityDifference > 0) {
+        // Capacity increased: Add the difference to available_seats
+        slot.available_seats += capacityDifference;
+      } else {
+        // Capacity decreased: Adjust available_seats but ensure it's not negative
+        slot.available_seats = Math.max(0, slot.available_seats + capacityDifference);
+
+        // Ensure available_seats does not exceed the new capacity
+        slot.available_seats = Math.min(slot.available_seats, capacity);
+      }
+    }
+
     slot.slotdate = slotdate;
     slot.time = time;
     slot.deadlineTime = deadlineTime;
     slot.category = category;
     slot.trainer = trainer;
-    slot.capacity = capacity;
-    slot.available_seats = capacity; // Reset available seats to the new capacity
+    slot.capacity = capacity; // Update capacity
     slot.title = title;
     slot.slotType = slotType;
-    slot.tempdate = slotdate
+    slot.tempdate = slotdate;
+
     await slot.save();
 
     return apiResponse.successResponseWithData(res, "Slot updated successfully", slot);
@@ -365,24 +379,47 @@ exports.toggleIsActive = async (req, res) => {
 };
 
 // Toggle isDelete status (Soft delete)
+// Toggle isDelete status (Soft delete)
+const BookingForm = require("../models/BookingForm");
+
+
 exports.toggleIsDelete = async (req, res) => {
   try {
     const { id } = req.params;
     const slot = await Sessionslot.findByPk(id);
 
+    // Check if slot exists and is not already deleted
     if (!slot || slot.isDelete) {
-      return apiResponse.notFoundResponse(res, "Slot not found");
+      return apiResponse.notFoundResponse(res, "Slot not found or already deleted");
     }
 
+    // Check for existing bookings associated with this slot
+    const associatedBookings = await BookingForm.findOne({
+      where: { sessionSlotId: id, isDelete: false }, // Assuming only active bookings matter
+    });
+
+    if (associatedBookings) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Cannot delete slot because bookings are associated with it."
+      );
+    }
+
+    // Toggle the isDelete status
     slot.isDelete = !slot.isDelete;
     await slot.save();
 
-    return apiResponse.successResponseWithData(res, "Slot delete status updated", slot);
+    return apiResponse.successResponseWithData(
+      res,
+      "Slot delete status updated successfully",
+      slot
+    );
   } catch (error) {
-    console.log("Toggle slot delete status failed", error);
+    console.error("Toggle slot delete status failed", error);
     return apiResponse.ErrorResponse(res, "Toggle slot delete status failed");
   }
 };
+
 
 // Get Sessionslots by Category
 exports.getSessionslotsByCategory = async (req, res) => {

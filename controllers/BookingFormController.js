@@ -86,7 +86,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               slotdate: slotdate,
               slotsession: slotsession,
               sessionSlotId: sessionSlotId,
-              certificate_no: startingCertificateNo, // Incremented for each record
+              certificate_no: 0, // Incremented for each record
               user_id: userId, // Incremented for each record
               institution_name,
               institution_email,
@@ -170,7 +170,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       category: category,
       slotdate,
       slotsession,
-      certificate_no: nextCertificateNo, // First record uses starting certificate_no
+      certificate_no: 0, // First record uses starting certificate_no
       user_id: nextUserId, // First record uses starting user_id
       institution_name,
       institution_email,
@@ -440,10 +440,16 @@ exports.updateTrainingStatus = async (req, res) => {
 
         // Lock table or use transaction isolation to ensure unique numbers
         const attendedCount = await BookingForm.count({
-          where: { training_status: "Attended" },
+          where: {
+            training_status: "Attended",
+            category: {
+              [Op.in]: validCategories, // Ensure the category is in the validCategories array
+            },
+          },
           lock: transaction.LOCK.UPDATE, // Locking mechanism
           transaction,
         });
+
 
         // Calculate the next certificate_no
         const nextCertificateNo = startingCertificateNo + attendedCount + 1;
