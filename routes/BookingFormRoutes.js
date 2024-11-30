@@ -1,5 +1,5 @@
 const express = require('express');
-const { addBookingForm, getSlotInfo, registerSlotInfo, updateBookingForm, getBookingForm, getBookingEntriesByDateAndCategory, updateTrainingStatus, getAllEntriesByCategory, isActiveStatus, isDeleteStatus, deleteBookingForm, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
+const { addBookingForm, getSlotInfobyid, registerSlotInfo, updateBookingForm, updateSlotInfo, getSlotInfo, deleteSlotInfo, getBookingForm, getBookingEntriesByDateAndCategory, updateTrainingStatus, getAllEntriesByCategory, isActiveStatus, isDeleteStatus, deleteBookingForm, uploadOrAddBookingForm, uploadXLSX } = require('../controllers/BookingFormController');
 const { validateBookingForm, validateBookingFormId } = require('../validations/bookingFormValidation');
 const { validationResult } = require('express-validator');
 const apiResponse = require('../helper/apiResponse');
@@ -9,7 +9,10 @@ const router = express.Router();
 
 router.post('/create-uploadXLSX', uploadSingleXLSX, uploadXLSX);
 router.post('/registerSlotInfo', registerSlotInfo);
+router.delete('/deleteSlotInfo/:id', deleteSlotInfo)
+router.get('/getSlotInfobyid/:id', getSlotInfobyid)
 router.post('/getSlotInfo', getSlotInfo)
+router.put('/updateSlotInfo/:id', updateSlotInfo)
 router.post('/create-uploadOrAddBookingForm', uploadSingleXLSX, uploadOrAddBookingForm);
 // Add booking form
 router.post('/create-bookingform', uploadSingleXLSX, validateBookingForm, (req, res, next) => {

@@ -708,3 +708,120 @@ exports.getSlotInfo = async (req, res) => {
       .json({ message: "An error occurred.", error: error.message });
   }
 };
+
+// Get Slot Registration Info
+exports.getSlotInfobyid = async (req, res) => {
+  try {
+    const { id } = req.params; // Get the slot ID from the URL parameter
+
+    // Find the slot registration info by ID
+    const slotInfo = await SlotRegisterInfo.findByPk(id);
+
+    if (!slotInfo) {
+      return res.status(404).json({ message: "Slot registration not found." });
+    }
+
+    // Respond with the slot registration details
+    return res.status(200).json({
+      message: "Slot registration retrieved successfully.",
+      data: slotInfo
+    });
+  } catch (error) {
+    console.error("Error fetching slot register info:", error);
+    return res.status(500).json({ message: "An error occurred.", error: error.message });
+  }
+};
+
+
+exports.updateSlotInfo = async (req, res) => {
+  try {
+    const { id } = req.params; // Get the slot ID from the URL parameter
+
+    // Check if the id is provided and is a valid number
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ message: "Invalid or missing slot ID." });
+    }
+
+    const {
+      slotdate,
+      sessionSlotId,
+      slotsession,
+      category,
+      institution_name,
+      institution_email,
+      institution_phone,
+      coordinator_mobile,
+      coordinator_name,
+      hm_principal_manager_mobile,
+      hm_principal_manager_name,
+    } = req.body;
+
+    // Find the slot registration by ID
+    const slotInfo = await SlotRegisterInfo.findByPk(id);
+    
+    // If slotInfo is null, the record wasn't found
+    if (!slotInfo) {
+      return res.status(404).json({ message: `Slot registration with ID ${id} not found.` });
+    }
+
+    // Update the slot registration information
+    await slotInfo.update({
+      slotdate,
+      sessionSlotId,
+      slotsession,
+      category,
+      institution_name,
+      institution_email,
+      institution_phone,
+      coordinator_mobile,
+      coordinator_name,
+      hm_principal_manager_mobile,
+      hm_principal_manager_name,
+    });
+
+    // Update the related session slot's available seats (if needed)
+    const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
+    if (sessionSlot) {
+      await sessionSlot.update({
+        available_seats: sessionSlot.available_seats === 0,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Slot registration updated successfully.",
+      data: slotInfo,
+    });
+  } catch (error) {
+    console.error("Error updating slot register info:", error);
+    return res.status(500).json({ message: "An error occurred.", error: error.message });
+  }
+};
+
+// Delete Slot Registration Info
+exports.deleteSlotInfo = async (req, res) => {
+  try {
+    const { id } = req.params; // Get the slot registration ID from the URL parameter
+
+    // Check if the slot ID exists in the slotRegisterInfos
+    const slotInfo = await SlotRegisterInfo.findByPk(id);
+    if (!slotInfo) {
+      return res.status(404).json({ message: "Slot registration not found." });
+    }
+
+    // Delete the slot registration
+    await slotInfo.destroy();
+
+    // Optionally, update the available seats on the session slot
+    const sessionSlot = await Sessionslot.findByPk(slotInfo.sessionSlotId);
+    if (sessionSlot) {
+      await sessionSlot.update({
+        available_seats: sessionSlot.available_seats + 1, // Increase available seats
+      });
+    }
+
+    return res.status(200).json({ message: "Slot registration deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting slot register info:", error);
+    return res.status(500).json({ message: "An error occurred.", error: error.message });
+  }
+};

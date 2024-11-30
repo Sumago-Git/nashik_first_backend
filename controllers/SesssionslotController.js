@@ -316,6 +316,7 @@ exports.getSessionbySessionslot = async (req, res) => {
           model: SlotRegisterInfo,
           as: 'slotRegisterInfos', // Ensure this alias matches the association
           attributes: [
+            'id',
             'slotdate',
             'slotsession',
             'institution_name',
