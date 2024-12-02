@@ -78,6 +78,29 @@ exports.getObjectiveOfANF = async (req, res) => {
   }
 };
 
+// Get all ObjectiveOfANF entries
+exports.getIsActiveObjectiveOfANF = async (req, res) => {
+  try {
+    // Build the query conditions to include only active and non-deleted objectives
+    const queryConditions = { isDelete: false, isActive: true };
+
+    // Fetch the ObjectiveOfANF records with the query conditions
+    const objectives = await ObjectiveOfANF.findAll({ where: queryConditions });
+
+    // Construct the base URL for image paths
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const objectivesWithBaseUrl = objectives.map(objective => ({
+      ...objective.toJSON(),
+      img: objective.img ? baseUrl + objective.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
+    }));
+
+    return apiResponse.successResponseWithData(res, 'Active objectives retrieved successfully', objectivesWithBaseUrl);
+  } catch (error) {
+    console.error('Get ObjectiveOfANF failed', error);
+    return apiResponse.ErrorResponse(res, 'Get ObjectiveOfANF failed');
+  }
+};
+
 
 // Toggle isActive status of ObjectiveOfANF
 exports.toggleObjectiveOfANFStatus = async (req, res) => {
