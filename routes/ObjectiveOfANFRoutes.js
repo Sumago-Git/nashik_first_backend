@@ -6,6 +6,7 @@ const {
   toggleObjectiveOfANFStatus,
   toggleObjectiveOfANFDelete,
   getObjectiveOfANF,
+  getIsActiveObjectiveOfANF,
 } = require("../controllers/ObjectiveOfANFController");
 const authenticateToken = require("../middleware/auth");
 
@@ -42,7 +43,7 @@ router.delete(
 );
 
 // Route to get all active PhotoGalleries
-router.get("/get-ObjectiveOfANF", getObjectiveOfANF);
+router.get("/get-ObjectiveOfANF", getIsActiveObjectiveOfANF);
 
 // Route to get all active PhotoGalleries
 router.get("/find-ObjectiveOfANF", authenticateToken, getObjectiveOfANF);
