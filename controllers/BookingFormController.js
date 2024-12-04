@@ -6,6 +6,7 @@ const moment = require("moment");
 const fs = require("fs");
 const xlsx = require("xlsx");
 const sequelize = require("../config/database");
+const { Op } = require("sequelize"); // Import Sequelize operators
 
 const sendEmail = require("../middleware/nodemailer"); // Adjust the path as per your project structure
 
@@ -20,7 +21,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       email,
       phone,
       vehicletype,
-      slotdate,
+      slotdate, tempdate,
       slotsession,
       category,
       institution_name,
@@ -84,6 +85,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               category: category,
               vehicletype: vehicletypeString,
               slotdate: slotdate,
+              tempdate: tempdate,
               slotsession: slotsession,
               sessionSlotId: sessionSlotId,
               certificate_no: 0, // Incremented for each record
@@ -169,6 +171,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       vehicletype: vehicletypeString,
       category: category,
       slotdate,
+      tempdate,
       slotsession,
       certificate_no: 0, // First record uses starting certificate_no
       user_id: nextUserId, // First record uses starting user_id
@@ -341,12 +344,13 @@ exports.addBookingForm = async (req, res) => {
 
 exports.getBookingEntriesByDateAndCategory = async (req, res) => {
   try {
-    const { sessionSlotId, category } = req.body;
+    const { sessionSlotId, category, slotdate } = req.body;
 
     const bookingEntries = await BookingForm.findAll({
       where: {
         sessionSlotId,
         category,
+        slotdate
       },
       include: [
         {
@@ -380,37 +384,78 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 };
 
 
-const { Op } = require("sequelize"); // Import Sequelize operators
+// Ensure moment is imported
+
+
+// exports.getAllEntriesByCategory = async (req, res) => {
+//   try {
+//     const { category } = req.body;
+
+//     // Get today's date at the start of the day, formatted as MM/DD/YYYY
+//     const today = moment().startOf('day').format("MM/DD/YYYY");  // Format today's date as MM/DD/YYYY
+
+//     // Query the database for booking entries where slotdate is today or later
+//     const bookingEntries = await BookingForm.findAll({
+//       where: {
+//         category,
+//         slotdate: {
+//           [Op.gt]: today,  // Compare slotdate to today's date (formatted as MM/DD/YYYY)
+//         },
+//       },
+//     });
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Booking entries by category retrieved successfully",
+//       bookingEntries
+//     );
+//   } catch (error) {
+//     console.log("Get booking entries by category failed", error);
+//     return apiResponse.ErrorResponse(
+//       res,
+//       "Get booking entries by category failed"
+//     );
+//   }
+// };
+const { Sequelize } = require('sequelize');
+
+
 
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
-    // Get today's date at the start of the day
-    const today = moment().startOf("day").format("MM/DD/YYYY");
+    // Get today's date at the start of the day in 'YYYY-MM-DD' format
+    const today = moment().startOf('day').format('YYYY-MM-DD'); // '2024-11-30'
 
+    // Perform a query to filter by both the category and date
     const bookingEntries = await BookingForm.findAll({
       where: {
-        category,
-        slotdate: {
-          [Op.gte]: today, // Fetch entries where slotdate is today or later
-        },
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('DATE', Sequelize.col('slotdate')), '>=', today), // Ensure date comparison
+          { category: category } // Filter by category
+        ]
       },
+      logging: console.log // Log the SQL query for debugging
     });
 
     return apiResponse.successResponseWithData(
       res,
-      "Booking entries by category retrieved successfully",
+      'Booking entries by category retrieved successfully',
       bookingEntries
     );
   } catch (error) {
-    console.log("Get booking entries by category failed", error);
+    console.log('Get booking entries by category failed', error);
     return apiResponse.ErrorResponse(
       res,
-      "Get booking entries by category failed"
+      'Get booking entries by category failed'
     );
   }
 };
+
+
+
+
 exports.updateTrainingStatus = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
@@ -758,7 +803,7 @@ exports.updateSlotInfo = async (req, res) => {
 
     // Find the slot registration by ID
     const slotInfo = await SlotRegisterInfo.findByPk(id);
-    
+
     // If slotInfo is null, the record wasn't found
     if (!slotInfo) {
       return res.status(404).json({ message: `Slot registration with ID ${id} not found.` });

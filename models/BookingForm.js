@@ -43,6 +43,10 @@ const BookingForm = sequelize.define("BookingForm", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  tempdate: {
+    type: DataTypes.DATE, // Keeping as DATE since it should store a full date and time
+    allowNull: false,
+  },
   slotsession: {
     type: DataTypes.STRING,
     allowNull: false,
