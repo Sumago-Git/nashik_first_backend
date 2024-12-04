@@ -148,7 +148,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       });
     }
     const existingLearningNo = await BookingForm.findOne({
-      where: { learningNo },
+      where: { learningNo, category: "RTO – Learner Driving License Holder Training" },
     });
     if (existingLearningNo) {
       return res.status(400).json({
@@ -387,71 +387,37 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 // Ensure moment is imported
 
 
-// exports.getAllEntriesByCategory = async (req, res) => {
-//   try {
-//     const { category } = req.body;
-
-//     // Get today's date at the start of the day, formatted as MM/DD/YYYY
-//     const today = moment().startOf('day').format("MM/DD/YYYY");  // Format today's date as MM/DD/YYYY
-
-//     // Query the database for booking entries where slotdate is today or later
-//     const bookingEntries = await BookingForm.findAll({
-//       where: {
-//         category,
-//         slotdate: {
-//           [Op.gt]: today,  // Compare slotdate to today's date (formatted as MM/DD/YYYY)
-//         },
-//       },
-//     });
-
-//     return apiResponse.successResponseWithData(
-//       res,
-//       "Booking entries by category retrieved successfully",
-//       bookingEntries
-//     );
-//   } catch (error) {
-//     console.log("Get booking entries by category failed", error);
-//     return apiResponse.ErrorResponse(
-//       res,
-//       "Get booking entries by category failed"
-//     );
-//   }
-// };
-const { Sequelize } = require('sequelize');
-
-
-
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
-    // Get today's date at the start of the day in 'YYYY-MM-DD' format
-    const today = moment().startOf('day').format('YYYY-MM-DD'); // '2024-11-30'
+    // Get today's date at the start of the day, formatted as MM/DD/YYYY
+    const today = moment().startOf('day').format("YYYY-MM-DD");  // Format today's date as MM/DD/YYYY
 
-    // Perform a query to filter by both the category and date
+    // Query the database for booking entries where slotdate is today or later
     const bookingEntries = await BookingForm.findAll({
       where: {
-        [Op.and]: [
-          Sequelize.where(Sequelize.fn('DATE', Sequelize.col('slotdate')), '>=', today), // Ensure date comparison
-          { category: category } // Filter by category
-        ]
+        category,
+        tempdate: {
+          [Op.gt]: today,  // Compare slotdate to today's date (formatted as MM/DD/YYYY)
+        },
       },
-      logging: console.log // Log the SQL query for debugging
     });
 
     return apiResponse.successResponseWithData(
       res,
-      'Booking entries by category retrieved successfully',
+      "Booking entries by category retrieved successfully",
       bookingEntries
     );
   } catch (error) {
-    console.log('Get booking entries by category failed', error);
+    console.log("Get booking entries by category failed", error);
     return apiResponse.ErrorResponse(
       res,
-      'Get booking entries by category failed'
+      "Get booking entries by category failed"
     );
   }
 };
+
 
 
 
@@ -842,7 +808,6 @@ exports.updateSlotInfo = async (req, res) => {
   }
 };
 
-// Delete Slot Registration Info
 exports.deleteSlotInfo = async (req, res) => {
   try {
     const { id } = req.params; // Get the slot registration ID from the URL parameter
@@ -851,6 +816,18 @@ exports.deleteSlotInfo = async (req, res) => {
     const slotInfo = await SlotRegisterInfo.findByPk(id);
     if (!slotInfo) {
       return res.status(404).json({ message: "Slot registration not found." });
+    }
+
+    // Check if the same sessionSlotId has been registered elsewhere
+    const existingRegistration = await BookingForm.findOne({
+      where: {
+        sessionSlotId: slotInfo.sessionSlotId,
+        id: { [Op.ne]: id } // Exclude the current record
+      }
+    });
+
+    if (existingRegistration) {
+      return res.status(400).json({ message: "You have already registered for this session slot." });
     }
 
     // Delete the slot registration

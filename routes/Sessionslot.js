@@ -1,5 +1,5 @@
 const express = require('express');
-const { addSessionslot, updateSessionslot, getSessionSessionslot, toggleIsActive, checkTrainerConflictByDate, toggleIsDelete, getAvailableslots2, getSessionslotsByCategory, getSessionbySessionslot, getSessionbySessionslot2, getAvailableslots } = require('../controllers/SesssionslotController');
+const { addSessionslot, updateSessionslot,getAvailableSlotsByDateAndCategory, getSessionSessionslot, toggleIsActive, checkTrainerConflictByDate, toggleIsDelete, getAvailableslots2, getSessionslotsByCategory, getSessionbySessionslot, getSessionbySessionslot2, getAvailableslots } = require('../controllers/SesssionslotController');
 const { validationResult } = require('express-validator');
 const { Id } = require('../validations/slotValidation'); // Assuming validations are similar
 
@@ -32,6 +32,7 @@ router.put('/Sessionslot/:id', authenticateToken, (req, res, next) => {
 
 router.post("/sessionslots", getSessionslotsByCategory);
 // Get all SessionSessionslot
+router.post("/getAvailableSlotsByDateAndCategory",getAvailableSlotsByDateAndCategory)
 router.get('/get-SessionSessionslot', getSessionSessionslot);
 router.post('/getAvailableslotslots', getAvailableslots)
 router.post('/getAvailableslotslots2', getAvailableslots2)

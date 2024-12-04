@@ -26,8 +26,8 @@ const SlotRegisterInfo = require("../models/SlotRegisterInfo");
 
 exports.addSessionslot = async (req, res) => {
   try {
-    const { time, title, capacity, deadlineTime, trainer, category, slotdate, slotType } = req.body;
-    console.log("slotdate", slotdate);
+    const { time, title, capacity, deadlineTime, trainer, category, slotdate, slotType, tempdate } = req.body;
+
 
     // Check if the trainer is already assigned to another slot during the same time range
     const trainerConflict = await Sessionslot.findOne({
@@ -99,7 +99,7 @@ exports.addSessionslot = async (req, res) => {
     }
 
     // If the slot type is 'onsite', no category check is needed, and multiple slots can coexist at the same time.
-    if (slotType === "onsite") {
+    if (slotType === "get-getSessionbySessionslot") {
       console.log("Onsite slot type; skipping category and time conflict check.");
     }
 
@@ -112,7 +112,7 @@ exports.addSessionslot = async (req, res) => {
       trainer,
       category,
       slotdate,
-      tempdate: slotdate,
+      tempdate,
       available_seats: capacity,
       isActive: true,
       isDelete: false,
@@ -276,7 +276,7 @@ exports.updateSessionslot = async (req, res) => {
     slot.capacity = capacity; // Update capacity
     slot.title = title;
     slot.slotType = slotType;
-    slot.tempdate = slotdate;
+    slot.tempdate = tempdate;
 
     await slot.save();
 
@@ -686,7 +686,6 @@ exports.getAvailableslots2 = async (req, res) => {
 
 
 
-
 // Update API to accept month and year parameters
 // exports.getAvailableslots = async (req, res) => {
 //   try {
@@ -779,3 +778,60 @@ exports.getAvailableslots2 = async (req, res) => {
 
 
 
+
+// Controller to get available slots by tempdate and category
+const moment = require('moment'); // Use moment.js for date parsing and validation
+
+exports.getAvailableSlotsByDateAndCategory = async (req, res) => {
+  const { tempdate, category } = req.body; // Assuming tempdate and category are passed in the body
+
+  // Validate 'tempdate' and 'category'
+  if (!tempdate || !category) {
+    return res.status(400).json({
+      message: "Both 'tempdate' and 'category' are required in the request body.",
+    });
+  }
+
+  // Validate the date format using moment.js
+  if (!moment(tempdate, 'YYYY-MM-DD', true).isValid()) {
+    return res.status(400).json({
+      message: "'tempdate' should be in 'YYYY-MM-DD' format.",
+    });
+  }
+
+  try {
+    // Ensure tempdate is in 'YYYY-MM-DD' format
+    const formattedDate = moment(tempdate).format('YYYY-MM-DD');
+
+    // Fetch available slots based on tempdate and category
+    const availableSlots = await Sessionslot.findAll({
+      where: {
+        [Op.and]: [
+          sequelize.where(sequelize.fn('DATE', sequelize.col('tempdate')), '=', formattedDate),
+          { category },
+          { isActive: true },
+          { isDelete: false }
+        ]
+      }
+    });
+
+
+    // If no slots are found, return a 404 status with a message
+    if (availableSlots.length === 0) {
+      return res.status(404).json({
+        message: "No available slots found for the given date and category.",
+      });
+    }
+
+    // Return the available slots in the response
+    return res.status(200).json({
+      slots: availableSlots,
+    });
+  } catch (error) {
+    console.error("Error fetching available slots:", error);
+    return res.status(500).json({
+      message: "An error occurred while fetching available slots.",
+      error: error.message,
+    });
+  }
+};
