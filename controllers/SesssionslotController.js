@@ -168,7 +168,7 @@ exports.updateSessionslot = async (req, res) => {
       category,
       capacity,
       title,
-      slotType,
+      slotType, tempdate
     } = req.body;
 
     const slot = await Sessionslot.findByPk(id);
