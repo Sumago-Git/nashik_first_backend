@@ -9,7 +9,7 @@ const BookingForm = sequelize.define("BookingForm", {
 
   },
   sessionSlotId: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,  // Updated to INTEGER to match Sessionslot's id field
     allowNull: false,
   },
   fname: {
@@ -117,7 +117,7 @@ const BookingForm = sequelize.define("BookingForm", {
 });
 BookingForm.belongsTo(Sessionslot, {
   foreignKey: "sessionSlotId",
-  as: "Sessionslots",
+  as: "Sessionslot",
 });
 module.exports = BookingForm;
 
