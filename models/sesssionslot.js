@@ -2,7 +2,7 @@
   const sequelize = require("../config/database");
   const SlotRegisterInfo = require("./SlotRegisterInfo");
 
-  const Sessionslot = sequelize.define("Sessionslot", {
+  const Sessionslot = sequelize.define("Sessionslots", {
     deadlineTime: {
       type: DataTypes.STRING,
       allowNull: false, // assuming time is required
@@ -60,7 +60,7 @@
 
   SlotRegisterInfo.belongsTo(Sessionslot, {
     foreignKey: "sessionSlotId",
-    as: "sessionSlot", // Alias for eager loading
+    as: "Sessionslots", // Alias for eager loading
   });
   module.exports = Sessionslot;
 
