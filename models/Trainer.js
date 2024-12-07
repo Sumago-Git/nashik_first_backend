@@ -6,10 +6,12 @@ const Trainer = sequelize.define("Trainer", {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   mobile: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   email: {
     type: DataTypes.STRING,

@@ -109,8 +109,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               <p>Your booking has been successfully confirmed!</p>
               <h3>Details:</h3>
               <ul>
-                <li><strong>Learning No:</strong> ${item.learningNo}</li>
-                <li><strong>Vehicle Type:</strong> ${vehicletypeString}</li>
                 <li><strong>Slot Date:</strong> ${slotdate}</li>
                 <li><strong>Session:</strong> ${slotsession}</li>
               </ul>
@@ -118,14 +116,14 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               <p>Best Regards,<br>Your Company</p>
             `;
 
-            console.log("Sending email to", item.email);
+            console.log("Sending email to", institution_email);
             try {
-              await sendEmail(item.email, emailSubject, emailText, emailHtml);
+              await sendEmail(institution_email, emailSubject, emailText, emailHtml);
               console.log(
-                `Confirmation email sent successfully to ${item.email}`
+                `Confirmation email sent successfully to ${institution_email}`
               );
             } catch (error) {
-              console.error(`Error sending email to ${item.email}:`, error);
+              console.error(`Error sending email to ${institution_email}:`, error);
             }
 
             return newRecord;
@@ -199,7 +197,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       <h3>Details:</h3>
       <ul>
         <li><strong>Learning No:</strong> ${learningNo}</li>
-        <li><strong>Vehicle Type:</strong> ${vehicletypeString}</li>
         <li><strong>Slot Date:</strong> ${slotdate}</li>
         <li><strong>Session:</strong> ${slotsession}</li>
       </ul>
@@ -605,10 +602,12 @@ exports.deleteBookingForm = async (req, res) => {
     });
 
     if (bookingFormsToDelete.length === 0) {
-      return apiResponse.notFoundResponse(
-        res,
-        "No booking forms found matching the criteria"
-      );
+      console.log("No booking forms found matching the criteria");
+      
+      // return apiResponse.notFoundResponse(
+      //   res,
+      //   "No booking forms found matching the criteria"
+      // );
     }
 
     // Delete all matching booking forms
@@ -624,7 +623,7 @@ exports.deleteBookingForm = async (req, res) => {
     );
   } catch (error) {
     console.error("Delete booking form failed", error);
-    return apiResponse.ErrorResponse(res, "Delete booking form failed");
+    // return apiResponse.ErrorResponse(res, "Delete booking form failed");
   }
 };
 
