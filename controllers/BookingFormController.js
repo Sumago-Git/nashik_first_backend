@@ -21,7 +21,8 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       email,
       phone,
       vehicletype,
-      slotdate, tempdate,
+      slotdate,
+      tempdate,
       slotsession,
       category,
       institution_name,
@@ -99,6 +100,24 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               hm_principal_manager_name,
             });
 
+            // Send SMS
+            const smsMessage = `Dear, ${item.fname} Booking for License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
+            const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
+            const senderId = "CYCPLN";
+            const DLT_TE_ID = "1207168251580901563";
+            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${
+              item.phone
+            }&message=${encodeURIComponent(
+              smsMessage
+            )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+
+            try {
+              await axios.get(smsUrl);
+              console.log(`SMS sent successfully to ${item.phone}`);
+            } catch (smsError) {
+              console.error(`Error sending SMS to ${item.phone}:`, smsError);
+            }
+
             // Send email for each record created
             const emailSubject = "Booking Confirmation";
             const emailText = `Dear ${item.fname} ${item.lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
@@ -118,12 +137,20 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
             console.log("Sending email to", institution_email);
             try {
-              await sendEmail(institution_email, emailSubject, emailText, emailHtml);
+              await sendEmail(
+                institution_email,
+                emailSubject,
+                emailText,
+                emailHtml
+              );
               console.log(
                 `Confirmation email sent successfully to ${institution_email}`
               );
             } catch (error) {
-              console.error(`Error sending email to ${institution_email}:`, error);
+              console.error(
+                `Error sending email to ${institution_email}:`,
+                error
+              );
             }
 
             return newRecord;
@@ -146,7 +173,10 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       });
     }
     const existingLearningNo = await BookingForm.findOne({
-      where: { learningNo, category: "RTO – Learner Driving License Holder Training" },
+      where: {
+        learningNo,
+        category: "RTO – Learner Driving License Holder Training",
+      },
     });
     if (existingLearningNo) {
       return res.status(400).json({
@@ -185,6 +215,24 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       isDelete: false,
     });
 
+     // Send SMS
+     const smsMessage = `Dear, ${fname} Booking for License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
+     const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
+     const senderId = "CYCPLN";
+     const DLT_TE_ID = "1207168251580901563";
+     const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${
+       phone
+     }&message=${encodeURIComponent(
+       smsMessage
+     )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+
+     try {
+       await axios.get(smsUrl);
+       console.log(`SMS sent successfully to ${phone}`);
+     } catch (smsError) {
+       console.error(`Error sending SMS to ${phone}:`, smsError);
+     }
+
     console.log("Sending confirmation email to", email);
     // Send email for the newly created booking form
     const emailSubject = "Booking Confirmation";
@@ -201,7 +249,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
         <li><strong>Session:</strong> ${slotsession}</li>
       </ul>
       <p>Thank you for choosing us.</p>
-      <p>Best Regards,<br>Your Company</p>
+      
     `;
 
     try {
@@ -347,13 +395,13 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
       where: {
         sessionSlotId,
         category,
-        slotdate
+        slotdate,
       },
       include: [
         {
           model: Sessionslot,
-          as: 'Sessionslot', // Include the alias here
-          attributes: ['time'], // Ensure 'time' is included from Sessionslot
+          as: "Sessionslot", // Include the alias here
+          attributes: ["time"], // Ensure 'time' is included from Sessionslot
         },
       ],
     });
@@ -368,35 +416,33 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
     return apiResponse.successResponseWithData(
       res,
-      'Booking entries retrieved successfully',
+      "Booking entries retrieved successfully",
       responseData
     );
   } catch (error) {
-    console.log('Get booking entries by date and category failed', error);
+    console.log("Get booking entries by date and category failed", error);
     return apiResponse.ErrorResponse(
       res,
-      'Get booking entries by date and category failed'
+      "Get booking entries by date and category failed"
     );
   }
 };
 
-
 // Ensure moment is imported
-
 
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
     // Get today's date at the start of the day, formatted as MM/DD/YYYY
-    const today = moment().startOf('day').format("YYYY-MM-DD");  // Format today's date as MM/DD/YYYY
+    const today = moment().startOf("day").format("YYYY-MM-DD"); // Format today's date as MM/DD/YYYY
 
     // Query the database for booking entries where slotdate is today or later
     const bookingEntries = await BookingForm.findAll({
       where: {
         category,
         tempdate: {
-          [Op.gt]: today,  // Compare slotdate to today's date (formatted as MM/DD/YYYY)
+          [Op.gt]: today, // Compare slotdate to today's date (formatted as MM/DD/YYYY)
         },
       },
     });
@@ -414,10 +460,6 @@ exports.getAllEntriesByCategory = async (req, res) => {
     );
   }
 };
-
-
-
-
 
 exports.updateTrainingStatus = async (req, res) => {
   const transaction = await sequelize.transaction();
@@ -457,7 +499,6 @@ exports.updateTrainingStatus = async (req, res) => {
           lock: transaction.LOCK.UPDATE, // Locking mechanism
           transaction,
         });
-
 
         // Calculate the next certificate_no
         const nextCertificateNo = startingCertificateNo + attendedCount + 1;
@@ -603,7 +644,7 @@ exports.deleteBookingForm = async (req, res) => {
 
     if (bookingFormsToDelete.length === 0) {
       console.log("No booking forms found matching the criteria");
-      
+
       // return apiResponse.notFoundResponse(
       //   res,
       //   "No booking forms found matching the criteria"
@@ -628,6 +669,7 @@ exports.deleteBookingForm = async (req, res) => {
 };
 
 const SlotRegisterInfo = require("../models/SlotRegisterInfo");
+const { default: axios } = require("axios");
 
 exports.registerSlotInfo = async (req, res) => {
   try {
@@ -677,6 +719,27 @@ exports.registerSlotInfo = async (req, res) => {
       available_seats: sessionSlot.available_seats === 0,
     });
 
+    const traveler_otp = "123456"
+     // Send SMS
+     const smsMessage = `Dear User, Thank you for booking the tour with us, Your OTP is ${traveler_otp}, Valid for 30 minutes. Please share with only Choudhary Yatra team. Regards,CYCPL Team.`
+    //  const smsMessage = `Dear, ${coordinator_name} Booking for Group License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
+     const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
+     const senderId = "CYCPLN";
+     const DLT_TE_ID = "1207168251580901563";
+     const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${
+      institution_phone
+     }&message=${encodeURIComponent(
+       smsMessage
+     )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+
+     try {
+       await axios.get(smsUrl);
+       console.log(`SMS sent successfully to ${institution_phone}`);
+     } catch (smsError) {
+       console.error(`Error sending SMS to ${institution_phone}:`, smsError);
+     }
+
+
     // // Prepare email content
     const emailSubject = "Group Booking Confirmation";
     const emailText = `Dear ${coordinator_name},\n\nYour booking has been successfully confirmed!\n\nDetails:\nInstitution Name: ${institution_name}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
@@ -699,7 +762,9 @@ exports.registerSlotInfo = async (req, res) => {
     console.log("Sending email to", institution_email);
     try {
       await sendEmail(institution_email, emailSubject, emailText, emailHtml);
-      console.log(`Confirmation email sent successfully to ${institution_email}`);
+      console.log(
+        `Confirmation email sent successfully to ${institution_email}`
+      );
     } catch (error) {
       console.error(`Error sending email to ${institution_email}:`, error);
     }
@@ -760,14 +825,15 @@ exports.getSlotInfobyid = async (req, res) => {
     // Respond with the slot registration details
     return res.status(200).json({
       message: "Slot registration retrieved successfully.",
-      data: slotInfo
+      data: slotInfo,
     });
   } catch (error) {
     console.error("Error fetching slot register info:", error);
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "An error occurred.", error: error.message });
   }
 };
-
 
 exports.updateSlotInfo = async (req, res) => {
   try {
@@ -797,7 +863,9 @@ exports.updateSlotInfo = async (req, res) => {
 
     // If slotInfo is null, the record wasn't found
     if (!slotInfo) {
-      return res.status(404).json({ message: `Slot registration with ID ${id} not found.` });
+      return res
+        .status(404)
+        .json({ message: `Slot registration with ID ${id} not found.` });
     }
 
     // Update the slot registration information
@@ -829,7 +897,9 @@ exports.updateSlotInfo = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating slot register info:", error);
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "An error occurred.", error: error.message });
   }
 };
 
@@ -847,12 +917,16 @@ exports.deleteSlotInfo = async (req, res) => {
     const existingRegistration = await BookingForm.findOne({
       where: {
         sessionSlotId: slotInfo.sessionSlotId,
-        id: { [Op.ne]: id } // Exclude the current record
-      }
+        id: { [Op.ne]: id }, // Exclude the current record
+      },
     });
 
     if (existingRegistration) {
-      return res.status(400).json({ message: "You have already registered for this session slot." });
+      return res
+        .status(400)
+        .json({
+          message: "You have already registered for this session slot.",
+        });
     }
 
     // Delete the slot registration
@@ -866,9 +940,13 @@ exports.deleteSlotInfo = async (req, res) => {
       });
     }
 
-    return res.status(200).json({ message: "Slot registration deleted successfully." });
+    return res
+      .status(200)
+      .json({ message: "Slot registration deleted successfully." });
   } catch (error) {
     console.error("Error deleting slot register info:", error);
-    return res.status(500).json({ message: "An error occurred.", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "An error occurred.", error: error.message });
   }
 };
