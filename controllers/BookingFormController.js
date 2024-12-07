@@ -678,32 +678,32 @@ exports.registerSlotInfo = async (req, res) => {
       available_seats: sessionSlot.available_seats === 0,
     });
 
-    // Prepare email content
-    const emailSubject = "Group Booking Confirmation";
-    const emailText = `Dear ${coordinator_name},\n\nYour booking has been successfully confirmed!\n\nDetails:\nInstitution Name: ${institution_name}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
+    // // Prepare email content
+    // const emailSubject = "Group Booking Confirmation";
+    // const emailText = `Dear ${coordinator_name},\n\nYour booking has been successfully confirmed!\n\nDetails:\nInstitution Name: ${institution_name}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
 
-    const emailHtml = `
-      <h1>Booking Confirmation</h1>
-      <p>Dear ${coordinator_name},</p>
-      <p>Your booking has been successfully confirmed!</p>
-      <h3>Details:</h3>
-      <ul>
-        <li><strong>Institution Name:</strong> ${institution_name}</li>
-        <li><strong>Slot Date:</strong> ${slotdate}</li>
-        <li><strong>Session:</strong> ${slotsession}</li>
-      </ul>
-      <p>Thank you for choosing us.</p>
-      <p>Best Regards,<br>Your Company</p>
-    `;
+    // const emailHtml = `
+    //   <h1>Booking Confirmation</h1>
+    //   <p>Dear ${coordinator_name},</p>
+    //   <p>Your booking has been successfully confirmed!</p>
+    //   <h3>Details:</h3>
+    //   <ul>
+    //     <li><strong>Institution Name:</strong> ${institution_name}</li>
+    //     <li><strong>Slot Date:</strong> ${slotdate}</li>
+    //     <li><strong>Session:</strong> ${slotsession}</li>
+    //   </ul>
+    //   <p>Thank you for choosing us.</p>
+    //   <p>Best Regards,<br>Your Company</p>
+    // `;
 
-    // Send email
-    console.log("Sending email to", institution_email);
-    try {
-      await sendEmail(institution_email, emailSubject, emailText, emailHtml);
-      console.log(`Confirmation email sent successfully to ${institution_email}`);
-    } catch (error) {
-      console.error(`Error sending email to ${institution_email}:`, error);
-    }
+    // // Send email
+    // console.log("Sending email to", institution_email);
+    // try {
+    //   await sendEmail(institution_email, emailSubject, emailText, emailHtml);
+    //   console.log(`Confirmation email sent successfully to ${institution_email}`);
+    // } catch (error) {
+    //   console.error(`Error sending email to ${institution_email}:`, error);
+    // }
 
     return res.status(201).json({
       message: "Slot registration information added successfully.",
