@@ -45,7 +45,18 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const nextUserId = startingUserId + totalBookingForms;
     const nextCertificateNo = startingCertificateNo + totalBookingForms;
     const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
+    const successfulRecords = createdRecords.filter(
+      (record) => record !== null
+    );
 
+
+    if (!sessionSlot) {
+      console.log("Session slot not found");
+      return res.status(404).json({ message: "Session slot not found" });
+    }
+
+    // Extract the session time
+    const sessionTime = sessionSlot.time;
     if (!sessionSlot) {
       console.log("Session slot not found");
       return res.status(404).json({ message: "Session slot not found" });
@@ -105,11 +116,10 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
             const senderId = "CYCPLN";
             const DLT_TE_ID = "1207168251580901563";
-            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${
-              item.phone
-            }&message=${encodeURIComponent(
-              smsMessage
-            )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${item.phone
+              }&message=${encodeURIComponent(
+                smsMessage
+              )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
 
             try {
               await axios.get(smsUrl);
@@ -129,6 +139,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               <h3>Details:</h3>
               <ul>
                 <li><strong>Slot Date:</strong> ${slotdate}</li>
+                <li><strong>Session:</strong> ${sessionTime}</li>
                 <li><strong>Session:</strong> ${slotsession}</li>
               </ul>
               <p>Thank you for choosing us.</p>
@@ -161,9 +172,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
         })
       );
 
-      const successfulRecords = createdRecords.filter(
-        (record) => record !== null
-      );
+
       await sessionSlot.update({
         available_seats: sessionSlot.available_seats === 0,
       });
@@ -215,23 +224,22 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       isDelete: false,
     });
 
-     // Send SMS
-     const smsMessage = `Dear, ${fname} Booking for License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
-     const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
-     const senderId = "CYCPLN";
-     const DLT_TE_ID = "1207168251580901563";
-     const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${
-       phone
-     }&message=${encodeURIComponent(
-       smsMessage
-     )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+    // Send SMS
+    const smsMessage = `Dear, ${fname} Booking for License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
+    const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
+    const senderId = "CYCPLN";
+    const DLT_TE_ID = "1207168251580901563";
+    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${phone
+      }&message=${encodeURIComponent(
+        smsMessage
+      )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
 
-     try {
-       await axios.get(smsUrl);
-       console.log(`SMS sent successfully to ${phone}`);
-     } catch (smsError) {
-       console.error(`Error sending SMS to ${phone}:`, smsError);
-     }
+    try {
+      await axios.get(smsUrl);
+      console.log(`SMS sent successfully to ${phone}`);
+    } catch (smsError) {
+      console.error(`Error sending SMS to ${phone}:`, smsError);
+    }
 
     console.log("Sending confirmation email to", email);
     // Send email for the newly created booking form
@@ -246,6 +254,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       <ul>
         <li><strong>Learning No:</strong> ${learningNo}</li>
         <li><strong>Slot Date:</strong> ${slotdate}</li>
+        <li><strong>Slot Date:</strong> ${sessionTime}</li>
         <li><strong>Session:</strong> ${slotsession}</li>
       </ul>
       <p>Thank you for choosing us.</p>
@@ -720,24 +729,23 @@ exports.registerSlotInfo = async (req, res) => {
     });
 
     const traveler_otp = "123456"
-     // Send SMS
-     const smsMessage = `Dear User, Thank you for booking the tour with us, Your OTP is ${traveler_otp}, Valid for 30 minutes. Please share with only Choudhary Yatra team. Regards,CYCPL Team.`
+    // Send SMS
+    const smsMessage = `Dear User, Thank you for booking the tour with us, Your OTP is ${traveler_otp}, Valid for 30 minutes. Please share with only Choudhary Yatra team. Regards,CYCPL Team.`
     //  const smsMessage = `Dear, ${coordinator_name} Booking for Group License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
-     const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
-     const senderId = "CYCPLN";
-     const DLT_TE_ID = "1207168251580901563";
-     const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${
-      institution_phone
-     }&message=${encodeURIComponent(
-       smsMessage
-     )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+    const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
+    const senderId = "CYCPLN";
+    const DLT_TE_ID = "1207168251580901563";
+    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone
+      }&message=${encodeURIComponent(
+        smsMessage
+      )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
 
-     try {
-       await axios.get(smsUrl);
-       console.log(`SMS sent successfully to ${institution_phone}`);
-     } catch (smsError) {
-       console.error(`Error sending SMS to ${institution_phone}:`, smsError);
-     }
+    try {
+      await axios.get(smsUrl);
+      console.log(`SMS sent successfully to ${institution_phone}`);
+    } catch (smsError) {
+      console.error(`Error sending SMS to ${institution_phone}:`, smsError);
+    }
 
 
     // // Prepare email content
