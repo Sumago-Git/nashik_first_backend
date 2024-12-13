@@ -332,9 +332,9 @@ exports.getSessionbySessionslot = async (req, res) => {
     });
 
     // Check if any sessions were found
-    if (sessionslot.length === 0) {
-      return apiResponse.ErrorResponse(res, 'No sessions found matching the criteria');
-    }
+    // if (sessionslot.length === 0) {
+    //   return apiResponse.ErrorResponse(res, 'No sessions found matching the criteria');
+    // }
 
     return apiResponse.successResponseWithData(res, 'Sessionslot retrieved successfully', sessionslot);
   } catch (error) {
