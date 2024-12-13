@@ -49,7 +49,7 @@ const BookingForm = sequelize.define("BookingForm", {
   },
   slotsession: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   category: {
     type: DataTypes.STRING,
