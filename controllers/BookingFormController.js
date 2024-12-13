@@ -50,6 +50,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       console.log("Session slot not found");
       return res.status(404).json({ message: "Session slot not found" });
     }
+    const sessionTime = sessionSlot.time;
 
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats - 1,
@@ -128,6 +129,8 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               <h3>Details:</h3>
               <ul>
                 <li><strong>Slot Date:</strong> ${slotdate}</li>
+                                <li><strong>Session:</strong> ${sessionTime}</li>
+
                 <li><strong>Session:</strong> ${slotsession}</li>
               </ul>
               <p>Thank you for choosing us.</p>
@@ -244,8 +247,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       <ul>
         <li><strong>Learning No:</strong> ${learningNo}</li>
         <li><strong>Slot Date:</strong> ${slotdate}</li>
-        <li><strong>Session:</strong> ${sessionTime}</li>
-
         <li><strong>Session:</strong> ${slotsession}</li>
       </ul>
       <p>Thank you for choosing us.</p>
@@ -714,17 +715,7 @@ exports.registerSlotInfo = async (req, res) => {
       hm_principal_manager_mobile,
       hm_principal_manager_name,
     });
-
-
-    // Retrieve session slot and session time
     const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
-
-    if (!sessionSlot) {
-      console.log("Session slot not found");
-      return res.status(404).json({ message: "Session slot not found" });
-    }
-
-    // Extract the session time
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats === 0,
     });
@@ -761,8 +752,6 @@ exports.registerSlotInfo = async (req, res) => {
       <ul>
         <li><strong>Institution Name:</strong> ${institution_name}</li>
         <li><strong>Slot Date:</strong> ${slotdate}</li>
-       <li><strong>Session:</strong> ${sessionTime}</li>
-
         <li><strong>Session:</strong> ${slotsession}</li>
       </ul>
       <p>Thank you for choosing us.</p>
