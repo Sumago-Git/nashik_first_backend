@@ -110,7 +110,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               smsMessage
             )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
             console.log("smsUrl123", smsUrl);
-            
+
             try {
               await axios.get(smsUrl);
               console.log(`SMS sent successfully to ${item.phone}`);
@@ -120,7 +120,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
             // Send email for each record created
             const emailSubject = "Booking Confirmation";
-            const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
+            const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
 
             const emailHtml = `
               <h1>Booking Confirmation</h1>
@@ -399,13 +399,13 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
       include: [
         {
           model: Sessionslot,
-          as: "Sessionslot", // Include the alias here
-          attributes: ["time"], // Ensure 'time' is included from Sessionslot
+          as: "Sessionslot", // Correct alias should match here
+          attributes: ["time"], // Ensure you select only necessary attributes
         },
       ],
     });
 
-    // Ensure that you include the time data from Sessionslot in the response
+    // Map over the booking entries to include the session slot time
     const responseData = bookingEntries.map((entry) => {
       return {
         ...entry.dataValues,
