@@ -35,7 +35,10 @@ exports.addContactForm = async (req, res) => {
 
     // Email logic
     const adminEmail = process.env.EMAIL_SENT_TO;
+    console.log("adminEmail", adminEmail);
+    
     const emailSubject = "New Contact Form Submission";
+    const emailText = `New Contact Form Enquiry Received`;
     const emailHtml = `<p>A new contact form has been submitted:</p>
     <ul>
       <li><strong>Name:</strong> ${firstName}</li>
@@ -46,7 +49,7 @@ exports.addContactForm = async (req, res) => {
       <li><strong>Profession:</strong> ${profession}</li>
       <li><strong>Suggestions:</strong> ${suggestions}</li>
     </ul>`;
-    await sendEmail(adminEmail, emailSubject, "", emailHtml);
+    await sendEmail(adminEmail, emailSubject, emailText, emailHtml);
 
     return apiResponse.successResponseWithData(
       res,
