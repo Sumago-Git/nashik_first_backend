@@ -140,7 +140,7 @@ exports.searchBookingFormByCategory = async (req, res) => {
     }
 };
 
-exports.searchBookingFormByCategory = async (req, res) => {
+exports.searchBookingFormByTrainer = async (req, res) => {
 
     try {
         const { year, categories } = req.query;
