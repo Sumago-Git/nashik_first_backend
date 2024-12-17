@@ -30,7 +30,7 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST, // Your SMTP server hostname
-  port: process.env.PORT, // Port for SMTP (587 for TLS)
+  port: process.env.EMAIL_PORT, // Port for SMTP (587 for TLS)
   secure: process.env.EMAIL_SECURE, // Use `true` for port 465, `false` for port 587
   auth: {
     user: process.env.EMAIL_USER, // Your SMTP username (email)

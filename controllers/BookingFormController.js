@@ -100,13 +100,15 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               hm_principal_manager_mobile,
               hm_principal_manager_name,
             });
-
+            console.log("categor222", category);
+            // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
+            let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
-            const smsMessage = `Hi ${fname},Your booking for ${category === "RTO – Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+            const smsMessage = `Hi ${fname},Your booking for ${category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
             const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
             const senderId = "NSKFST";
             const DLT_TE_ID = "1707171473228451822";
-            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${coordinator_mobile}&message=${encodeURIComponent(
               smsMessage
             )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
             console.log("smsUrl123", smsUrl);
@@ -215,9 +217,14 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       isActive: true,
       isDelete: false,
     });
+    console.log("category333", category);
+    let filteredCategorys = category.replace(/-/g, "");
+    console.log("filteredCategorys", filteredCategorys);
+    
+    // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
 
     // Send SMS
-    const smsMessage = `Hi ${fname},Your booking for ${category === "RTO – Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    const smsMessage = `Hi ${fname},Your booking for ${category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
@@ -717,13 +724,15 @@ exports.registerSlotInfo = async (req, res) => {
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats === 0,
     });
-
+    console.log("category111", category);
+    let filteredCategorys = category.replace(/-/g, "");
+    // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training - Group" ? "College/Organization Training Group" : ""
     // Send SMS
-    const smsMessage = `Hi ${coordinator_name},Your booking for ${category === "RTO – Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    const smsMessage = `Hi ${coordinator_name},Your booking for ${category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
-    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${coordinator_mobile}&message=${encodeURIComponent(
       smsMessage
     )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
     console.log("smsUrl789", smsUrl);
