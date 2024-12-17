@@ -102,14 +102,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             });
 
             // Send SMS
-            const smsMessage = `Dear, ${item.fname} Booking for License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
-            const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
-            const senderId = "CYCPLN";
-            const DLT_TE_ID = "1207168251580901563";
-            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${item.phone
-              }&message=${encodeURIComponent(
-                smsMessage
-              )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+            const smsMessage = `Hi ${fname},Your booking for ${category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+            const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
+            const senderId = "NSKFST";
+            const DLT_TE_ID = "1707171473228451822";
+            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+              smsMessage
+            )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
 
             try {
               await axios.get(smsUrl);
@@ -120,7 +119,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
             // Send email for each record created
             const emailSubject = "Booking Confirmation";
-            const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
+            const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
 
             const emailHtml = `
               <h1>Booking Confirmation</h1>
@@ -218,14 +217,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     });
 
     // Send SMS
-    const smsMessage = `Dear, ${fname} Booking for License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
-    const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
-    const senderId = "CYCPLN";
-    const DLT_TE_ID = "1207168251580901563";
-    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${phone
-      }&message=${encodeURIComponent(
-        smsMessage
-      )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+    const smsMessage = `Hi ${fname},Your booking for ${category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
+    const senderId = "NSKFST";
+    const DLT_TE_ID = "1707171473228451822";
+    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+      smsMessage
+    )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
 
     try {
       await axios.get(smsUrl);
@@ -237,7 +235,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     console.log("Sending confirmation email to", email);
     // Send email for the newly created booking form
     const emailSubject = "Booking Confirmation";
-    const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
+    const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
 
     const emailHtml = `
       <h1>Booking Confirmation</h1>
@@ -720,17 +718,14 @@ exports.registerSlotInfo = async (req, res) => {
       available_seats: sessionSlot.available_seats === 0,
     });
 
-    const traveler_otp = "123456"
     // Send SMS
-    const smsMessage = `Dear User, Thank you for booking the tour with us, Your OTP is ${traveler_otp}, Valid for 30 minutes. Please share with only Choudhary Yatra team. Regards,CYCPL Team.`
-    //  const smsMessage = `Dear, ${coordinator_name} Booking for Group License Training confirm On ${slotdate}, ${slotsession} and Plz be present 30mins before. For more details Call on 7796116555. Nashik First, Mumbai Naka, Nashik`;
-    const authKeyVal = "394685AG84OZGHLV0z6438e5e3P1";
-    const senderId = "CYCPLN";
-    const DLT_TE_ID = "1207168251580901563";
-    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone
-      }&message=${encodeURIComponent(
-        smsMessage
-      )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+    const smsMessage = `Hi ${coordinator_name},Your booking for ${category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
+    const senderId = "NSKFST";
+    const DLT_TE_ID = "1707171473228451822";
+    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+      smsMessage
+    )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
 
     try {
       await axios.get(smsUrl);
@@ -738,7 +733,6 @@ exports.registerSlotInfo = async (req, res) => {
     } catch (smsError) {
       console.error(`Error sending SMS to ${institution_phone}:`, smsError);
     }
-
 
     // // Prepare email content
     const emailSubject = "Group Booking Confirmation";
@@ -922,11 +916,9 @@ exports.deleteSlotInfo = async (req, res) => {
     });
 
     if (existingRegistration) {
-      return res
-        .status(400)
-        .json({
-          message: "You have already registered for this session slot.",
-        });
+      return res.status(400).json({
+        message: "You have already registered for this session slot.",
+      });
     }
 
     // Delete the slot registration
