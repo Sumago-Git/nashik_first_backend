@@ -100,6 +100,8 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               hm_principal_manager_mobile,
               hm_principal_manager_name,
             });
+            console.log("i am in");
+            
             let filteredCategory = category.replace(/-/g, "");
             // Send SMS
             const smsMessage = `Hi ${fname},Your booking for ${filteredCategory === "RTO  Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
