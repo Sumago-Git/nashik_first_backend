@@ -108,7 +108,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             const DLT_TE_ID = "1707171473228451822";
             const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
               smsMessage
-            )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+            )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
             console.log("smsUrl123", smsUrl);
             
             try {
@@ -224,7 +224,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const DLT_TE_ID = "1707171473228451822";
     const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${phone}&message=${encodeURIComponent(
       smsMessage
-    )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+    )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
     console.log("smsUrl456", smsUrl);
     try {
       await axios.get(smsUrl);
@@ -726,7 +726,7 @@ exports.registerSlotInfo = async (req, res) => {
     const DLT_TE_ID = "1707171473228451822";
     const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
       smsMessage
-    )}&sender=${senderId}&route=4&country=0&DLT_TE_ID=${DLT_TE_ID}`;
+    )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
     console.log("smsUrl789", smsUrl);
     try {
       await axios.get(smsUrl);
