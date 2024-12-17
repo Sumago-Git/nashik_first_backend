@@ -448,6 +448,7 @@ exports.getSessionslotsByCategory = async (req, res) => {
 };
 // Update API to accept month and year parameters
 
+
 exports.getAvailableslots = async (req, res) => {
   try {
     const { category, year, month, slotType } = req.body;
@@ -469,6 +470,9 @@ exports.getAvailableslots = async (req, res) => {
       },
     });
 
+
+
+
     // Fetch all holidays for the given month and year
     const holidays = await Holiday.findAll({
       where: {
@@ -488,10 +492,9 @@ exports.getAvailableslots = async (req, res) => {
     });
 
     // Create a map to hold all days in the month (1 to 31)
-    const daysInMonth = Array.from({ length: month === 12 ? 31 : 30 }, (_, i) => i + 1); // Handle December differently
+    const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
     let totalMonthlyCapacity = 0;
     let totalMonthlyAvailableSeats = 0;
-
     // Process each slot and determine its status (available or closed)
     const data = daysInMonth.map((day) => {
       const currentDate = new Date(year, month - 1, day); // Create current date for comparison (month is 0-indexed)
@@ -552,6 +555,7 @@ exports.getAvailableslots = async (req, res) => {
       };
     });
 
+
     res.status(200).json({
       message: "Monthly session slots retrieved successfully",
       data,
@@ -573,6 +577,7 @@ exports.getAvailableslots2 = async (req, res) => {
 
     const sessionslots = await Sessionslot.findAll({
       where: {
+
         ...slotTypeFilter,
         isDelete: false,
         slotdate: {
@@ -583,6 +588,9 @@ exports.getAvailableslots2 = async (req, res) => {
         },
       },
     });
+
+
+
 
     // Fetch all holidays for the given month and year
     const holidays = await Holiday.findAll({
@@ -603,13 +611,12 @@ exports.getAvailableslots2 = async (req, res) => {
     });
 
     // Create a map to hold all days in the month (1 to 31)
-    const daysInMonth = Array.from({ length: month === 12 ? 31 : 30 }, (_, i) => i + 1); // Ensure correct days in month
+    const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
     let totalMonthlyCapacity = 0;
     let totalMonthlyAvailableSeats = 0;
-
     // Process each slot and determine its status (available or closed)
     const data = daysInMonth.map((day) => {
-      const currentDate = new Date(year, month - 1, day); // Create current date for comparison (month is 0-indexed)
+      const currentDate = new Date(year, month - 1, day);  // Create current date for comparison (month is 0-indexed)
       const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
 
       // Check if the day is a holiday
@@ -627,6 +634,7 @@ exports.getAvailableslots2 = async (req, res) => {
 
         // Construct the requested date in YYYY-MM-DD format
         const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
 
         // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
@@ -670,6 +678,7 @@ exports.getAvailableslots2 = async (req, res) => {
     res.status(500).json({ error: "Failed to get session slots for month" });
   }
 };
+
 
 
 
