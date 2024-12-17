@@ -106,7 +106,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
             const senderId = "NSKFST";
             const DLT_TE_ID = "1707171473228451822";
-            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+            const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${coordinator_mobile}&message=${encodeURIComponent(
               smsMessage
             )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
             console.log("smsUrl123", smsUrl);
@@ -724,7 +724,7 @@ exports.registerSlotInfo = async (req, res) => {
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
-    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${institution_phone}&message=${encodeURIComponent(
+    const smsUrl = `http://control.bestsms.co.in/api/sendhttp.php?authkey=${authKeyVal}&mobiles=${coordinator_mobile}&message=${encodeURIComponent(
       smsMessage
     )}&sender=${senderId}&route=4&country=91&DLT_TE_ID=${DLT_TE_ID}`;
     console.log("smsUrl789", smsUrl);
