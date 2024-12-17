@@ -120,7 +120,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
             // Send email for each record created
             const emailSubject = "Booking Confirmation";
-            const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
+            const emailText = `Dear ${item.fname} ${item.lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
 
             const emailHtml = `
               <h1>Booking Confirmation</h1>
@@ -129,15 +129,14 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               <h3>Details:</h3>
               <ul>
                 <li><strong>Slot Date:</strong> ${slotdate}</li>
-               <li><strong>Session:</strong> ${sessionTime}</li>
-
+                <li><strong>sessionTime:</strong> ${sessionTime}</li>
                 <li><strong>Session:</strong> ${slotsession}</li>
               </ul>
               <p>Thank you for choosing us.</p>
               <p>Best Regards,<br>Your Company</p>
             `;
 
-            console.log("Sending email to", institution_email);
+            console.log("Sending email to", sessionTime);
             try {
               await sendEmail(
                 institution_email,
