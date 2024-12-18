@@ -448,13 +448,17 @@ exports.getSessionslotsByCategory = async (req, res) => {
 };
 // Update API to accept month and year parameters
 
-
 exports.getAvailableslots = async (req, res) => {
   try {
-    const { category, year, month, slotType } = req.body;
+    const year = parseInt(req.body.year, 10);
+    const month = parseInt(req.body.month, 10);
+    const { category, slotType } = req.body;
 
-    // Fetch all session slots for the given month and year
-    const slotTypeFilter = slotType ? { slotType } : {}; // If no slotType provided, don't filter by it
+    if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+      return res.status(400).json({ error: "Invalid year or month" });
+    }
+
+    const slotTypeFilter = slotType ? { slotType } : {};
 
     const sessionslots = await Sessionslot.findAll({
       where: {
@@ -470,10 +474,6 @@ exports.getAvailableslots = async (req, res) => {
       },
     });
 
-
-
-
-    // Fetch all holidays for the given month and year
     const holidays = await Holiday.findAll({
       where: {
         holiday_date: {
@@ -485,63 +485,50 @@ exports.getAvailableslots = async (req, res) => {
       },
     });
 
-    // Extract holiday dates as full dates (not just day of the month)
     const holidayDates = holidays.map((holiday) => {
       const holidayDate = new Date(holiday.holiday_date);
-      return `${holidayDate.getFullYear()}-${holidayDate.getMonth() + 1}-${holidayDate.getDate()}`;
+      return `${holidayDate.getFullYear()}-${String(holidayDate.getMonth() + 1).padStart(2, '0')}-${String(holidayDate.getDate()).padStart(2, '0')}`;
     });
 
-    // Create a map to hold all days in the month (1 to 31)
-    const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
+    const daysInMonth = Array.from({ length: new Date(year, month, 0).getDate() }, (_, i) => i + 1);
     let totalMonthlyCapacity = 0;
     let totalMonthlyAvailableSeats = 0;
-    // Process each slot and determine its status (available or closed)
-    const data = daysInMonth.map((day) => {
-      const currentDate = new Date(year, month - 1, day); // Create current date for comparison (month is 0-indexed)
-      const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
 
-      // Check if the day is a holiday
+    const data = daysInMonth.map((day) => {
+      const currentDate = new Date(year, month - 1, day);
+      const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+
       const isHoliday = holidayDates.includes(formattedDate);
 
-      // Filter session slots for the given day
       const slotsForDay = sessionslots.filter((slot) => {
-        // Parse the tempdate as UTC and format as local date in YYYY-MM-DD
         const tempdate = new Date(slot.tempdate);
-        const normalizedTempDate = tempdate.toLocaleDateString('en-CA'); // outputs YYYY-MM-DD format
+        const normalizedTempDate = tempdate.toLocaleDateString('en-CA');
 
-        // Convert slot.slotdate (MM/DD/YYYY) into YYYY-MM-DD for comparison
         const slotdateParts = slot.slotdate.split('/');
         const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, '0')}-${slotdateParts[1].padStart(2, '0')}`;
 
-        // Construct the requested date in YYYY-MM-DD format
         const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
       });
 
-      // Calculate total capacity and total available seats for the day
       const totalCapacity = slotsForDay.reduce((total, slot) => total + parseInt(slot.capacity, 10), 0);
       const totalAvailableSeats = slotsForDay.reduce((total, slot) => total + parseInt(slot.available_seats, 10), 0);
-      const totalSlots = slotsForDay.length; // Total number of slots for the day
+      const totalSlots = slotsForDay.length;
 
-      // Add to monthly totals
       totalMonthlyCapacity += totalCapacity;
       totalMonthlyAvailableSeats += totalAvailableSeats;
 
-      // Include slots with time and available seats
       const slotsDetails = slotsForDay.map((slot) => ({
         time: slot.time,
-        deadlineTime: slot.deadlineTime, // Assuming there's a 'time' field in your database
+        deadlineTime: slot.deadlineTime,
         availableSeats: slot.available_seats,
       }));
 
-      let status = "available"; // Default to "available"
+      let status = "available";
       if (isHoliday) {
-        // If it's a holiday, set status to "Holiday"
         status = "Holiday";
       } else if (totalAvailableSeats === 0) {
-        // Mark as closed if no available seats
         status = "closed";
       }
 
@@ -551,33 +538,35 @@ exports.getAvailableslots = async (req, res) => {
         totalCapacity,
         totalAvailableSeats,
         totalSlots,
-        slots: slotsDetails, // Include slots information
+        slots: slotsDetails,
       };
     });
-
 
     res.status(200).json({
       message: "Monthly session slots retrieved successfully",
       data,
     });
   } catch (error) {
-    console.log("Failed to get session slots for month", error);
+    console.error("Failed to get session slots for month", error);
     res.status(500).json({ error: "Failed to get session slots for month" });
   }
 };
 
 
-
 exports.getAvailableslots2 = async (req, res) => {
   try {
-    const { year, month, slotType } = req.body;
+    const year = parseInt(req.body.year, 10);
+    const month = parseInt(req.body.month, 10);
+    const { slotType } = req.body;
 
-    // Fetch all session slots for the given month and year
-    const slotTypeFilter = slotType ? { slotType } : {}; // If no slotType provided, don't filter by it
+    if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+      return res.status(400).json({ error: "Invalid year or month" });
+    }
+
+    const slotTypeFilter = slotType ? { slotType } : {};
 
     const sessionslots = await Sessionslot.findAll({
       where: {
-
         ...slotTypeFilter,
         isDelete: false,
         slotdate: {
@@ -589,10 +578,6 @@ exports.getAvailableslots2 = async (req, res) => {
       },
     });
 
-
-
-
-    // Fetch all holidays for the given month and year
     const holidays = await Holiday.findAll({
       where: {
         holiday_date: {
@@ -604,58 +589,42 @@ exports.getAvailableslots2 = async (req, res) => {
       },
     });
 
-    // Extract holiday dates as full dates (not just day of the month)
     const holidayDates = holidays.map((holiday) => {
       const holidayDate = new Date(holiday.holiday_date);
-      return `${holidayDate.getFullYear()}-${holidayDate.getMonth() + 1}-${holidayDate.getDate()}`;
+      return `${holidayDate.getFullYear()}-${String(holidayDate.getMonth() + 1).padStart(2, '0')}-${String(holidayDate.getDate()).padStart(2, '0')}`;
     });
 
-    // Create a map to hold all days in the month (1 to 31)
-    const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
+    const daysInMonth = Array.from({ length: new Date(year, month, 0).getDate() }, (_, i) => i + 1);
     let totalMonthlyCapacity = 0;
     let totalMonthlyAvailableSeats = 0;
-    // Process each slot and determine its status (available or closed)
-    const data = daysInMonth.map((day) => {
-      const currentDate = new Date(year, month - 1, day);  // Create current date for comparison (month is 0-indexed)
-      const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
 
-      // Check if the day is a holiday
+    const data = daysInMonth.map((day) => {
+      const currentDate = new Date(year, month - 1, day);
+      const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+
       const isHoliday = holidayDates.includes(formattedDate);
 
-      // Filter session slots for the given day
       const slotsForDay = sessionslots.filter((slot) => {
-        // Parse the tempdate as UTC and format as local date in YYYY-MM-DD
         const tempdate = new Date(slot.tempdate);
-        const normalizedTempDate = tempdate.toLocaleDateString('en-CA'); // outputs YYYY-MM-DD format
-
-        // Convert slot.slotdate (MM/DD/YYYY) into YYYY-MM-DD for comparison
+        const normalizedTempDate = tempdate.toLocaleDateString('en-CA');
         const slotdateParts = slot.slotdate.split('/');
         const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, '0')}-${slotdateParts[1].padStart(2, '0')}`;
-
-        // Construct the requested date in YYYY-MM-DD format
         const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-
-        // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
       });
 
-      // Calculate total capacity and total available seats for the day
       const totalCapacity = slotsForDay.reduce((total, slot) => total + parseInt(slot.capacity, 10), 0);
       const totalAvailableSeats = slotsForDay.reduce((total, slot) => total + parseInt(slot.available_seats, 10), 0);
-      const totalSlots = slotsForDay.length;  // Total number of slots for the day
+      const totalSlots = slotsForDay.length;
 
-      // Add to monthly totals
       totalMonthlyCapacity += totalCapacity;
       totalMonthlyAvailableSeats += totalAvailableSeats;
 
-      let status = "available"; // Default to "closed"
+      let status = "available";
       if (isHoliday) {
-        // If it's a holiday, set status to "Holiday"
         status = "Holiday";
-
-      } else if (totalAvailableSeats == 0) {
-        // Mark as closed if no available seats
+      } else if (totalAvailableSeats === 0) {
         status = "closed";
       }
 
@@ -665,7 +634,7 @@ exports.getAvailableslots2 = async (req, res) => {
         status,
         totalCapacity,
         totalAvailableSeats,
-        totalSlots
+        totalSlots,
       };
     });
 
@@ -674,13 +643,10 @@ exports.getAvailableslots2 = async (req, res) => {
       data,
     });
   } catch (error) {
-    console.log("Failed to get session slots for month", error);
+    console.error("Failed to get session slots for month", error);
     res.status(500).json({ error: "Failed to get session slots for month" });
   }
 };
-
-
-
 
 
 
