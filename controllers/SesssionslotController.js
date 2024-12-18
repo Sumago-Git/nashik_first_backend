@@ -488,7 +488,7 @@ exports.getAvailableslots = async (req, res) => {
     // Extract holiday dates as full dates (not just day of the month)
     const holidayDates = holidays.map((holiday) => {
       const holidayDate = new Date(holiday.holiday_date);
-      return `${holidayDate.getFullYear()}-${holidayDate.getMonth() + 1}-${holidayDate.getDate()}`;
+      return `${holidayDate.getFullYear()}-${holidayDate.getMonth() + 1}-${holidayDate.getDate()};`
     });
 
     // Create a map to hold all days in the month (1 to 31)
@@ -498,7 +498,7 @@ exports.getAvailableslots = async (req, res) => {
     // Process each slot and determine its status (available or closed)
     const data = daysInMonth.map((day) => {
       const currentDate = new Date(year, month - 1, day); // Create current date for comparison (month is 0-indexed)
-      const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
+      const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()};`
 
       // Check if the day is a holiday
       const isHoliday = holidayDates.includes(formattedDate);
@@ -511,10 +511,10 @@ exports.getAvailableslots = async (req, res) => {
 
         // Convert slot.slotdate (MM/DD/YYYY) into YYYY-MM-DD for comparison
         const slotdateParts = slot.slotdate.split('/');
-        const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, '0')}-${slotdateParts[1].padStart(2, '0')}`;
+        const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, '0')}-${slotdateParts[1].padStart(2, '0')};`
 
         // Construct the requested date in YYYY-MM-DD format
-        const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')};`
 
         // Compare the dates
         return normalizedTempDate === formattedRequestedDate || normalizedSlotDate === formattedRequestedDate;
@@ -607,7 +607,7 @@ exports.getAvailableslots2 = async (req, res) => {
     // Extract holiday dates as full dates (not just day of the month)
     const holidayDates = holidays.map((holiday) => {
       const holidayDate = new Date(holiday.holiday_date);
-      return `${holidayDate.getFullYear()}-${holidayDate.getMonth() + 1}-${holidayDate.getDate()}`;
+      return `${holidayDate.getFullYear()}-${holidayDate.getMonth() + 1}-${holidayDate.getDate()};`
     });
 
     // Create a map to hold all days in the month (1 to 31)
@@ -630,10 +630,10 @@ exports.getAvailableslots2 = async (req, res) => {
 
         // Convert slot.slotdate (MM/DD/YYYY) into YYYY-MM-DD for comparison
         const slotdateParts = slot.slotdate.split('/');
-        const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, '0')}-${slotdateParts[1].padStart(2, '0')}`;
+        const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, '0')}-${slotdateParts[1].padStart(2, '0')};`
 
         // Construct the requested date in YYYY-MM-DD format
-        const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const formattedRequestedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')};`
 
 
         // Compare the dates
@@ -678,9 +678,6 @@ exports.getAvailableslots2 = async (req, res) => {
     res.status(500).json({ error: "Failed to get session slots for month" });
   }
 };
-
-
-
 
 
 
