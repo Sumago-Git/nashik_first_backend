@@ -50,7 +50,25 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       console.log("Session slot not found");
       return res.status(404).json({ message: "Session slot not found" });
     }
-    const sessionTime = sessionSlot.time;
+
+    const booking = await BookingForm.findOne({
+      where: { id: sessionSlotId },
+      include: [
+        {
+          model: Sessionslot,
+          as: "Sessionslot",
+          attributes: ["time", "category", "slotdate"], // Include only necessary fields
+        },
+      ],
+    });
+
+    if (!booking) {
+      throw new Error("Booking not found.");
+    }
+
+    const sessionTime = booking.Sessionslot?.time || "Not Provided";
+  
+
 
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats - 1,
@@ -105,16 +123,16 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
             const smsMessage = `Hi ${fname}, Your booking for ${category == "RTO - Learner Driving License Holder Training"
-                ? "RTO Learner Driving License Holder"
-                : category == "RTO – Suspended Driving License Holders Training"
-                  ? "RTO Suspended Driving License Holders"
-                  : category == "RTO – Training for School Bus Driver"
-                    ? "RTO Training for School Bus Driver"
-                    : category == "School Students Training – Group"
-                      ? "School Students Training Group"
-                      : category == "College/Organization Training – Group"
-                        ? "College/Organization Training Group"
-                        : ""
+              ? "RTO Learner Driving License Holder"
+              : category == "RTO – Suspended Driving License Holders Training"
+                ? "RTO Suspended Driving License Holders"
+                : category == "RTO – Training for School Bus Driver"
+                  ? "RTO Training for School Bus Driver"
+                  : category == "School Students Training – Group"
+                    ? "School Students Training Group"
+                    : category == "College/Organization Training – Group"
+                      ? "College/Organization Training Group"
+                      : ""
               } Training is confirmed on ${slotdate} at ${sessionTime}. Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query, please call 0253-2315966 Email: secretary@nashikfirst.com.`;
             const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
             const senderId = "NSKFST";
