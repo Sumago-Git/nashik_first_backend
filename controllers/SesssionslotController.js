@@ -556,17 +556,18 @@ exports.getAvailableslots2 = async (req, res) => {
   try {
     const { year, month, slotType } = req.body;
 
-    // Fetch all session slots for the given month and year
-    const slotTypeFilter = slotType ? { slotType } : {}; // If no slotType provided, don't filter by it
+    // Filter for slotType if provided
+    const slotTypeFilter = slotType ? { slotType } : {};
 
+    // Fetch all session slots for the given month and year
     const sessionslots = await Sessionslot.findAll({
       where: {
         ...slotTypeFilter,
         isDelete: false,
-        slotdate: {
+        tempdate: {
           [Op.and]: [
-            sequelize.where(sequelize.fn('YEAR', sequelize.col('tempdate')), year),
-            sequelize.where(sequelize.fn('MONTH', sequelize.col('tempdate')), month),
+            where(fn("YEAR", col("tempdate")), year),
+            where(fn("MONTH", col("tempdate")), month),
           ],
         },
       },
@@ -577,49 +578,50 @@ exports.getAvailableslots2 = async (req, res) => {
       where: {
         holiday_date: {
           [Op.and]: [
-            sequelize.where(sequelize.fn('YEAR', sequelize.col('tempdate')), year),
-            sequelize.where(sequelize.fn('MONTH', sequelize.col('tempdate')), month),
+            where(fn("YEAR", col("holiday_date")), year),
+            where(fn("MONTH", col("holiday_date")), month),
           ],
         },
       },
     });
 
-    // Extract holiday dates as full dates (not just day of the month)
+    // Extract holiday dates in `YYYY-MM-DD` format
     const holidayDates = holidays.map((holiday) => {
-      const holidayDate = new Date(holiday.holiday_date);
-      return holidayDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      return new Date(holiday.holiday_date).toISOString().split("T")[0];
     });
 
-    // Dynamically calculate the correct number of days in the month
-    const daysInMonth = new Date(year, month, 0).getDate();
+    // Get the number of days in the month
+    const daysInMonth = new Date(year, month, 0).getDate(); // Correctly handles 28, 30, or 31 days
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
     let totalMonthlyCapacity = 0;
     let totalMonthlyAvailableSeats = 0;
 
-    // Process each slot and determine its status (available or closed)
+    // Generate data for each day in the month
     const data = daysArray.map((day) => {
-      const currentDate = new Date(year, month - 1, day); // Create current date for comparison (month is 0-indexed)
-      const formattedDate = currentDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const currentDate = new Date(year, month - 1, day); // Create date for the day
+      const formattedDate = currentDate.toISOString().split("T")[0]; // `YYYY-MM-DD` format
 
       // Check if the day is a holiday
       const isHoliday = holidayDates.includes(formattedDate);
 
       // Filter session slots for the given day
       const slotsForDay = sessionslots.filter((slot) => {
-        const tempdate = new Date(slot.tempdate).toISOString().split('T')[0]; // Normalize tempdate
-        const slotParts = slot.slotdate.split('/');
-        const normalizedSlotDate = `${slotParts[2]}-${slotParts[0].padStart(2, '0')}-${slotParts[1].padStart(2, '0')}`; // Normalize slotdate
+        // Normalize tempdate and slotdate to `YYYY-MM-DD` for comparison
+        const normalizedTempDate = new Date(slot.tempdate).toISOString().split("T")[0];
 
-        return tempdate === formattedDate || normalizedSlotDate === formattedDate;
+        const slotdateParts = slot.slotdate.split("/");
+        const normalizedSlotDate = `${slotdateParts[2]}-${slotdateParts[0].padStart(2, "0")}-${slotdateParts[1].padStart(2, "0")}`;
+
+        return normalizedTempDate === formattedDate || normalizedSlotDate === formattedDate;
       });
 
-      // Calculate total capacity and total available seats for the day
+      // Calculate total capacity and available seats for the day
       const totalCapacity = slotsForDay.reduce((total, slot) => total + parseInt(slot.capacity, 10), 0);
       const totalAvailableSeats = slotsForDay.reduce((total, slot) => total + parseInt(slot.available_seats, 10), 0);
       const totalSlots = slotsForDay.length;
 
-      // Add to monthly totals
+      // Update monthly totals
       totalMonthlyCapacity += totalCapacity;
       totalMonthlyAvailableSeats += totalAvailableSeats;
 
@@ -643,6 +645,8 @@ exports.getAvailableslots2 = async (req, res) => {
     res.status(200).json({
       message: "Monthly session slots retrieved successfully",
       data,
+      totalMonthlyCapacity,
+      totalMonthlyAvailableSeats,
     });
   } catch (error) {
     console.error("Failed to get session slots for month:", error);
