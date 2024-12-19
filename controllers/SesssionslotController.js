@@ -801,3 +801,38 @@ exports.getAvailableSlotsByDateAndCategory = async (req, res) => {
     });
   }
 };
+
+
+// Adjust path as needed
+
+exports.fetchSlots = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today's date to start of the day
+
+    // Fetch sessionslots and related SlotRegisterInfo
+    const slots = await Sessionslot.findAll({
+      where: {
+        tempdate: {
+          [Op.gte]: today, // Fetch slots from today onwards
+        },
+        isActive: true, // Optional: Only fetch active slots
+        isDelete: false, // Optional: Exclude deleted slots
+      },
+      include: [
+        {
+          model: SlotRegisterInfo,
+          as: "slotRegisterInfos",
+          required: false, // Include slots even if they have no related SlotRegisterInfo
+        },
+      ],
+    });
+
+    return res.status(200).json({ success: true, data: slots });
+  } catch (error) {
+    console.error("Error fetching slots:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
