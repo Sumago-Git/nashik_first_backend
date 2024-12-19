@@ -783,7 +783,7 @@ exports.registerSlotInfo = async (req, res) => {
       !category ||
       !institution_name ||
       !institution_email ||
-      !institution_phone ||
+      
       !coordinator_mobile ||
       !coordinator_name
     ) {
