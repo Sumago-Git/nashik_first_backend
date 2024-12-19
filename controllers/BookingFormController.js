@@ -783,7 +783,7 @@ exports.registerSlotInfo = async (req, res) => {
       !category ||
       !institution_name ||
       !institution_email ||
-      
+
       !coordinator_mobile ||
       !coordinator_name
     ) {
@@ -1066,7 +1066,7 @@ exports.deleteSlotInfo = async (req, res) => {
     const sessionSlot = await Sessionslot.findByPk(slotInfo.sessionSlotId);
     if (sessionSlot) {
       await sessionSlot.update({
-        available_seats: sessionSlot.available_seats + 1, // Increase available seats
+        available_seats: sessionSlot.available_seats === sessionSlot.available_seats, // Increase available seats
       });
     }
 
