@@ -1066,7 +1066,7 @@ exports.deleteSlotInfo = async (req, res) => {
     const sessionSlot = await Sessionslot.findByPk(slotInfo.sessionSlotId);
     if (sessionSlot) {
       await sessionSlot.update({
-        available_seats: sessionSlot.available_seats === sessionSlot.capacity, // Increase available seats
+        available_seats: sessionSlot.capacity, // Increase available seats
       });
     }
 
