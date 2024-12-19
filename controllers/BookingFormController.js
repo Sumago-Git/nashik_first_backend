@@ -120,21 +120,30 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
             const convertTo12HourFormat = (time) => {
-              // Validate input format
-              if (!time || !time.includes(":")) {
-                return "Invalid Time";
+              let [hours, minutes] = time.split(':');
+
+              // Convert hours and minutes to numbers for calculations
+              hours = parseInt(hours, 10);
+              minutes = parseInt(minutes, 10);
+
+              // Initialize period as 'A.M.'
+              let period = 'A.M.';
+
+              // Determine if it's P.M. and adjust hours
+              if (hours >= 12) {
+                period = 'P.M.';
+                if (hours > 12) {
+                  hours -= 12; // Convert hours greater than 12 to 12-hour format
+                }
+              } else if (hours === 0) {
+                hours = 12; // Convert 00:xx to 12:xx A.M.
               }
 
-              const [hours, minutes] = time.split(":").map(Number);
+              // Ensure minutes are always two digits
+              minutes = minutes.toString().padStart(2, '0');
 
-              // Handle invalid numeric values
-              if (isNaN(hours) || isNaN(minutes)) {
-                return "Invalid Time";
-              }
-
-              const ampm = hours >= 12 ? "PM" : "AM";
-              const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
-              return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+              // Return the formatted time
+              return `${hours}:${minutes} ${period}`;
             };
             let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
 
@@ -267,21 +276,30 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     console.log("filteredCategorys", filteredCategorys);
     console.log("sessionTime===>", sessionTime);
     const convertTo12HourFormat = (time) => {
-      // Validate input format
-      if (!time || !time.includes(":")) {
-        return "Invalid Time";
+      let [hours, minutes] = time.split(':');
+
+      // Convert hours and minutes to numbers for calculations
+      hours = parseInt(hours, 10);
+      minutes = parseInt(minutes, 10);
+
+      // Initialize period as 'A.M.'
+      let period = 'A.M.';
+
+      // Determine if it's P.M. and adjust hours
+      if (hours >= 12) {
+        period = 'P.M.';
+        if (hours > 12) {
+          hours -= 12; // Convert hours greater than 12 to 12-hour format
+        }
+      } else if (hours === 0) {
+        hours = 12; // Convert 00:xx to 12:xx A.M.
       }
 
-      const [hours, minutes] = time.split(":").map(Number);
+      // Ensure minutes are always two digits
+      minutes = minutes.toString().padStart(2, '0');
 
-      // Handle invalid numeric values
-      if (isNaN(hours) || isNaN(minutes)) {
-        return "Invalid Time";
-      }
-
-      const ampm = hours >= 12 ? "PM" : "AM";
-      const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
-      return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+      // Return the formatted time
+      return `${hours}:${minutes} ${period}`;
     };
     let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
     // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
@@ -800,22 +818,35 @@ exports.registerSlotInfo = async (req, res) => {
     if (!booking) {
       throw new Error("Booking not found.");
     }
+    const convertDateToDDMMYYYY = (dateString) => {
+      const [month, day, year] = dateString.split('/');
+      return `${day}/${month}/${year}`;
+    };
     const convertTo12HourFormat = (time) => {
-      // Validate input format
-      if (!time || !time.includes(":")) {
-        return "Invalid Time";
+      let [hours, minutes] = time.split(':');
+
+      // Convert hours and minutes to numbers for calculations
+      hours = parseInt(hours, 10);
+      minutes = parseInt(minutes, 10);
+
+      // Initialize period as 'A.M.'
+      let period = 'A.M.';
+
+      // Determine if it's P.M. and adjust hours
+      if (hours >= 12) {
+        period = 'P.M.';
+        if (hours > 12) {
+          hours -= 12; // Convert hours greater than 12 to 12-hour format
+        }
+      } else if (hours === 0) {
+        hours = 12; // Convert 00:xx to 12:xx A.M.
       }
 
-      const [hours, minutes] = time.split(":").map(Number);
+      // Ensure minutes are always two digits
+      minutes = minutes.toString().padStart(2, '0');
 
-      // Handle invalid numeric values
-      if (isNaN(hours) || isNaN(minutes)) {
-        return "Invalid Time";
-      }
-
-      const ampm = hours >= 12 ? "PM" : "AM";
-      const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
-      return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+      // Return the formatted time
+      return `${hours}:${minutes} ${period}`;
     };
 
     const sessionTime = booking.time || "Not Provided";
