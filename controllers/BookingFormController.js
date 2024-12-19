@@ -120,7 +120,18 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
             const convertTo12HourFormat = (time) => {
+              // Validate input format
+              if (!time || !time.includes(":")) {
+                return "Invalid Time";
+              }
+
               const [hours, minutes] = time.split(":").map(Number);
+
+              // Handle invalid numeric values
+              if (isNaN(hours) || isNaN(minutes)) {
+                return "Invalid Time";
+              }
+
               const ampm = hours >= 12 ? "PM" : "AM";
               const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
               return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
@@ -256,7 +267,18 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     console.log("filteredCategorys", filteredCategorys);
     console.log("sessionTime===>", sessionTime);
     const convertTo12HourFormat = (time) => {
+      // Validate input format
+      if (!time || !time.includes(":")) {
+        return "Invalid Time";
+      }
+
       const [hours, minutes] = time.split(":").map(Number);
+
+      // Handle invalid numeric values
+      if (isNaN(hours) || isNaN(minutes)) {
+        return "Invalid Time";
+      }
+
       const ampm = hours >= 12 ? "PM" : "AM";
       const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
       return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
@@ -779,7 +801,18 @@ exports.registerSlotInfo = async (req, res) => {
       throw new Error("Booking not found.");
     }
     const convertTo12HourFormat = (time) => {
+      // Validate input format
+      if (!time || !time.includes(":")) {
+        return "Invalid Time";
+      }
+
       const [hours, minutes] = time.split(":").map(Number);
+
+      // Handle invalid numeric values
+      if (isNaN(hours) || isNaN(minutes)) {
+        return "Invalid Time";
+      }
+
       const ampm = hours >= 12 ? "PM" : "AM";
       const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
       return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
