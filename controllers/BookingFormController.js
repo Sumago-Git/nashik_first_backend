@@ -119,7 +119,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
             let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
-            let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${sessionTime}`
+            const convertTo12HourFormat = (time) => {
+              const [hours, minutes] = time.split(":").map(Number);
+              const ampm = hours >= 12 ? "PM" : "AM";
+              const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+              return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+            };
+            let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
 
             const smsMessage = `Hi ${fname}, Your booking for ${category == "RTO - Learner Driving License Holder Training"
               ? "RTO Learner Driving License Holder"
@@ -249,8 +255,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     let filteredCategorys = category.replace(/-/g, "");
     console.log("filteredCategorys", filteredCategorys);
     console.log("sessionTime===>", sessionTime);
-
-    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${sessionTime}`
+    const convertTo12HourFormat = (time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+      return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    };
+    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
     // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
     console.log("testcategory", category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : "");
 
@@ -759,9 +770,25 @@ exports.registerSlotInfo = async (req, res) => {
     let filteredCategorys = category.replace(/-/g, "");
     // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training - Group" ? "College/Organization Training Group" : ""
     // Send SMS
-    // let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${sessionTime}`
+    const booking = await Sessionslot.findOne({
+      where: { id: sessionSlotId },
 
-    const smsMessage = `Hi ${coordinator_name},Your booking for ${category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotdate} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    });
+
+    if (!booking) {
+      throw new Error("Booking not found.");
+    }
+    const convertTo12HourFormat = (time) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const convertedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+      return `${convertedHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    };
+
+    const sessionTime = booking.time || "Not Provided";
+    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
+    console.log(slotDateandTime)
+    const smsMessage = `Hi ${coordinator_name},Your booking for ${category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
