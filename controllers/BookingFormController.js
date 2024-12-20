@@ -183,10 +183,15 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             
             You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
             const emailHtml = `
-              <h1>Booking Confirmation</h1>
-              ${emailText}
+            <h1>Booking Confirmation</h1>
+      Dear ${item.fname},
+          
+      
+          Your booking for ${category} is confirmed on ${slotDateandTime}.
+          
+          You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.
             
-            `;
+          `;
 
             console.log("Sending email to", sessionTime);
             try {
@@ -323,12 +328,18 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
     const emailText = `Dear ${item.fname},
 
+
     Your booking for ${category} is confirmed on ${slotDateandTime}.
     
     You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
-    ${emailText}
+Dear ${item.fname},
+    
+
+    Your booking for ${category} is confirmed on ${slotDateandTime}.
+    
+    You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.
       
     `;
 
@@ -871,8 +882,13 @@ exports.registerSlotInfo = async (req, res) => {
     You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
-   ${emailText}
-  
+Dear ${item.fname},
+    
+
+    Your booking for ${category} is confirmed on ${slotDateandTime}.
+    
+    You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.
+      
     `;
 
     // Send email
@@ -883,7 +899,7 @@ exports.registerSlotInfo = async (req, res) => {
 
       Your booking for ${category} is confirmed on ${slotDateandTime}.
       
-      You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;      console.log(
+      You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`; console.log(
         `Confirmation email sent successfully to ${institution_email}`
       );
     } catch (error) {
