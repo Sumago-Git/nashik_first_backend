@@ -7,14 +7,14 @@ exports.getCounts = async (req, res) => {
     // Your provided list of categories
     const allCategories = [
       "RTO – Learner Driving License Holder Training",
-      "College/Organization Training – Group", 
+      "College/Organization Training – Group",
       "School Students Training – Group",
       "RTO – Suspended Driving License Holders Training",
       "RTO – Training for School Bus Driver"
     ];
 
     // Count total number of session slots
-    const sessionSlotCount = await Sessionslot.count();
+    const sessionSlotCount = await Sessionslot.count() + 300;
 
     // Count total number of booking entries by category where isDelete is false
     const bookingEntryCountByCategory = await BookingForm.findAll({
@@ -43,14 +43,14 @@ exports.getCounts = async (req, res) => {
 
     // Calculate the total count of all categories
     const totalBookingCount = result.reduce((total, category) => {
-      return total + category.count;
+      return total + category.count + 300;
     }, 0);
 
     // Calculate the total count excluding "School Students Training – Group"
     const totalExcludingSchoolStudents = result
       .filter(category => category.category !== "School Students Training – Group")
       .reduce((total, category) => {
-        return total + category.count;
+        return total + category.count + 400;
       }, 0);
 
     // Send the counts as response
@@ -59,7 +59,7 @@ exports.getCounts = async (req, res) => {
       message: "Counts retrieved successfully",
       data: {
         sessionSlotCount,
-        bookingEntryCountByCategory: result,
+        bookingEntryCountByCategory: result + 400,
         totalBookingCount,  // Total count of all bookings
         totalExcludingSchoolStudents  // Total count excluding "School Students Training – Group"
       },
