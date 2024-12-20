@@ -52,7 +52,7 @@ exports.getCounts = async (req, res) => {
       .reduce((total, category) => {
         return total + category.count + 400;
       }, 0);
-
+ 
     // Send the counts as response
     return res.status(200).json({
       success: true,

@@ -181,16 +181,8 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
             const emailHtml = `
               <h1>Booking Confirmation</h1>
-              <p>Dear ${item.fname} ${item.lname},</p>
-              <p>Your booking has been successfully confirmed!</p>
-              <h3>Details:</h3>
-              <ul>
-                <li><strong>Slot Date:</strong> ${slotdate}</li>
-                <li><strong>sessionTime:</strong> ${sessionTime}</li>
-                <li><strong>Session:</strong> ${slotsession}</li>
-              </ul>
-              <p>Thank you for choosing us.</p>
-              <p>Best Regards,<br>Your Company</p>
+              ${emailText}
+            
             `;
 
             console.log("Sending email to", sessionTime);
