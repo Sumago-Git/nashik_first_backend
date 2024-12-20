@@ -177,21 +177,15 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             // Send email for each record created
             const emailSubject = "Booking Confirmation";
             // const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
-            const emailText = `Dear ${item.fname},
-
-            Your booking for ${category} is confirmed on ${slotDateandTime}.
+            const emailText = `Dear ${item.fname},<br>
+            <p>Your booking for ${category} is confirmed on ${slotDateandTime}.</p>
+            <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
             
-            You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
             const emailHtml = `
-            <h1>Booking Confirmation</h1>
-      Dear ${item.fname},
-          
-      
-          Your booking for ${category} is confirmed on ${slotDateandTime}.
-          
-          You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.
+              <h1>Booking Confirmation</h1>
+              ${emailText}
             
-          `;
+            `;
 
             console.log("Sending email to", sessionTime);
             try {
@@ -326,20 +320,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Send email for the newly created booking form
     const emailSubject = "Booking Confirmation";
     // const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
-    const emailText = `Dear ${item.fname},
-
-
-    Your booking for ${category} is confirmed on ${slotDateandTime}.
+    const emailText = `Dear ${fname} ${lname},<br>
+    <p>Your booking for ${category} is confirmed on ${slotDateandTime}.</p>
+    <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
     
-    You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
-Dear ${item.fname},
-    
-
-    Your booking for ${category} is confirmed on ${slotDateandTime}.
-    
-    You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.
+    ${emailText}
       
     `;
 
@@ -874,32 +861,24 @@ exports.registerSlotInfo = async (req, res) => {
     const emailSubject = "Group Booking Confirmation";
     // const emailText = `Dear ,Your booking has been successfully confirmed!\n\nDetails:\nInstitution Name: ${institution_name}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
     // const emailText = `Dear ${coordinator_name}, \n\nYour booking for ${category} is confirmed on ${slotDateandTime} You will have to be present 30mins before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
-    // const emailText = `Dear ${coordinator_name}, \n\nYour booking for ${category} is confirmed on ${slotDateandTime} You will have to be present 30mins before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
-    const emailText = `Dear ${coordinator_name},
-
-    Your booking for ${category} is confirmed on ${slotDateandTime}.
+    const emailText = `Dear ${coordinator_name},<br>
+    <p>Your booking for ${category} is confirmed on ${slotDateandTime}.</p>
+    <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
     
-    You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
-Dear ${item.fname},
-    
-
-    Your booking for ${category} is confirmed on ${slotDateandTime}.
-    
-    You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.
-      
+   ${emailText}
+  
     `;
 
     // Send email
     console.log("Sending email to", institution_email);
     try {
       await sendEmail(institution_email, emailSubject, emailText, emailHtml);
-      const emailText = `Dear ${item.fname},
-
-      Your booking for ${category} is confirmed on ${slotDateandTime}.
-      
-      You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`; console.log(
+      const emailText = `Dear ${coordinator_name},<br>
+      <p>Your booking for ${category} is confirmed on ${slotDateandTime}.</p>
+      <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
+            console.log(
         `Confirmation email sent successfully to ${institution_email}`
       );
     } catch (error) {
