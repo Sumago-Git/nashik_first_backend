@@ -177,7 +177,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             // Send email for each record created
             const emailSubject = "Booking Confirmation";
             // const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
-            const emailText = `Dear ${item.fname}, \n\nYour booking for ${category} is confirmed on ${slotDateandTime} You will have to be present 30mins before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
+            const emailText = `Dear ${item.fname}, <p>Your booking for ${category} is confirmed on ${slotDateandTime} </p>\n\nYou will have to be present 30mins before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
 
             const emailHtml = `
               <h1>Booking Confirmation</h1>
