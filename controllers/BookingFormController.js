@@ -175,7 +175,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             }
 
             // Send email for each record created
-            const emailSubject = "Booking Confirmation";
+            const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
             // const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
             const emailText = `Dear ${item.fname},<br>
             <p>Your booking for ${category} is confirmed on ${slotDateandTime}.</p>
@@ -184,7 +184,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             const emailHtml = `
               <h1>Booking Confirmation</h1>
               ${emailText}
-            
             `;
 
             console.log("Sending email to", sessionTime);
@@ -283,9 +282,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       // Determine if it's P.M. and adjust hours
       if (hours >= 12) {
         period = 'P.M.';
-        if (hours > 12) {
-          hours -= 12; // Convert hours greater than 12 to 12-hour format
-        }
+        
       } else if (hours === 0) {
         hours = 12; // Convert 00:xx to 12:xx A.M.
       }
@@ -318,7 +315,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
     console.log("Sending confirmation email to", email);
     // Send email for the newly created booking form
-    const emailSubject = "Booking Confirmation";
+    const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
     // const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
     const emailText = `Dear ${fname} ${lname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}.</p>
@@ -858,7 +855,7 @@ exports.registerSlotInfo = async (req, res) => {
     }
 
     // // Prepare email content
-    const emailSubject = "Group Booking Confirmation";
+    const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
     // const emailText = `Dear ,Your booking has been successfully confirmed!\n\nDetails:\nInstitution Name: ${institution_name}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
     // const emailText = `Dear ${coordinator_name}, \n\nYour booking for ${category} is confirmed on ${slotDateandTime} You will have to be present 30mins before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
     const emailText = `Dear ${coordinator_name},<br>

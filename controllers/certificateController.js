@@ -27,15 +27,17 @@ const upload = multer({ storage }).single('pdf');
 const sendEmailWithAttachment = async (email, filePath) => {
     // Set up nodemailer transporter
     const transporter = nodemailer.createTransport({
-        service: 'gmail', // Replace with your email provider
+        host: process.env.EMAIL_HOST,  // Update the host to your mail provider
+        port: 465,                      // Use the appropriate port for your provider (465 for SSL)
+        secure: true,                   // Use true for secure connection (SSL/TLS)
         auth: {
-            user: "shubham.kothavade09@gmail.com", // Email address from .env
-            pass: "tmlgddxnhltjvzcj", // Password from .env
+            user: process.env.EMAIL_USER, // Email address from .env
+            pass: process.env.EMAIL_PASS,  // Password from .env
         }
     });
 
     const mailOptions = {
-        from: "shubham.kothavade09@gmail.com",
+        from: process.env.EMAIL_USER,
         to: email,
         subject: 'Your Certificate',
         text: 'Please find your certificate attached.',
@@ -50,6 +52,7 @@ const sendEmailWithAttachment = async (email, filePath) => {
     // Send the email
     return await transporter.sendMail(mailOptions);
 };
+
 
 // Controller to handle uploading and emailing certificates
 exports.uploadCertificate = async (req, res) => {
