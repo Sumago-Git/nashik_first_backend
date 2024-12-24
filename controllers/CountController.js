@@ -14,7 +14,7 @@ exports.getCounts = async (req, res) => {
     ];
 
     // Count total number of session slots
-    const sessionSlotCount = await Sessionslot.count() + 300;
+    const sessionSlotCount = await Sessionslot.count();
 
     // Count total number of booking entries by category where isDelete is false
     const bookingEntryCountByCategory = await BookingForm.findAll({
@@ -24,7 +24,8 @@ exports.getCounts = async (req, res) => {
       ],
       group: ['category'],  // Group by category
       where: {
-        isDelete: false,  // Only count bookings where isDelete is false
+        isDelete: false,
+        training_status: 'Attended'  // Only count bookings where isDelete is false
       },
       raw: true  // This will give you plain objects instead of Sequelize instances
     });
@@ -43,14 +44,14 @@ exports.getCounts = async (req, res) => {
 
     // Calculate the total count of all categories
     const totalBookingCount = result.reduce((total, category) => {
-      return total + category.count + 300;
+      return total + category.count;
     }, 0);
 
     // Calculate the total count excluding "School Students Training – Group"
     const totalExcludingSchoolStudents = result
       .filter(category => category.category !== "School Students Training – Group")
       .reduce((total, category) => {
-        return total + category.count + 400;
+        return total + category.count;
       }, 0);
  
     // Send the counts as response
@@ -59,7 +60,7 @@ exports.getCounts = async (req, res) => {
       message: "Counts retrieved successfully",
       data: {
         sessionSlotCount,
-        bookingEntryCountByCategory: result + 400,
+        bookingEntryCountByCategory: result,
         totalBookingCount,  // Total count of all bookings
         totalExcludingSchoolStudents  // Total count excluding "School Students Training – Group"
       },
