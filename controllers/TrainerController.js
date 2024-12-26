@@ -45,7 +45,7 @@ exports.updateTrainer = async (req, res) => {
 exports.getTrainers = async (req, res) => {
   try {
     const trainers = await Trainer.findAll({
-      where: { isDelete: false, isActive: false },
+      where: { isDelete: false, isActive: true },
     });
     return apiResponse.successResponseWithData(
       res,
