@@ -21,7 +21,7 @@ exports.updateTrainer = async (req, res) => {
   try {
     const { id } = req.params;
     const trainer = await Trainer.findByPk(id);
-    
+
     if (!trainer) {
       return apiResponse.notFoundResponse(res, "Trainer not found");
     }
@@ -30,7 +30,7 @@ exports.updateTrainer = async (req, res) => {
     trainer.mobile = req.body.mobile;
     trainer.email = req.body.email;
     await trainer.save();
-    
+
     return apiResponse.successResponseWithData(
       res,
       "Trainer updated successfully",
@@ -45,7 +45,7 @@ exports.updateTrainer = async (req, res) => {
 exports.getTrainers = async (req, res) => {
   try {
     const trainers = await Trainer.findAll({
-      where: { isDelete: false },
+      where: { isDelete: false, isActive: false },
     });
     return apiResponse.successResponseWithData(
       res,
