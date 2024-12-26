@@ -119,34 +119,17 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
             let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
-            const convertTo12HourFormat = (time) => {
-              let [hours, minutes] = time.split(':');
-
-              // Convert hours and minutes to numbers for calculations
-              hours = parseInt(hours, 10);
-              minutes = parseInt(minutes, 10);
-
-              // Initialize period as 'A.M.'
-              let period = 'A.M.';
-
-              // Determine if it's P.M. and adjust hours
-              if (hours >= 12) {
-                period = 'P.M.';
-                if (hours > 12) {
-                  hours -= 12; // Convert hours greater than 12 to 12-hour format
-                }
-              } else if (hours === 0) {
-                hours = 12; // Convert 00:xx to 12:xx A.M.
-              }
-
-              // Ensure minutes are always two digits
-              minutes = minutes.toString().padStart(2, '0');
-
-              // Return the formatted time
-              return `${hours}:${minutes} ${period}`;
+            const formatTimeTo12Hour = (time) => {
+              const [hour, minute] = time.split(':');
+              const hours = parseInt(hour, 10);
+              const period = hours >= 12 ? 'PM' : 'AM';
+              const formattedHour = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
+              return `${formattedHour}:${minute} ${period}`;
             };
-            let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
 
+
+            let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${formatTimeTo12Hour(sessionTime)}`
+            console.log(slotDateandTime)
             const smsMessage = `Hi ${fname}, Your booking for ${category == "RTO - Learner Driving License Holder Training"
               ? "RTO Learner Driving License Holder"
               : category == "RTO – Suspended Driving License Holders Training"
@@ -180,7 +163,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             const emailText = `Dear ${item.fname},<br>
             <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
             <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-            
+
             const emailHtml = `
               <h1>Booking Confirmation</h1>
               ${emailText}
@@ -269,31 +252,14 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     let filteredCategorys = category.replace(/-/g, "");
     console.log("filteredCategorys", filteredCategorys);
     console.log("sessionTime===>", sessionTime);
-    const convertTo12HourFormat = (time) => {
-      let [hours, minutes] = time.split(':');
-
-      // Convert hours and minutes to numbers for calculations
-      hours = parseInt(hours, 10);
-      minutes = parseInt(minutes, 10);
-
-      // Initialize period as 'A.M.'
-      let period = 'A.M.';
-
-      // Determine if it's P.M. and adjust hours
-      if (hours >= 12) {
-        period = 'P.M.';
-        
-      } else if (hours === 0) {
-        hours = 12; // Convert 00:xx to 12:xx A.M.
-      }
-
-      // Ensure minutes are always two digits
-      minutes = minutes.toString().padStart(2, '0');
-
-      // Return the formatted time
-      return `${hours}:${minutes} ${period}`;
+    const formatTimeTo12Hour = (time) => {
+      const [hour, minute] = time.split(':');
+      const hours = parseInt(hour, 10);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHour = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
+      return `${formattedHour}:${minute} ${period}`;
     };
-    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
+    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${formatTimeTo12Hour(sessionTime)}`
     // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
     console.log("testcategory", category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : "");
 
@@ -320,7 +286,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const emailText = `Dear ${fname} ${lname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-    
+
     const emailHtml = `
       <h1>Booking Confirmation</h1>
     ${emailText}
@@ -861,7 +827,7 @@ exports.registerSlotInfo = async (req, res) => {
     const emailText = `Dear ${coordinator_name},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-    
+
     const emailHtml = `
       <h1>Booking Confirmation</h1>
    ${emailText}
@@ -875,7 +841,7 @@ exports.registerSlotInfo = async (req, res) => {
       const emailText = `Dear ${coordinator_name},<br>
       <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
       <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-            console.log(
+      console.log(
         `Confirmation email sent successfully to ${institution_email}`
       );
     } catch (error) {
