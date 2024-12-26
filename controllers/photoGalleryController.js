@@ -51,13 +51,13 @@ exports.getPhotoGalleries = async (req, res) => {
   try {
     // Determine if this is the find-photoGalleries route
     const isFindRoute = req.path === '/find-photoGalleries';
-    
+
     // Build the query conditions
     const queryConditions = { isDelete: false };
     if (isFindRoute) {
       queryConditions.isActive = true;
     }
-    
+
     // Fetch the PhotoGalleries with the query conditions
     const photoGalleries = await PhotoGallery.findAll({ where: queryConditions });
 
@@ -119,7 +119,7 @@ exports.getActivePhotoGalleries = async (req, res) => {
     const queryConditions = { isActive: true, isDelete: false };
 
     // Fetch the active PhotoGalleries
-    const activePhotoGalleries = await PhotoGallery.findAll({ where: queryConditions });
+    const activePhotoGalleries = await PhotoGallery.findAll({ isDelete: false, isActive: false });
 
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
     const activePhotoGalleriesWithBaseUrl = activePhotoGalleries.map(photoGallery => ({
