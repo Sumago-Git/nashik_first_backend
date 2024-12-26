@@ -838,9 +838,9 @@ exports.registerSlotInfo = async (req, res) => {
     console.log("Sending email to", institution_email);
     try {
       await sendEmail(institution_email, emailSubject, emailText, emailHtml);
-      const emailText = `Dear ${coordinator_name},<br>
-      <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
-      <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
+      // const emailText = `Dear ${coordinator_name},<br>
+      // <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
+      // <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
       console.log(
         `Confirmation email sent successfully to ${institution_email}`
       );
