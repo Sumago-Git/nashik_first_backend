@@ -34,6 +34,10 @@ const ContactForm = sequelize.define("ContactForm", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  suggestions: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   suggestionfile: {
     type: DataTypes.STRING,
     allowNull: true,
