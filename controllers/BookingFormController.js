@@ -527,7 +527,7 @@ exports.updateTrainingStatus = async (req, res) => {
 
       if (validCategories.includes(bookingForm.category)) {
         // Obtain a database lock to avoid race conditions
-        const startingCertificateNo = 66;
+        const startingCertificateNo = 76;
 
         // Lock table or use transaction isolation to ensure unique numbers
         const attendedCount = await BookingForm.count({
