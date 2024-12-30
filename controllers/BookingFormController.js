@@ -668,7 +668,7 @@ exports.isDeleteStatus = async (req, res) => {
 
 exports.deleteBookingForm = async (req, res) => {
   try {
-    console.log("ala re ala")
+   
     // Parse today's date
     const today = moment().startOf("day"); // Start of the current day
 
