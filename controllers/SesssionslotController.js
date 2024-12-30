@@ -528,7 +528,7 @@ exports.getAvailableslots = async (req, res) => {
       let status = "available";
       if (isHoliday) {
         status = "Holiday";
-      } else if (totalAvailableSeats === 0) {
+      } else if (totalAvailableSeats >= 0) {
         status = "closed";
       }
 
@@ -624,7 +624,7 @@ exports.getAvailableslots2 = async (req, res) => {
       let status = "available";
       if (isHoliday) {
         status = "Holiday";
-      } else if (totalAvailableSeats === 0) {
+      } else if (totalAvailableSeats >= 0) {
         status = "closed";
       }
 
