@@ -6,7 +6,7 @@ const {
   toggleNewsStatus,
   toggleNewsDelete,
   getNews,
-  getActiveNews, renderNewsDetailPage, getNewsArticleForOpenGraph, getNewsArticleForOpenGraph
+  getActiveNews,
 } = require("../controllers/NewsController");
 const authenticateToken = require("../middleware/auth");
 
@@ -47,9 +47,5 @@ router.get("/get-news", getActiveNews);
 
 // Route to get all active PhotoGalleries
 router.get("/find-news", authenticateToken, getNews);
-router.get('/newshmtl/:id', renderNewsDetailPage);
-router.get("/news/:id/og", getNewsArticleForOpenGraph);
 
-// Route to fetch full news article by ID
-router.get("/news/:id", getNewsArticleById);
 module.exports = router;
