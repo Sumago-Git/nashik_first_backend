@@ -6,7 +6,7 @@ const {
   toggleNewsStatus,
   toggleNewsDelete,
   getNews,
-  getActiveNews, renderNewsDetailPage
+  getActiveNews, renderNewsDetailPage, getNewsArticleForOpenGraph, getNewsArticleForOpenGraph
 } = require("../controllers/NewsController");
 const authenticateToken = require("../middleware/auth");
 
