@@ -196,3 +196,42 @@ exports.renderNewsDetailPage = async (req, res) => {
   }
 };
 
+exports.getNewsArticleForOpenGraph = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newsArticle = await News.findByPk(id);
+
+    if (!newsArticle || newsArticle.isDeleted) {
+      return apiResponse.notFoundResponse(res, "News article not found");
+    }
+
+    const baseUrl = process.env.SERVER_PATH || "http://localhost:3000";
+    const imgUrl = newsArticle.image ? baseUrl + newsArticle.image.replace(/\\/g, "/") : `${baseUrl}/default-news-image.png`;
+
+    res.json({
+      title: newsArticle.title,
+      description: newsArticle.summary,
+      image: imgUrl,
+      url: `${baseUrl}/news/${id}`,
+    });
+  } catch (error) {
+    console.error("Get news article for Open Graph failed", error);
+    apiResponse.ErrorResponse(res, "Internal Server Error");
+  }
+};
+
+exports.getNewsArticleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newsArticle = await News.findByPk(id);
+
+    if (!newsArticle || newsArticle.isDeleted) {
+      return apiResponse.notFoundResponse(res, "News article not found");
+    }
+
+    res.status(200).json(newsArticle);
+  } catch (error) {
+    console.error("Get news article by ID failed", error);
+    apiResponse.ErrorResponse(res, "Internal Server Error");
+  }
+};
