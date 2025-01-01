@@ -205,13 +205,14 @@ exports.getNewsArticleForOpenGraph = async (req, res) => {
       return apiResponse.notFoundResponse(res, "News article not found");
     }
 
+    // const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    // const imgUrl = newsArticle.img ? baseUrl + newsArticle.img.replace(/\\/g, '/') : null;
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
-    const imgUrl = newsArticle.img ? baseUrl + newsArticle.img.replace(/\\/g, '/') : null;
-
+    const imageUrl = newsArticle.img ? baseUrl + newsArticle.img.replace(/\\/g, '/') : null;
     res.json({
       title: newsArticle.title,
       description: newsArticle.summary,
-      image: imgUrl,
+      image: imageUrl,
       url: `${baseUrl}/news/${id}`,
     });
   } catch (error) {
