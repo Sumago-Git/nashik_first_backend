@@ -204,11 +204,9 @@ exports.getNewsArticleForOpenGraph = async (req, res) => {
     if (!newsArticle || newsArticle.isDeleted) {
       return apiResponse.notFoundResponse(res, "News article not found");
     }
+
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
-    const imgUrl = newsArticle.map(news => ({
-      ...news.toJSON(),
-      img: news.img ? baseUrl + news.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
-    }));
+    const imgUrl = newsArticle.img ? baseUrl + newsArticle.img.replace(/\\/g, '/') : null;
 
     res.json({
       title: newsArticle.title,
