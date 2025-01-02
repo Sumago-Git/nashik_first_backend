@@ -124,3 +124,57 @@ exports.toggleEventGallaryDelete = async (req, res) => {
   }
 };
 
+exports.renderEventGallary = async (req, res) => {
+  try {
+    // Determine if this is the find-EventGallary route
+    const isFindRoute = req.path === '/find-EventGallary';
+    
+    // Build the query conditions
+    const queryConditions = { isDelete: false };
+    if (isFindRoute) {
+      queryConditions.isActive = true; // Only include active objectives if this is the find route
+    }
+    
+    // Fetch the EventGallary records with the query conditions
+    const objectives = await EventGallary.findAll({ where: queryConditions });
+
+    // Construct the base URL for image paths
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const objectivesWithBaseUrl = objectives.map(objective => ({
+      ...objective.toJSON(),
+      img: objective.img ? baseUrl + objective.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
+    }));
+
+    // Serve an HTML page with Open Graph meta tags
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta property="og:title" content="Event Gallary" />
+        <meta property="og:description" content="Gallery of events" />
+        <meta property="og:image" content="${objectivesWithBaseUrl[0]?.img || ''}" />
+        <meta property="og:url" content="${baseUrl}EventGallary" />
+        <meta property="og:type" content="website" />
+        <title>Event Gallary</title>
+      </head>
+      <body>
+        <h1>Event Gallary</h1>
+        <ul>
+          ${objectivesWithBaseUrl.map(objective => `
+            <li>
+              <h2>${objective.title}</h2>
+              <img src="${objective.img}" alt="${objective.title}" />
+              <p>${objective.description}</p>
+            </li>
+          `).join('')}
+        </ul>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Get EventGallary failed', error);
+    return apiResponse.ErrorResponse(res, 'Get EventGallary failed');
+  }
+};

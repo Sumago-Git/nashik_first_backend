@@ -5,7 +5,7 @@ const {
   updateEventGallary,
   toggleEventGallaryStatus,
   toggleEventGallaryDelete,
-  getEventGallary,
+  getEventGallary, renderEventGallary
 } = require("../controllers/EventGallaryController");
 const authenticateToken = require("../middleware/auth");
 
@@ -43,7 +43,7 @@ router.delete(
 
 // Route to get all active PhotoGalleries
 router.get("/get-EventGallary", getEventGallary);
-
+router.get("/getEventGallary/:id", renderEventGallary)
 // Route to get all active PhotoGalleries
 router.get("/find-EventGallary", authenticateToken, getEventGallary);
 
