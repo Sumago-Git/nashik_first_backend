@@ -152,47 +152,62 @@ exports.toggleNewsDelete = async (req, res) => {
 };
 
 
+// exports.renderNewsDetailPage = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     // Fetch the news item by ID
+//     const news = await News.findOne({
+//       where: { id, isDelete: false, isActive: true },
+//     });
+
+//     if (!news) {
+//       return res.status(404).send('News not found');
+//     }
+
+//     // Construct the base URL
+//     const baseUrl = `${req.protocol}://${req.get('host')}/`;
+//     const imageUrl = news.img ? baseUrl + news.img.replace(/\\/g, '/') : null;
+
+//     // Serve an HTML page with Open Graph meta tags
+//     res.send(`
+//       <!DOCTYPE html>
+//       <html lang="en">
+//       <head>
+//         <meta charset="UTF-8">
+//         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//         <meta property="og:title" content="${news.title}" />
+//         <meta property="og:description" content="${news.description}" />
+//         <meta property="og:image" content="${imageUrl}" />
+//         <meta property="og:url" content="${baseUrl}news/${id}" />
+//         <meta property="og:type" content="article" />
+//         <title>${news.title}</title>
+//       </head>
+//       <body>
+//         <h1>${news.title}</h1>
+//         <p>${news.description}</p>
+//         <img src="${imageUrl}" alt="${news.title}" />
+//       </body>
+//       </html>
+//     `);
+//   } catch (error) {
+//     console.error('Error fetching news for Open Graph', error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// };
+
+
+
+
 exports.renderNewsDetailPage = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id;  // Extract the ID from the URL
 
-    // Fetch the news item by ID
-    const news = await News.findOne({
-      where: { id, isDelete: false, isActive: true },
-    });
-
-    if (!news) {
-      return res.status(404).send('News not found');
-    }
-
-    // Construct the base URL
-    const baseUrl = `${req.protocol}://${req.get('host')}/`;
-    const imageUrl = news.img ? baseUrl + news.img.replace(/\\/g, '/') : null;
-
-    // Serve an HTML page with Open Graph meta tags
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta property="og:title" content="${news.title}" />
-        <meta property="og:description" content="${news.description}" />
-        <meta property="og:image" content="${imageUrl}" />
-        <meta property="og:url" content="${baseUrl}news/${id}" />
-        <meta property="og:type" content="article" />
-        <title>${news.title}</title>
-      </head>
-      <body>
-        <h1>${news.title}</h1>
-        <p>${news.description}</p>
-        <img src="${imageUrl}" alt="${news.title}" />
-      </body>
-      </html>
-    `);
-
+    // Redirect to the new URL
+    const newUrl = `https://positivemetering.in`;
+    res.redirect(newUrl);
   } catch (error) {
-    console.error('Error fetching news for Open Graph', error);
+    console.error('Error redirecting to the news detail page', error);
     res.status(500).send('Internal Server Error');
   }
 };
