@@ -54,13 +54,13 @@ exports.getEventGallary = async (req, res) => {
   try {
     // Determine if this is the find-EventGallary route
     const isFindRoute = req.path === '/find-EventGallary';
-    
+
     // Build the query conditions
     const queryConditions = { isDelete: false };
     if (isFindRoute) {
       queryConditions.isActive = true; // Only include active objectives if this is the find route
     }
-    
+
     // Fetch the EventGallary records with the query conditions
     const objectives = await EventGallary.findAll({ where: queryConditions });
 
@@ -128,13 +128,13 @@ exports.renderEventGallary = async (req, res) => {
   try {
     // Determine if this is the find-EventGallary route
     const isFindRoute = req.path === '/find-EventGallary';
-    
+
     // Build the query conditions
     const queryConditions = { isDelete: false };
     if (isFindRoute) {
       queryConditions.isActive = true; // Only include active objectives if this is the find route
     }
-    
+
     // Fetch the EventGallary records with the query conditions
     const objectives = await EventGallary.findAll({ where: queryConditions });
 
@@ -145,31 +145,33 @@ exports.renderEventGallary = async (req, res) => {
       img: objective.img ? baseUrl + objective.img.replace(/\\/g, '/') : null, // Ensure the image path is formatted correctly
     }));
 
-    // Serve an HTML page with Open Graph meta tags
+    // Render individual event details page
+    const eventId = req.params.id; // Extract event ID from URL
+    const event = objectivesWithBaseUrl.find(obj => obj.id === parseInt(eventId, 10));
+
+    if (!event) {
+      return res.status(404).send('Event not found');
+    }
+
+    // Construct the Open Graph meta tags and serve HTML for the individual event
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta property="og:title" content="Event Gallary" />
-        <meta property="og:description" content="Gallery of events" />
-        <meta property="og:image" content="${objectivesWithBaseUrl[0]?.img || ''}" />
-        <meta property="og:url" content="${baseUrl}EventGallary" />
-        <meta property="og:type" content="website" />
-        <title>Event Gallary</title>
+        <meta property="og:title" content="${event.title}" />
+        <meta property="og:description" content="${event.description}" />
+        <meta property="og:image" content="${event.img}" />
+        <meta property="og:url" content="${baseUrl}EventGallary/${event.id}" />
+        <meta property="og:type" content="article" />
+        <title>${event.title}</title>
       </head>
       <body>
-        <h1>Event Gallary</h1>
-        <ul>
-          ${objectivesWithBaseUrl.map(objective => `
-            <li>
-              <h2>${objective.title}</h2>
-              <img src="${objective.img}" alt="${objective.title}" />
-              <p>${objective.description}</p>
-            </li>
-          `).join('')}
-        </ul>
+        <h1>${event.title}</h1>
+        <p>${event.description}</p>
+        <img src="${event.img}" alt="${event.title}" />
+        <a href="${baseUrl}EventGallary">Back to Event Gallery</a>
       </body>
       </html>
     `);
