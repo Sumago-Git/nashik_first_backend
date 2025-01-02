@@ -190,8 +190,7 @@ exports.renderNewsDetailPage = async (req, res) => {
       </body>
       </html>
     `);
-    const newUrl = `https://positivemetering.in/blogdetails/for-sonatrach-refinery,-algeria`;
-    res.redirect(newUrl);
+
   } catch (error) {
     console.error('Error fetching news for Open Graph', error);
     res.status(500).send('Internal Server Error');
