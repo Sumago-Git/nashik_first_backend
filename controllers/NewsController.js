@@ -167,10 +167,7 @@ exports.renderNewsDetailPage = async (req, res) => {
 
     // Construct the base URL
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
-    const imageUrl = news.img
-      ? `${baseUrl}${news.img.replace(/\\/g, '/')}?w=651&h=661&fit=crop&quality=80&format=webp`
-      : null;
-
+    const imageUrl = news.img ? baseUrl + news.img.replace(/\\/g, '/') : null;
 
     // Serve an HTML page with Open Graph meta tags
     res.send(`
@@ -189,7 +186,7 @@ exports.renderNewsDetailPage = async (req, res) => {
       <body>
         <h1>${news.title}</h1>
         <p>${news.description}</p>
-        <img src="${imageUrl}" alt="${news.title}" style="width:300px"/>
+        <img src="${imageUrl}" alt="${news.title}" />
       </body>
       </html>
     `);
@@ -198,22 +195,6 @@ exports.renderNewsDetailPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
-
-
-
-// exports.renderNewsDetailPage = async (req, res) => {
-//   try {
-//     const id = req.params.id;  // Extract the ID from the URL
-
-//     // Redirect to the new URL
-//     const newUrl = `https://positivemetering.in`;
-//     res.redirect(newUrl);
-//   } catch (error) {
-//     console.error('Error redirecting to the news detail page', error);
-//     res.status(500).send('Internal Server Error');
-//   }
-// };
 
 exports.getNewsArticleForOpenGraph = async (req, res) => {
   try {
