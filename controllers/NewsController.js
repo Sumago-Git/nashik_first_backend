@@ -168,7 +168,7 @@ exports.renderNewsDetailPage = async (req, res) => {
     // Construct the base URL
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
     const imageUrl = news.img
-      ? `${baseUrl}${news.img.replace(/\\/g, '/')}?w=800&h=600&fit=crop&quality=80&format=webp`
+      ? `${baseUrl}${news.img.replace(/\\/g, '/')}?w=651&h=661&fit=crop&quality=80&format=webp`
       : null;
 
 
