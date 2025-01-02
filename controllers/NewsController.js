@@ -167,8 +167,10 @@ exports.renderNewsDetailPage = async (req, res) => {
 
     // Construct the base URL
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
-    const imageUrl = news.img ? baseUrl + news.img.replace(/\\/g, '/') : null;
-
+    const imageUrl = news.img
+    ? `${baseUrl}${news.img.replace(/\\/g, '/')}`
+        .concat(`?resize=1200x630`)
+    : null;
     // Serve an HTML page with Open Graph meta tags
     res.send(`
       <!DOCTYPE html>
