@@ -171,7 +171,6 @@ exports.toggleEventGallaryDelete = async (req, res) => {
 //     }
 //   };
 
-
 exports.renderEventGallary = async (req, res) => {
   try {
     const { id } = req.params;
@@ -188,13 +187,13 @@ exports.renderEventGallary = async (req, res) => {
     // Construct the base URL
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
     const imageUrl = event.img
-      ? `${baseUrl}${event.img.replace(/\\/g, '/')}` // Ensure correct image path
-      : null;
+      ? `${baseUrl}${event.img.replace(/\\/g, '/')}?v=${Date.now()}` // Ensure correct image path with cache-busting
+      : `${baseUrl}default-image.jpg`; // Fallback to a default image if none exists
 
     // Construct WhatsApp sharing URL
     const shareUrl = `${baseUrl}EventGallary/${id}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-      `Check out this event: ${event.title}\n${event.description}\n${imageUrl}`
+      `Check out this event: ${event.title}\n${event.description}\n${shareUrl}`
     )}`;
 
     // Serve an HTML page with Open Graph meta tags
@@ -214,10 +213,11 @@ exports.renderEventGallary = async (req, res) => {
       <body>
         <h1>${event.title}</h1>
         <p>${event.description}</p>
-        <img src="${imageUrl}" alt="${event.title}" />
+        <img src="${imageUrl}" alt="${event.title}" style="max-width: 100%; height: auto;" />
         <br />
         <!-- WhatsApp View Button -->
-        <a href="${whatsappUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+        <a href="${whatsappUrl}" target="_blank" style="display: inline-flex; align-items: center; padding: 10px 20px; background-color: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 20px; height: 20px; margin-right: 10px;" />
           View on WhatsApp
         </a>
       </body>
@@ -228,3 +228,4 @@ exports.renderEventGallary = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
