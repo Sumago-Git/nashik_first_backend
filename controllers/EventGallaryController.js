@@ -194,6 +194,11 @@ exports.renderEventGallary = async (req, res) => {
     const shareUrl = `$https://api.nashikfirst.com/EventGallary/getEventGallary/${id}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
       `Check out this event: ${event.title}\n${event.description}\n${shareUrl}`
+        `<div>
+          <div style="text-align: center; margin-bottom: 20px;">
+          <img src=${imageUrl} alt="Check out this event" style="display: block; margin: 0 auto; width: 100px; height: auto;" />
+          <p style="font-size: 20px; font-weight: bold;">Check out this event:</p>
+        </div></div>`
     )}`;
 
     // Serve an HTML page with Open Graph meta tags
