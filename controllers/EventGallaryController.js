@@ -188,17 +188,14 @@ exports.renderEventGallary = async (req, res) => {
     const baseUrl = `${req.protocol}://${req.get('host')}/`;
     const imageUrl = event.img
       ? `${baseUrl}${event.img.replace(/\\/g, '/')}` // Ensure correct image path
-      : null;
+      : `${baseUrl}default-image.jpg`; // Default fallback image
+
+    // Add cache-busting to the URL to force metadata refresh
+    const shareUrl = `${baseUrl}EventGallary/${id}?v=${Date.now()}`;
 
     // Construct WhatsApp sharing URL
-    const shareUrl = `$https://api.nashikfirst.com/EventGallary/getEventGallary/${id}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
       `Check out this event: ${event.title}\n${event.description}\n${shareUrl}`
-        `<div>
-          <div style="text-align: center; margin-bottom: 20px;">
-          <img src=${imageUrl} alt="Check out this event" style="display: block; margin: 0 auto; width: 100px; height: auto;" />
-          <p style="font-size: 20px; font-weight: bold;">Check out this event:</p>
-        </div></div>`
     )}`;
 
     // Serve an HTML page with Open Graph meta tags
@@ -216,20 +213,19 @@ exports.renderEventGallary = async (req, res) => {
         <title>${event.title}</title>
       </head>
       <body>
-        <!-- Section with Image and Text -->
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://via.placeholder.com/150" alt="Check out this event" style="display: block; margin: 0 auto; width: 100px; height: auto;" />
-          <p style="font-size: 20px; font-weight: bold;">Check out this event:</p>
-        </div>
-
+        <!-- Display Event Details -->
         <h1>${event.title}</h1>
         <p>${event.description}</p>
+        
+        <!-- Display Event Image -->
         ${imageUrl ? `<img src="${imageUrl}" alt="${event.title}" style="max-width: 100%; height: auto;" />` : ''}
+        
         <br />
-        <!-- WhatsApp View Button with Image -->
+        
+        <!-- WhatsApp Sharing Button -->
         <a href="${whatsappUrl}" target="_blank" style="display: inline-flex; align-items: center; padding: 10px 20px; background-color: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
           <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 20px; height: 20px; margin-right: 10px;" />
-          View on WhatsApp
+          Share on WhatsApp
         </a>
       </body>
       </html>
@@ -239,3 +235,4 @@ exports.renderEventGallary = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
