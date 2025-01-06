@@ -124,50 +124,107 @@ exports.toggleEventGallaryDelete = async (req, res) => {
   }
 };
 
-exports.renderEventGallary = async (req, res) => {
+// exports.renderEventGallary = async (req, res) => {
 
-    try {
-      const { id } = req.params;
+//     try {
+//       const { id } = req.params;
   
-      // Fetch the EventGallary item by ID
-      const event = await EventGallary.findOne({
-        where: { id },
-      });
+//       // Fetch the EventGallary item by ID
+//       const event = await EventGallary.findOne({
+//         where: { id },
+//       });
   
-      if (!event) {
-        return res.status(404).send('Event not found');
-      }
+//       if (!event) {
+//         return res.status(404).send('Event not found');
+//       }
   
-      // Construct the base URL
-      const baseUrl = `${req.protocol}://${req.get('host')}/`;
-      const imageUrl = event.img
-        ? `${baseUrl}${event.img.replace(/\\/g, '/')}` // Ensure correct image path
-        : null;
+//       // Construct the base URL
+//       const baseUrl = `${req.protocol}://${req.get('host')}/`;
+//       const imageUrl = event.img
+//         ? `${baseUrl}${event.img.replace(/\\/g, '/')}` // Ensure correct image path
+//         : null;
   
-      // Serve an HTML page with Open Graph meta tags
-      res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta property="og:title" content="${event.title}" />
-          <meta property="og:description" content="${event.description}" />
-          <meta property="og:image" content="${imageUrl}" />
-          <meta property="og:url" content="${baseUrl}EventGallary/${id}" />
-          <meta property="og:type" content="article" />
-          <title>${event.title}</title>
-        </head>
-        <body>
-          <h1>${event.title}</h1>
-          <p>${event.description}</p>
-          <img src="${imageUrl}" alt="${event.title}" />
-        </body>
-        </html>
-      `);
-    } catch (error) {
-      console.error('Error fetching event for Open Graph', error);
-      res.status(500).send('Internal Server Error');
+//       // Serve an HTML page with Open Graph meta tags
+//       res.send(`
+//         <!DOCTYPE html>
+//         <html lang="en">
+//         <head>
+//           <meta charset="UTF-8">
+//           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//           <meta property="og:title" content="${event.title}" />
+//           <meta property="og:description" content="${event.description}" />
+//           <meta property="og:image" content="${imageUrl}" />
+//           <meta property="og:url" content="${baseUrl}EventGallary/${id}" />
+//           <meta property="og:type" content="article" />
+//           <title>${event.title}</title>
+//         </head>
+//         <body>
+//           <h1>${event.title}</h1>
+//           <p>${event.description}</p>
+//           <img src="${imageUrl}" alt="${event.title}" />
+//         </body>
+//         </html>
+//       `);
+//     } catch (error) {
+//       console.error('Error fetching event for Open Graph', error);
+//       res.status(500).send('Internal Server Error');
+//     }
+//   };
+  
+
+exports.renderEventGallary = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch the EventGallary item by ID
+    const event = await EventGallary.findOne({
+      where: { id },
+    });
+
+    if (!event) {
+      return res.status(404).send('Event not found');
     }
-  };
-  
+
+    // Construct the base URL
+    const baseUrl = `${req.protocol}://${req.get('host')}/`;
+    const imageUrl = event.img
+      ? `${baseUrl}${event.img.replace(/\\/g, '/')}` // Ensure correct image path
+      : null;
+
+    // Construct WhatsApp sharing URL
+    const shareUrl = `${baseUrl}EventGallary/${id}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+      `Check out this event: ${event.title}\n${event.description}\n${shareUrl}`
+    )}`;
+
+    // Serve an HTML page with Open Graph meta tags
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta property="og:title" content="${event.title}" />
+        <meta property="og:description" content="${event.description}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:url" content="${shareUrl}" />
+        <meta property="og:type" content="article" />
+        <title>${event.title}</title>
+      </head>
+      <body>
+        <h1>${event.title}</h1>
+        <p>${event.description}</p>
+        <img src="${imageUrl}" alt="${event.title}" />
+        <br />
+        <!-- WhatsApp View Button -->
+        <a href="${whatsappUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #25D366; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+          View on WhatsApp
+        </a>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Error fetching event for Open Graph', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
