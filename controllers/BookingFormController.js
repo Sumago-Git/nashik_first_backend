@@ -67,9 +67,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
     console.log("newtime__________", sessionTime)
 
-    await sessionSlot.update({
-      available_seats: sessionSlot.available_seats - 1,
-    });
 
     // Case 1: Handle file upload (XLSX)
     if (req.file) {
@@ -247,6 +244,11 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       sessionSlotId: sessionSlot.id,
       isActive: true,
       isDelete: false,
+    });
+
+
+    await sessionSlot.update({
+      available_seats: sessionSlot.available_seats - 1,
     });
     console.log("category333", category);
     let filteredCategorys = category.replace(/-/g, "");
@@ -668,7 +670,7 @@ exports.isDeleteStatus = async (req, res) => {
 
 exports.deleteBookingForm = async (req, res) => {
   try {
-   
+
     // Parse today's date
     const today = moment().startOf("day"); // Start of the current day
 
