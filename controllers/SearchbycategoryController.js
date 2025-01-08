@@ -2,6 +2,8 @@ const BookingForm = require("../models/BookingForm");
 const Sessionslot = require("../models/sesssionslot"); // Import the BookingForm and Sessionslot models
 const moment = require("moment");// To work with dates easily
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
+
 // Search function to filter BookingForm by category
 // exports.searchBookingFormByCategory = async (req, res) => {
 //     try {
@@ -140,6 +142,8 @@ const Sequelize = require('../config/database'); // Make sure to import sequeliz
 //     }
 // };
 
+
+
 exports.searchBookingFormByCategory = async (req, res) => {
     try {
         const { year, categories, page = 1, limit = 100 } = req.query;
@@ -149,14 +153,9 @@ exports.searchBookingFormByCategory = async (req, res) => {
             return res.status(400).json({ error: 'Categories are required' });
         }
 
-        // Set pagination defaults
         const offset = (page - 1) * limit;
         const currentYear = new Date().getFullYear();
-   
-
-
-        const years = Array.from({ length: currentYear - 2017 + 1 }, (_, i) => 2017 + i);
-
+        const selectedYears = year ? [parseInt(year, 10)] : Array.from({ length: currentYear - 2017 + 1 }, (_, i) => 2017 + i);
 
         const months = [
             'January', 'February', 'March', 'April', 'May', 'June',
@@ -165,7 +164,7 @@ exports.searchBookingFormByCategory = async (req, res) => {
 
         let result = { years: [] };
 
-        for (const year of years) {
+        for (const year of selectedYears) {
             let yearData = { year, months: [] };
 
             for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
@@ -173,38 +172,49 @@ exports.searchBookingFormByCategory = async (req, res) => {
                 const startOfMonth = moment(`${year}-${monthIndex + 1}`, 'YYYY-MM').startOf('month');
                 const endOfMonth = startOfMonth.clone().endOf('month');
 
-                const weeks = [];
+                // Aggregate data at the database level for the entire month
+                const [totalSlotCounts, totalBookingCounts] = await Promise.all([
+                    Sessionslot.findAll({
+                        attributes: [
+                            [sequelize.fn('WEEK', sequelize.col('tempdate')), 'week'],
+                            [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+                        ],
+                        where: {
+                            category: { [Op.in]: categories.split(',') },
+                            tempdate: { [Op.between]: [startOfMonth.toDate(), endOfMonth.toDate()] },
+                            isDelete: false,
+                        },
+                        group: 'week',
+                    }),
+                    BookingForm.findAll({
+                        attributes: [
+                            [sequelize.fn('WEEK', sequelize.col('tempdate')), 'week'],
+                            [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+                        ],
+                        where: {
+                            category: { [Op.in]: categories.split(',') },
+                            tempdate: { [Op.between]: [startOfMonth.toDate(), endOfMonth.toDate()] },
+                            isDelete: false,
+                        },
+                        group: 'week',
+                    }),
+                ]);
 
-                for (let week = 0; week < 4; week++) {
-                    const startOfWeek = startOfMonth.clone().add(week * 7, 'days').startOf('week');
+                // Process weeks data in memory
+                const weeks = [];
+                for (let weekIndex = 0; weekIndex < 4; weekIndex++) {
+                    const startOfWeek = startOfMonth.clone().add(weekIndex * 7, 'days').startOf('week');
                     const endOfWeek = startOfWeek.clone().endOf('week');
 
                     if (startOfWeek.isAfter(endOfMonth)) break;
 
-                    const { count: totalSlotCount } = await Sessionslot.findAndCountAll({
-                        where: {
-                            category: { [Op.in]: categories.split(',') },
-                            tempdate: { [Op.between]: [startOfWeek.toDate(), endOfWeek.toDate()] },
-                            isDelete: false,
-                        },
-                        limit,
-                        offset,
-                    });
-
-                    const { count: totalBookingFormCount } = await BookingForm.findAndCountAll({
-                        where: {
-                            category: { [Op.in]: categories.split(',') },
-                            tempdate: { [Op.between]: [startOfWeek.toDate(), endOfWeek.toDate()] },
-                            isDelete: false,
-                        },
-                        limit,
-                        offset,
-                    });
+                    const slotCount = totalSlotCounts.find(w => parseInt(w.dataValues.week, 10) === weekIndex + 1)?.dataValues.count || 0;
+                    const bookingCount = totalBookingCounts.find(w => parseInt(w.dataValues.week, 10) === weekIndex + 1)?.dataValues.count || 0;
 
                     weeks.push({
-                        week: `Week ${week + 1}`,
-                        totalSlotCount,
-                        totalBookingFormCount,
+                        week: `Week ${weekIndex + 1}`,
+                        totalSlotCount: slotCount,
+                        totalBookingFormCount: bookingCount,
                     });
                 }
 
@@ -220,6 +230,7 @@ exports.searchBookingFormByCategory = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 
 exports.searchBookingFormByTrainer = async (req, res) => {
