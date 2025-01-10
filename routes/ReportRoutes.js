@@ -6,17 +6,58 @@ const router = express.Router();
 const { validationResult } = require("express-validator");
 
 const {
-    trainingTypeWiseCount1
+  trainingTypeWiseCount,
+    trainingTypeWiseCountByCategory,
+    trainingTypeWiseCountByYear,
+    trainingTypeWiseCountByMonth,
+    trainingTypeWiseCountByYearAll
   } = require('../controllers/ReportsController');
 // Add Sessionslot
-router.post('/training-type-wise-count', (req, res, next) => {
+router.post('/trainingTypeWiseCount',authenticateToken, (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
   }
   next();
 
-}, trainingTypeWiseCount1);
+}, trainingTypeWiseCount);
+
+router.post('/trainingTypeWiseCountByCategory',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, trainingTypeWiseCountByCategory);
+
+router.post('/trainingTypeWiseCountByYear',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, trainingTypeWiseCountByYear);
+
+router.post('/trainingTypeWiseCountByMonth',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, trainingTypeWiseCountByMonth);
+
+router.post('/trainingTypeWiseCountByYearAll',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, trainingTypeWiseCountByYearAll);
+
 
 
 
