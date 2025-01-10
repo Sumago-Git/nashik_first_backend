@@ -10,7 +10,9 @@ const {
     trainingTypeWiseCountByCategory,
     trainingTypeWiseCountByYear,
     trainingTypeWiseCountByMonth,
-    trainingTypeWiseCountByYearAll
+    trainingTypeWiseCountByYearAll,
+    trainingTypeWiseCountByYearAllSchool,
+    trainingTypeWiseCountByYearAllAdult
   } = require('../controllers/ReportsController');
 // Add Sessionslot
 router.post('/trainingTypeWiseCount',authenticateToken, (req, res, next) => {
@@ -57,6 +59,25 @@ router.post('/trainingTypeWiseCountByYearAll',authenticateToken, (req, res, next
   next();
 
 }, trainingTypeWiseCountByYearAll);
+
+router.post('/trainingTypeWiseCountByYearAllAdult',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, trainingTypeWiseCountByYearAllAdult);
+
+
+router.post('/trainingTypeWiseCountByYearAllSchool',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, trainingTypeWiseCountByYearAllSchool);
 
 
 
