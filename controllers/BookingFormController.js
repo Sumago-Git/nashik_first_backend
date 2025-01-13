@@ -439,6 +439,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
         sessionSlotId,
         category,
         slotdate,
+        isDelete: false
       },
       include: [
         {
