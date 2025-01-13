@@ -1169,7 +1169,6 @@ const trainingTypeWiseCountRTO = async (req, res) => {
     const filters = [];
     const params = [];
 
-    // Handle other filters (year, month, week)
     if (year) {
       filters.push("YEAR(createdAt) = ?");
       params.push(year);
@@ -1185,107 +1184,119 @@ const trainingTypeWiseCountRTO = async (req, res) => {
       params.push(week);
     }
 
-    // Add filter for specific categories
     filters.push(`category IN ('RTO – Learner Driving License Holder Training', 'RTO – Suspended Driving License Holders Training', 'RTO – Training for School Bus Driver')`);
 
-    // Combine all filters
     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
 
-    // Queries with dynamic filters
     const yearlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         category AS TrainingCategory,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY category;
+      GROUP BY Year, category;
     `;
 
     const monthlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         MONTH(createdAt) AS MonthNumber,
+        category AS TrainingCategory,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        category AS TrainingCategory
+        COUNT(DISTINCT id) AS TotalPeopleAttended
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY MonthNumber, category;
+      GROUP BY Year, MonthNumber, category;
     `;
 
     const weeklyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         WEEK(createdAt, 1) AS WeekNumber,
         MONTH(createdAt) AS MonthNumber,
+        category AS TrainingCategory,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        category AS TrainingCategory
+        COUNT(DISTINCT id) AS TotalPeopleAttended
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY WeekNumber, MonthNumber, category;
+      GROUP BY Year, WeekNumber, MonthNumber, category;
     `;
 
-    const response = [];
+    const [yearlyStats] = await dbObj.query(yearlyStatsQuery, params);
+    const [monthlyStats] = await dbObj.query(monthlyStatsQuery, params);
+    const [weeklyStats] = await dbObj.query(weeklyStatsQuery, params);
 
-    // Determine which years to process
-    const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
-
-    for (const processingYear of yearsToProcess) {
-      const yearParams = year ? params : [processingYear, ...params];
-
-      // Fetch data for the current year
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, yearParams);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, yearParams);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, yearParams);
-
-      // If there's data for the year, process and add to response
-      if (yearlyStats.length > 0) {
-        const monthsWithWeeks = monthlyStats.map(month => {
-          const weeks = weeklyStats
-            .filter(week => week.MonthNumber === month.MonthNumber && week.TrainingCategory === month.TrainingCategory)
-            .map(week => ({
-              WeekNumber: week.WeekNumber,
-              NoOfSessions: week.NoOfSessions,
-              TotalPeopleAttended: week.TotalPeopleAttended,
-            }))
-            .sort((a, b) => b.WeekNumber - a.WeekNumber); // Sort weeks in descending order
-
-          return {
-            ...month,
-            MonthName: monthNames[month.MonthNumber - 1],
-            weeks
-          };
-        }).sort((a, b) => b.MonthNumber - a.MonthNumber); // Sort months in descending order
-
-        response.push({
-          year: processingYear,
-          stats: yearlyStats,
-          months: monthsWithWeeks
-        });
-      }
-    }
-
-    if (response.length === 0) {
+    if (!yearlyStats.length) {
       return res.status(404).json({
         status: false,
         message: 'No training summary data found for the provided filters.',
       });
     }
 
+    const response = [];
+    const overallStats = { totalSessions: 0, totalAttendees: 0 };
+
+    const groupedByYear = yearlyStats.reduce((acc, stat) => {
+      const { Year, TrainingCategory, NoOfSessions, TotalPeopleAttended } = stat;
+
+      if (!acc[Year]) {
+        acc[Year] = { year: Year, stats: [], months: [] };
+      }
+
+      acc[Year].stats.push({ TrainingCategory, NoOfSessions, TotalPeopleAttended });
+
+      // Aggregate overall stats
+      overallStats.totalSessions += NoOfSessions;
+      overallStats.totalAttendees += TotalPeopleAttended;
+
+      return acc;
+    }, {});
+
+    for (const year in groupedByYear) {
+      const monthsWithWeeks = monthlyStats
+        .filter(month => month.Year == year)
+        .map(month => {
+          const weeks = weeklyStats
+            .filter(week => week.Year == year && week.MonthNumber === month.MonthNumber && week.TrainingCategory === month.TrainingCategory)
+            .map(week => ({
+              WeekNumber: week.WeekNumber,
+              NoOfSessions: week.NoOfSessions,
+              TotalPeopleAttended: week.TotalPeopleAttended,
+            }))
+            .sort((a, b) => b.WeekNumber - a.WeekNumber);
+
+          return {
+            ...month,
+            MonthName: monthNames[month.MonthNumber - 1],
+            weeks,
+          };
+        })
+        .sort((a, b) => b.MonthNumber - a.MonthNumber);
+
+      groupedByYear[year].months = monthsWithWeeks;
+      response.push(groupedByYear[year]);
+    }
+
+    response.sort((a, b) => b.year - a.year); // Sort years in descending order
+
     res.status(200).json({
       status: true,
       message: 'Training summary data fetched successfully.',
-      data: response
+      overallStats,
+      data: response,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       status: false,
       message: 'Failed to fetch training summary data.',
-      error: error.message
+      error: error.message,
     });
   }
 };
+
 
 // const trainingYearWiseCount = async (req, res) => {
 //   try {
