@@ -669,50 +669,29 @@ exports.isDeleteStatus = async (req, res) => {
   }
 };
 
-exports.deleteBookingForm = async (req, res) => {
+exports.deleteBookingForm = async () => {
   try {
+    // Get today's date at the start of the day
+    const today = moment().startOf("day").format("YYYY-MM-DD");
 
-    // Parse today's date
-    const today = moment().startOf("day"); // Start of the current day
-
-    // Find booking forms matching the criteria
-    const bookingFormsToDelete = await BookingForm.findAll({
-      where: {
-        training_status: "Confirmed", // Training status is "Confirmed"
-        tempdate: {
-          [Op.lt]: today.format('YYYY-MM-DD'), // Slot date is earlier than today
+    // Update the `isDelete` field to true for matching records
+    const updatedCount = await BookingForm.update(
+      { isDelete: true }, // Update field
+      {
+        where: {
+          training_status: "Confirmed", // Status is "Confirmed"
+          tempdate: { [Op.lt]: today }, // Date is before today
+          isActive: true, // Form is active
+          isDelete: false, // Not already marked as deleted
         },
-        isActive: true, // Ensure the booking form is active
-        isDelete: false, // Ensure the booking form is not marked as deleted
-      },
-    });
+      }
+    );
 
-    if (bookingFormsToDelete.length === 0) {
-      console.log("No booking forms found matching the criteria");
-
-      // return apiResponse.notFoundResponse(
-      //   res,
-      //   "No booking forms found matching the criteria"
-      // );
-    }
-
-    // Delete all matching booking forms
-    const deletedCount = await BookingForm.destroy({
-      where: {
-        id: bookingFormsToDelete.map((form) => form.id), // Delete by IDs
-      },
-    });
-
-    // return apiResponse.successResponse(
-    //   res,
-    //   ` booking forms deleted successfully`
-    // );
+    console.log(`${updatedCount[0]} booking forms marked as deleted.`);
   } catch (error) {
-    console.error("Delete booking form failed", error);
-    // return apiResponse.ErrorResponse(res, "Delete booking form failed");
+    console.error("Error in deleteBookingFormCron:", error);
   }
 };
-
 const SlotRegisterInfo = require("../models/SlotRegisterInfo");
 const { default: axios } = require("axios");
 
