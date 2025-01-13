@@ -1,6 +1,8 @@
 const dbObj = require('../config/dbConfig');  // Import the MySQL pool
 const ExcelJS = require('exceljs');
-
+const fs = require('fs');
+const xlsx = require('xlsx');
+const path = require('path')
 /**
  * Controller for fetching training summary
  */
@@ -38,20 +40,32 @@ const trainingTypeWiseCount = async (req, res) => {
       });
     }
 
+    // Calculate overall stats
+    const overallStats = result.reduce(
+      (totals, row) => {
+        totals.totalSessions += row.NoOfSessions;
+        totals.totalAttendees += row.TotalPeopleAttended;
+        return totals;
+      },
+      { totalSessions: 0, totalAttendees: 0 }
+    );
+
     res.status(200).json({
       status: true,
       message: `Training summary fetched successfully${category ? ` for category '${category}'` : ''}.`,
-      data: result
+      overallStats, // Overall stats
+      data: result,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       status: false,
       message: 'Failed to fetch training summary data.',
-      error: error.message
+      error: error.message,
     });
   }
 };
+
 
 
 const trainingTypeWiseCountByCategory = async (req, res) => {
@@ -642,7 +656,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
       "July", "August", "September", "October", "November", "December"
     ];
 
-    const { trainingType, year, month, week } = req.body; // Optional filters
+    const { trainingType, year, month, week,download } = req.body; // Optional filters
 
     // Base conditions for filters
     const filters = [];
@@ -771,6 +785,60 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
       return res.status(404).json({
         status: false,
         message: 'No training summary data found for the provided filters.',
+      });
+    }
+
+    if (download) {
+      const workbook = xlsx.utils.book_new();
+      const uniqueSheetNames = new Set(); // Track worksheet names
+
+      response.forEach(trainingSummary => {
+        const statsSheetData = trainingSummary.stats.map(stat => ({
+          Year: stat.Year,
+          TrainingType: stat.TrainingType,
+          NoOfSessions: stat.NoOfSessions,
+          TotalPeopleAttended: stat.TotalPeopleAttended
+        }));
+        const statsSheetName = `${trainingSummary.year} - Stats`;
+        xlsx.utils.book_append_sheet(workbook, xlsx.utils.json_to_sheet(statsSheetData), statsSheetName);
+      
+        trainingSummary.months.forEach(month => {
+          const baseName = `${month.MonthName} (${month.TrainingType})`;
+          let sheetName = baseName;
+          let counter = 1;
+      
+          // Ensure the sheet name is unique
+          while (uniqueSheetNames.has(sheetName)) {
+            sheetName = `${baseName} (${counter++})`;
+          }
+          uniqueSheetNames.add(sheetName);
+      
+          const monthSheetData = month.weeks.map(week => ({
+            Year: month.Year,
+            Month: month.MonthName,
+            WeekNumber: week.WeekNumber,
+            TrainingType: month.TrainingType,
+            NoOfSessions: week.NoOfSessions,
+            TotalPeopleAttended: week.TotalPeopleAttended
+          }));
+      
+          const monthSheet = xlsx.utils.json_to_sheet(monthSheetData);
+          xlsx.utils.book_append_sheet(workbook, monthSheet, sheetName);
+        });
+      });
+
+      const filePath = path.join(__dirname, 'TrainingSummary.xlsx');
+      xlsx.writeFile(workbook, filePath);
+
+      return res.download(filePath, 'TrainingSummary.xlsx', err => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({
+            status: false,
+            message: 'Failed to generate the Excel file.',
+          });
+        }
+        fs.unlinkSync(filePath); // Clean up the temporary file
       });
     }
 
@@ -1083,80 +1151,7 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
 };
 
 
-const trainingTypeWiseCountByYearAllO = async (req, res) => {
-  try {
-    const { year } = req.body; // Required: year
 
-    if (!year) {
-      return res.status(400).json({
-        status: false,
-        message: 'Year parameter is required.',
-      });
-    }
-
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
-    // Query for yearly stats
-    const yearlyStatsQuery = `
-      SELECT 
-        CASE 
-          WHEN category = 'School Students Training – Group' THEN 'School'
-          ELSE 'Adult'
-        END AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended
-      FROM bookingforms
-      WHERE training_status = 'Attended' AND YEAR(createdAt) = ?
-      GROUP BY TrainingType;
-    `;
-
-    const monthlyStatsQuery = `
-      SELECT 
-        MONTH(createdAt) AS MonthNumber,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        CASE 
-          WHEN category = 'School Students Training – Group' THEN 'School'
-          ELSE 'Adult'
-        END AS TrainingType
-      FROM bookingforms
-      WHERE training_status = 'Attended' AND YEAR(createdAt) = ?
-      GROUP BY MonthNumber, TrainingType;
-    `;
-
-    const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [year]);
-    const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [year]);
-
-    // Format the JSON response
-    const response = [
-      {
-        [year]: {
-          stats: yearlyStats,
-          months: monthlyStats.map(item => ({
-            ...item,
-            MonthName: monthNames[item.MonthNumber - 1],
-          }))
-        }
-      }
-    ];
-
-    res.status(200).json({
-      status: true,
-      message: `Training summary for the year '${year}' fetched successfully.`,
-      data: response
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      status: false,
-      message: 'Failed to fetch training summary data for the year.',
-      error: error.message
-    });
-  }
-};
 
 const trainingTypeWiseCountRTO = async (req, res) => {
   try {
@@ -1454,6 +1449,9 @@ const trainingYearWiseCount = async (req, res) => {
       });
     }
 
+    // Initialize overall stats
+    const overallStats = { totalSessions: 0, totalAttendees: 0 };
+
     // Transform data into the desired format
     const response = [];
     const monthNames = [
@@ -1466,7 +1464,11 @@ const trainingYearWiseCount = async (req, res) => {
       const monthName = monthNames[row.MonthNumber - 1];
 
       if (!acc[year]) {
-        acc[year] = { year, stats: [], months: [] };
+        acc[year] = { 
+          year, 
+          stats: { totalSessions: 0, totalAttendees: 0 }, 
+          months: [] 
+        };
       }
 
       const monthIndex = acc[year].months.findIndex(m => m.MonthNumber === row.MonthNumber);
@@ -1489,17 +1491,30 @@ const trainingYearWiseCount = async (req, res) => {
         WeekNumber: row.WeekNumber,
       });
 
+      // Update year-level stats
+      acc[year].stats.totalSessions += row.NoOfSessions;
+      acc[year].stats.totalAttendees += row.TotalPeopleAttended;
+
+      // Update overall stats
+      overallStats.totalSessions += row.NoOfSessions;
+      overallStats.totalAttendees += row.TotalPeopleAttended;
+
       return acc;
     }, {});
 
     for (const year in groupedByYear) {
-      response.push(groupedByYear[year]);
+      response.push({
+        year,
+        stats: groupedByYear[year].stats,
+        months: groupedByYear[year].months,
+      });
     }
 
     // Send the response
     res.status(200).json({
       status: true,
       message: "Training summary data fetched successfully.",
+      overallStats, // Overall consolidated stats
       data: response,
     });
   } catch (error) {
@@ -1515,4 +1530,279 @@ const trainingYearWiseCount = async (req, res) => {
 
 
 
-module.exports = { trainingTypeWiseCount, trainingTypeWiseCountByCategory,trainingTypeWiseCountByYear,trainingTypeWiseCountByMonth,trainingTypeWiseCountByYearAll,trainingTypeWiseCountByYearAllAdult,trainingTypeWiseCountByYearAllSchool,trainingTypeWiseCountRTO,trainingYearWiseCount};
+// const totalSessionsConducted = async (req, res) => {
+//   try {
+//     const {
+//       page = 1, // Default to page 1 if not provided
+//       pageSize = 50, // Default page size is 50
+//       date,
+//       schoolName,
+//       trainer,
+//       trainingType, // School / Adult
+//       day,
+//       week,
+//       month,
+//       financialYear,
+//       rtoSubCategory,
+//     } = req.body;
+
+//     const pageNum = parseInt(page, 10) || 1;
+//     const limit = parseInt(pageSize, 10) || 50;
+//     const offset = (pageNum - 1) * limit;
+
+//     // Filters array to handle dynamic filtering
+//     const filters = [];
+//     const params = [];
+
+//     // Filter for date (optional)
+//     if (date) {
+//       filters.push("DATE(bf.createdAt) = ?");
+//       params.push(date);
+//     }
+
+//     // Filter for school/institute name (optional)
+//     if (schoolName) {
+//       filters.push("bf.institution_name LIKE ?");
+//       params.push(`%${schoolName}%`);
+//     }
+
+//     // Filter for trainer (optional)
+//     if (trainer) {
+//       filters.push("ss.trainer LIKE ?");
+//       params.push(`%${trainer}%`);
+//     }
+
+//     // Filter for School/Adult type (optional)
+//     if (trainingType) {
+//       filters.push(`
+//         CASE 
+//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END = ?
+//       `);
+//       params.push(trainingType);
+//     }
+
+//     // Filter for day (optional)
+//     if (day) {
+//       filters.push("DAYOFWEEK(bf.createdAt) = ?");
+//       params.push(day);
+//     }
+
+//     // Filter for week (optional)
+//     if (week) {
+//       filters.push("WEEK(bf.createdAt, 1) = ?");
+//       params.push(week);
+//     }
+
+//     // Filter for month (optional)
+//     if (month) {
+//       filters.push("MONTH(bf.createdAt) = ?");
+//       params.push(month);
+//     }
+
+//     // Filter for financial year (optional)
+//     if (financialYear) {
+//       const startDate = `${financialYear}-04-01`;
+//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+//       filters.push("bf.createdAt BETWEEN ? AND ?");
+//       params.push(startDate, endDate);
+//     }
+
+//     // Filter for RTO Subcategory (optional)
+//     if (rtoSubCategory) {
+//       filters.push("bf.rtoSubCategory LIKE ?");
+//       params.push(`%${rtoSubCategory}%`);
+//     }
+
+//     // Combine filters into the query
+//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+//     // Query to get total records (without pagination)
+//     const totalItemsQuery = `
+//       SELECT COUNT(*) AS rowCount
+//       FROM bookingforms bf
+//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+//       ${filterCondition};
+//     `;
+//     const [totalResult] = await dbObj.query(totalItemsQuery, params);
+//     const totalItems = totalResult[0]?.rowCount || 0;
+
+//     // Calculate total pages
+//     const totalPages = Math.ceil(totalItems / limit);
+
+//     // Query to fetch paginated records (with pagination)
+//     const paginatedQuery = `
+//       SELECT
+//         bf.*,
+//         sri.*,
+//         ss.*
+//       FROM bookingforms bf
+//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+//       ${filterCondition}
+//       LIMIT ? OFFSET ?;
+//     `;
+//     const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
+
+//     // Prepare response
+//     res.status(200).json({
+//       status: true,
+//       message: 'Records fetched successfully.',
+//       data: records,
+//       pagination: {
+//         currentPage: pageNum,
+//         pageSize: limit,
+//         totalItems,
+//         totalPages,
+//       },
+//     });
+//   } catch (error) {
+//     console.error('Error fetching paginated records:', error);
+//     res.status(500).json({
+//       status: false,
+//       message: 'Failed to fetch records.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+const totalSessionsConducted = async (req, res) => {
+  try {
+    const {
+      page = 1, // Default to page 1 if not provided
+      pageSize = 50, // Default page size is 50
+      date,
+      schoolName,
+      trainer,
+      trainingType, // School / Adult
+      day,
+      week,
+      month,
+      financialYear,
+      rtoSubCategory,
+    } = req.body;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limit = parseInt(pageSize, 10) || 50;
+    const offset = (pageNum - 1) * limit;
+
+    // Filters array to handle dynamic filtering
+    const filters = [];
+    const params = [];
+
+    // Filter for date (optional)
+    if (date) {
+      filters.push("DATE(bf.createdAt) = ?");
+      params.push(date);
+    }
+
+    // Filter for school/institute name (optional)
+    if (schoolName) {
+      filters.push("bf.institution_name LIKE ?");
+      params.push(`%${schoolName}%`);
+    }
+
+    // Filter for trainer (optional)
+    if (trainer) {
+      filters.push("ss.trainer LIKE ?");
+      params.push(`%${trainer}%`);
+    }
+
+    // Filter for School/Adult type (optional)
+    if (trainingType) {
+      filters.push(`
+        CASE 
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
+          ELSE 'Adult'
+        END = ?`);
+      params.push(trainingType);
+    }
+
+    // Filter for day (optional)
+    if (day) {
+      filters.push("DAYOFWEEK(bf.createdAt) = ?");
+      params.push(day);
+    }
+
+    // Filter for week (optional)
+    if (week) {
+      filters.push("WEEK(bf.createdAt, 1) = ?");
+      params.push(week);
+    }
+
+    // Filter for month (optional)
+    if (month) {
+      filters.push("MONTH(bf.createdAt) = ?");
+      params.push(month);
+    }
+
+    // Filter for financial year (optional)
+    if (financialYear) {
+      const startDate = `${financialYear}-04-01`;
+      const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+      filters.push("bf.createdAt BETWEEN ? AND ?");
+      params.push(startDate, endDate);
+    }
+
+    // Filter for RTO Subcategory (optional)
+    if (rtoSubCategory) {
+      // filters.push("bf.rtoSubCategory LIKE ?");
+      // params.push(`%${rtoSubCategory}%`);
+    }
+
+    // Combine filters into the query
+    const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+    // Query to get total records (without pagination)
+    const totalItemsQuery = `
+      SELECT COUNT(*) AS rowCount
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+      ${filterCondition};
+    `;
+    const [totalResult] = await dbObj.query(totalItemsQuery, params);
+    const totalItems = totalResult[0]?.rowCount || 0;
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    // Query to fetch paginated records (with pagination)
+    const paginatedQuery = `
+      SELECT
+        bf.*, sri.*, ss.*
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+      ${filterCondition}
+      LIMIT ? OFFSET ?;
+    `;
+    const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
+
+    // Prepare response
+    res.status(200).json({
+      status: true,
+      message: 'Records fetched successfully.',
+      data: records,
+      pagination: {
+        currentPage: pageNum,
+        pageSize: limit,
+        totalItems,
+        totalPages,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching paginated records:', error);
+    res.status(500).json({
+      status: false,
+      message: 'Failed to fetch records.',
+      error: error.message,
+    });
+  }
+};
+
+
+module.exports = { trainingTypeWiseCount, trainingTypeWiseCountByCategory,trainingTypeWiseCountByYear,trainingTypeWiseCountByMonth,trainingTypeWiseCountByYearAll,trainingTypeWiseCountByYearAllAdult,trainingTypeWiseCountByYearAllSchool,trainingTypeWiseCountRTO,trainingYearWiseCount,totalSessionsConducted};
