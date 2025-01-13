@@ -1030,3 +1030,54 @@ exports.deleteSlotInfo = async (req, res) => {
       .json({ message: "An error occurred.", error: error.message });
   }
 };
+
+
+
+
+
+
+// exports.getAllEntriesByCategory = async (req, res) => {
+//   try {
+//     const { category } = req.body;
+
+//     // Get today's date at the start of the day, formatted as YYYY-MM-DD
+//     const today = moment().startOf("day").format("YYYY-MM-DD");
+
+//     // Determine if today is Sunday
+//     const isSunday = moment().day() === 0; // Sunday is represented as 0 in moment.js
+
+//     // If today is Sunday, also include records from Saturday
+//     let dateCondition;
+//     if (isSunday) {
+//       const yesterday = moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD");
+//       dateCondition = {
+//         [Op.or]: [
+//           { tempdate: { [Op.eq]: yesterday } }, // Include Saturday's records
+//           { tempdate: { [Op.gt]: today } },    // Include records from today onwards
+//         ],
+//       };
+//     } else {
+//       dateCondition = { tempdate: { [Op.gt]: today } }; // Default condition for other days
+//     }
+
+//     // Query the database for booking entries
+//     const bookingEntries = await BookingForm.findAll({
+//       where: {
+//         category,
+//         ...dateCondition,
+//       },
+//     });
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Booking entries by category retrieved successfully",
+//       bookingEntries
+//     );
+//   } catch (error) {
+//     console.log("Get booking entries by category failed", error);
+//     return apiResponse.ErrorResponse(
+//       res,
+//       "Get booking entries by category failed"
+//     );
+//   }
+// };
