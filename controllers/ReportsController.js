@@ -481,6 +481,157 @@ const trainingTypeWiseCountByYearAllx = async (req, res) => {
   }
 };
 
+// const trainingTypeWiseCountByYearAll = async (req, res) => {
+//   try {
+//     const currentYear = new Date().getFullYear();
+//     const startYear = 2007;
+
+//     const monthNames = [
+//       "January", "February", "March", "April", "May", "June",
+//       "July", "August", "September", "October", "November", "December"
+//     ];
+
+//     const { trainingType, year, month, week } = req.body; // Optional filters
+
+//     // Base conditions for filters
+//     const filters = [];
+//     const params = [];
+
+//     // Handle trainingType filter
+//     if (trainingType) {
+//       filters.push(`
+//         CASE 
+//           WHEN category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END = ?
+//       `);
+//       params.push(trainingType);
+//     }
+
+//     // Handle other filters (year, month, week)
+//     if (year) {
+//       filters.push("YEAR(createdAt) = ?");
+//       params.push(year);
+//     }
+
+//     if (month) {
+//       filters.push("MONTH(createdAt) = ?");
+//       params.push(month);
+//     }
+
+//     if (week) {
+//       filters.push("WEEK(createdAt, 1) = ?");
+//       params.push(week);
+//     }
+
+//     // Combine all filters
+//     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
+
+//     // Queries with dynamic filters
+//     const yearlyStatsQuery = `
+//       SELECT 
+//         CASE 
+//           WHEN category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END AS TrainingType,
+//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
+//         COUNT(DISTINCT id) AS TotalPeopleAttended
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition}
+//       GROUP BY TrainingType;
+//     `;
+
+//     const monthlyStatsQuery = `
+//       SELECT 
+//         MONTH(createdAt) AS MonthNumber,
+//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
+//         COUNT(DISTINCT id) AS TotalPeopleAttended,
+//         CASE 
+//           WHEN category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END AS TrainingType
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition}
+//       GROUP BY MonthNumber, TrainingType;
+//     `;
+
+//     const weeklyStatsQuery = `
+//       SELECT 
+//         WEEK(createdAt, 1) AS WeekNumber,
+//         MONTH(createdAt) AS MonthNumber,
+//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
+//         COUNT(DISTINCT id) AS TotalPeopleAttended,
+//         CASE 
+//           WHEN category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END AS TrainingType
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition}
+//       GROUP BY WeekNumber, MonthNumber, TrainingType;
+//     `;
+
+//     const response = [];
+
+//     // Determine which years to process
+//     const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+//     for (const processingYear of yearsToProcess) {
+//       const yearParams = year ? params : [processingYear, ...params];
+
+//       // Fetch data for the current year
+//       const [yearlyStats] = await dbObj.query(yearlyStatsQuery, yearParams);
+//       const [monthlyStats] = await dbObj.query(monthlyStatsQuery, yearParams);
+//       const [weeklyStats] = await dbObj.query(weeklyStatsQuery, yearParams);
+
+//       // If there's data for the year, process and add to response
+//       if (yearlyStats.length > 0) {
+//         const monthsWithWeeks = monthlyStats.map(month => {
+//           const weeks = weeklyStats
+//             .filter(week => week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
+//             .map(week => ({
+//               WeekNumber: week.WeekNumber,
+//               NoOfSessions: week.NoOfSessions,
+//               TotalPeopleAttended: week.TotalPeopleAttended,
+//             }))
+//             .sort((a, b) => b.WeekNumber - a.WeekNumber); // Sort weeks in descending order
+
+//           return {
+//             ...month,
+//             MonthName: monthNames[month.MonthNumber - 1],
+//             weeks
+//           };
+//         }).sort((a, b) => b.MonthNumber - a.MonthNumber); // Sort months in descending order
+
+//         response.push({
+//           year: processingYear,
+//           stats: yearlyStats,
+//           months: monthsWithWeeks
+//         });
+//       }
+//     }
+
+//     if (response.length === 0) {
+//       return res.status(404).json({
+//         status: false,
+//         message: 'No training summary data found for the provided filters.',
+//       });
+//     }
+
+//     res.status(200).json({
+//       status: true,
+//       message: 'Training summary data fetched successfully.',
+//       data: response
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       status: false,
+//       message: 'Failed to fetch training summary data.',
+//       error: error.message
+//     });
+//   }
+// };
+
 const trainingTypeWiseCountByYearAll = async (req, res) => {
   try {
     const currentYear = new Date().getFullYear();
@@ -530,6 +681,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
     // Queries with dynamic filters
     const yearlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         CASE 
           WHEN category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
@@ -538,11 +690,13 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
         COUNT(DISTINCT id) AS TotalPeopleAttended
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY TrainingType;
+      GROUP BY Year, TrainingType
+      HAVING Year = ?;
     `;
 
     const monthlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         MONTH(createdAt) AS MonthNumber,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended,
@@ -552,11 +706,13 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
         END AS TrainingType
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY MonthNumber, TrainingType;
+      GROUP BY Year, MonthNumber, TrainingType
+      HAVING Year = ?;
     `;
 
     const weeklyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         WEEK(createdAt, 1) AS WeekNumber,
         MONTH(createdAt) AS MonthNumber,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
@@ -567,7 +723,8 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
         END AS TrainingType
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY WeekNumber, MonthNumber, TrainingType;
+      GROUP BY Year, WeekNumber, MonthNumber, TrainingType
+      HAVING Year = ?;
     `;
 
     const response = [];
@@ -579,15 +736,15 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
       const yearParams = year ? params : [processingYear, ...params];
 
       // Fetch data for the current year
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, yearParams);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, yearParams);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, yearParams);
+      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
+      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
+      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
 
       // If there's data for the year, process and add to response
       if (yearlyStats.length > 0) {
         const monthsWithWeeks = monthlyStats.map(month => {
           const weeks = weeklyStats
-            .filter(week => week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
+            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
             .map(week => ({
               WeekNumber: week.WeekNumber,
               NoOfSessions: week.NoOfSessions,
