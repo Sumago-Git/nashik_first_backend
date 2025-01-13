@@ -67,9 +67,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
     console.log("newtime__________", sessionTime)
 
-    await sessionSlot.update({
-      available_seats: sessionSlot.available_seats - 1,
-    });
 
     // Case 1: Handle file upload (XLSX)
     if (req.file) {
@@ -247,6 +244,11 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       sessionSlotId: sessionSlot.id,
       isActive: true,
       isDelete: false,
+    });
+
+
+    await sessionSlot.update({
+      available_seats: sessionSlot.available_seats - 1,
     });
     console.log("category333", category);
     let filteredCategorys = category.replace(/-/g, "");
@@ -669,6 +671,7 @@ exports.isDeleteStatus = async (req, res) => {
 
 exports.deleteBookingForm = async (req, res) => {
   try {
+
     // Parse today's date
     const today = moment().startOf("day"); // Start of the current day
 
@@ -676,8 +679,8 @@ exports.deleteBookingForm = async (req, res) => {
     const bookingFormsToDelete = await BookingForm.findAll({
       where: {
         training_status: "Confirmed", // Training status is "Confirmed"
-        slotdate: {
-          [Op.lt]: today.format("MM/DD/YYYY"), // Slot date is earlier than today
+        tempdate: {
+          [Op.lt]: today.format('YYYY-MM-DD'), // Slot date is earlier than today
         },
         isActive: true, // Ensure the booking form is active
         isDelete: false, // Ensure the booking form is not marked as deleted
@@ -700,10 +703,10 @@ exports.deleteBookingForm = async (req, res) => {
       },
     });
 
-    return apiResponse.successResponse(
-      res,
-      `${deletedCount} booking forms deleted successfully`
-    );
+    // return apiResponse.successResponse(
+    //   res,
+    //   ` booking forms deleted successfully`
+    // );
   } catch (error) {
     console.error("Delete booking form failed", error);
     // return apiResponse.ErrorResponse(res, "Delete booking form failed");
