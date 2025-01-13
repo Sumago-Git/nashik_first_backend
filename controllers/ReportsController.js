@@ -836,27 +836,32 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
     // Queries with dynamic filters for Adult only
     const yearlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         'Adult' AS TrainingType,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY TrainingType;
+      GROUP BY Year, TrainingType
+      HAVING Year = ?;
     `;
 
     const monthlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         MONTH(createdAt) AS MonthNumber,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended,
         'Adult' AS TrainingType
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY MonthNumber, TrainingType;
+      GROUP BY Year, MonthNumber, TrainingType
+      HAVING Year = ?;
     `;
 
     const weeklyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         WEEK(createdAt, 1) AS WeekNumber,
         MONTH(createdAt) AS MonthNumber,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
@@ -864,7 +869,8 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
         'Adult' AS TrainingType
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY WeekNumber, MonthNumber, TrainingType;
+      GROUP BY Year, WeekNumber, MonthNumber, TrainingType
+      HAVING Year = ?;
     `;
 
     const response = [];
@@ -876,15 +882,15 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
       const yearParams = year ? params : [processingYear, ...params];
 
       // Fetch data for the current year
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, yearParams);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, yearParams);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, yearParams);
+      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
+      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
+      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
 
       // If there's data for the year, process and add to response
       if (yearlyStats.length > 0) {
         const monthsWithWeeks = monthlyStats.map(month => {
           const weeks = weeklyStats
-            .filter(week => week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
+            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
             .map(week => ({
               WeekNumber: week.WeekNumber,
               NoOfSessions: week.NoOfSessions,
@@ -977,27 +983,32 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
     // Queries with dynamic filters for School only
     const yearlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         'School' AS TrainingType,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY TrainingType;
+      GROUP BY Year, TrainingType
+      HAVING Year = ?;
     `;
 
     const monthlyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         MONTH(createdAt) AS MonthNumber,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended,
         'School' AS TrainingType
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY MonthNumber, TrainingType;
+      GROUP BY Year, MonthNumber, TrainingType
+      HAVING Year = ?;
     `;
 
     const weeklyStatsQuery = `
       SELECT 
+        YEAR(createdAt) AS Year,
         WEEK(createdAt, 1) AS WeekNumber,
         MONTH(createdAt) AS MonthNumber,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
@@ -1005,7 +1016,8 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
         'School' AS TrainingType
       FROM bookingforms
       WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY WeekNumber, MonthNumber, TrainingType;
+      GROUP BY Year, WeekNumber, MonthNumber, TrainingType
+      HAVING Year = ?;
     `;
 
     const response = [];
@@ -1017,15 +1029,15 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
       const yearParams = year ? params : [processingYear, ...params];
 
       // Fetch data for the current year
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, yearParams);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, yearParams);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, yearParams);
+      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
+      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
+      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
 
       // If there's data for the year, process and add to response
       if (yearlyStats.length > 0) {
         const monthsWithWeeks = monthlyStats.map(month => {
           const weeks = weeklyStats
-            .filter(week => week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
+            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
             .map(week => ({
               WeekNumber: week.WeekNumber,
               NoOfSessions: week.NoOfSessions,
@@ -1069,6 +1081,7 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
     });
   }
 };
+
 
 const trainingTypeWiseCountByYearAllO = async (req, res) => {
   try {
