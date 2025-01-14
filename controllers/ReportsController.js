@@ -2207,12 +2207,13 @@ const trainerWiseSessionsConducted = async (req, res) => {
         YEAR(bf.createdAt) AS year,
         MONTH(bf.createdAt) AS month,
         WEEK(bf.createdAt, 1) AS week,
-        COUNT(*) AS sessionCount
+        COUNT(*) AS sessionCount,
+        bf.category AS categoryName
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
-      GROUP BY ss.trainer, year, month, week
+      GROUP BY ss.trainer, year, month, week, bf.category
       ORDER BY ss.trainer ASC, year DESC, month DESC, week DESC
       LIMIT ? OFFSET ?;
     `;
@@ -2239,7 +2240,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
     const result = [];
 
     records.forEach(record => {
-      const { trainerName, year, month, week, sessionCount } = record;
+      const { trainerName, year, month, week, sessionCount, categoryName } = record;
 
       // Initialize the trainer object if not already initialized
       let trainerObj = result.find(t => t.trainerName === trainerName);
@@ -2280,6 +2281,9 @@ const trainerWiseSessionsConducted = async (req, res) => {
       let weekObj = monthObj.weeks.find(w => w.week === week);
       if (!weekObj) {
         weekObj = { week, sessionCount: 0 };
+        if (rtoFilter) {  // Include categoryName if rtoFilter is true
+          weekObj.categoryName = categoryName;
+        }
         monthObj.weeks.push(weekObj);
       }
 
