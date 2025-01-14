@@ -206,6 +206,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const existingLearningNo = await BookingForm.findOne({
       where: {
         learningNo,
+        isDelete: false,
         category: "RTO – Learner Driving License Holder Training",
       },
     });
