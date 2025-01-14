@@ -1748,6 +1748,143 @@ const trainingYearWiseCount = async (req, res) => {
 
 
 
+// const totalSessionsConducted = async (req, res) => {
+//   try {
+//     const {
+//       page = 1, // Default to page 1 if not provided
+//       pageSize = 50, // Default page size is 50
+//       date,
+//       schoolName,
+//       trainer,
+//       trainingType, // School / Adult
+//       day,
+//       week,
+//       month,
+//       financialYear,
+//       rtoSubCategory,
+//       slotType, // New filter for slotType
+//     } = req.body;
+
+//     const pageNum = parseInt(page, 10) || 1;
+//     const limit = parseInt(pageSize, 10) || 50;
+//     const offset = (pageNum - 1) * limit;
+
+//     // Filters array to handle dynamic filtering
+//     const filters = [];
+//     const params = [];
+
+//     // Filter for date (optional)
+//     if (date) {
+//       filters.push("DATE(bf.createdAt) = ?");
+//       params.push(date);
+//     }
+
+//     // Filter for school/institute name (optional)
+//     if (schoolName) {
+//       filters.push("bf.institution_name LIKE ?");
+//       params.push(`%${schoolName}%`);
+//     }
+
+//     // Filter for trainer (optional)
+//     if (trainer) {
+//       filters.push("ss.trainer LIKE ?");
+//       params.push(`%${trainer}%`);
+//     }
+
+//     // Filter for School/Adult type (optional)
+//     if (trainingType) {
+//       filters.push(`
+//         CASE 
+//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END = ?`);
+//       params.push(trainingType);
+//     }
+
+//     // Filter for day (optional)
+//     if (day) {
+//       filters.push("DAYOFWEEK(bf.createdAt) = ?");
+//       params.push(day);
+//     }
+
+//     // Filter for week (optional)
+//     if (week) {
+//       filters.push("WEEK(bf.createdAt, 1) = ?");
+//       params.push(week);
+//     }
+
+//     // Filter for month (optional)
+//     if (month) {
+//       filters.push("MONTH(bf.createdAt) = ?");
+//       params.push(month);
+//     }
+
+//     // Filter for financial year (optional)
+//     if (financialYear) {
+//       const startDate = `${financialYear}-04-01`;
+//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+//       filters.push("bf.createdAt BETWEEN ? AND ?");
+//       params.push(startDate, endDate);
+//     }
+
+//     // Filter for slotType (optional)
+//     if (slotType) {
+//       filters.push("ss.slotType = ?");
+//       params.push(slotType);
+//     }
+
+//     // Combine filters into the query
+//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+//     // Query to get total records (without pagination)
+//     const totalItemsQuery = `
+//       SELECT COUNT(*) AS rowCount
+//       FROM bookingforms bf
+//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+//       ${filterCondition};
+//     `;
+//     const [totalResult] = await dbObj.query(totalItemsQuery, params);
+//     const totalItems = totalResult[0]?.rowCount || 0;
+
+//     // Calculate total pages
+//     const totalPages = Math.ceil(totalItems / limit);
+
+//     // Query to fetch paginated records (with pagination)
+//     const paginatedQuery = `
+//       SELECT
+//         bf.*, sri.*, ss.*
+//       FROM bookingforms bf
+//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+//       ${filterCondition}
+//       LIMIT ? OFFSET ?;
+//     `;
+//     const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
+
+//     // Prepare response
+//     res.status(200).json({
+//       status: true,
+//       message: 'Records fetched successfully.',
+//       data: records,
+//       pagination: {
+//         currentPage: pageNum,
+//         pageSize: limit,
+//         totalItems,
+//         totalPages,
+//       },
+//     });
+//   } catch (error) {
+//     console.error('Error fetching paginated records:', error);
+//     res.status(500).json({
+//       status: false,
+//       message: 'Failed to fetch records.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 const totalSessionsConducted = async (req, res) => {
   try {
     const {
@@ -1761,7 +1898,8 @@ const totalSessionsConducted = async (req, res) => {
       week,
       month,
       financialYear,
-      rtoSubCategory,
+      slotType, // New filter for slotType
+      rtoFilter, // New filter for RTO category
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -1826,37 +1964,48 @@ const totalSessionsConducted = async (req, res) => {
       params.push(startDate, endDate);
     }
 
-    // Filter for RTO Subcategory (optional)
-    if (rtoSubCategory) {
-      // filters.push("bf.rtoSubCategory LIKE ?");
-      // params.push(`%${rtoSubCategory}%`);
+    // Filter for slotType (optional)
+    if (slotType) {
+      filters.push("ss.slotType = ?");
+      params.push(slotType);
+    }
+
+    // Filter for RTO category (optional)
+    if (rtoFilter) {
+      filters.push(`
+        bf.category IN (
+          'RTO – Learner Driving License Holder Training',
+          'RTO – Suspended Driving License Holders Training',
+          'RTO – Training for School Bus Driver'
+        )
+      `);
     }
 
     // Combine filters into the query
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
-    // Query to get total records (without pagination)
-    const totalItemsQuery = `
-      SELECT COUNT(*) AS rowCount
+    // Query to count all rows matching the filters
+    const totalRecordsQuery = `
+      SELECT COUNT(*) AS totalRecords
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-      LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition};
     `;
-    const [totalResult] = await dbObj.query(totalItemsQuery, params);
-    const totalItems = totalResult[0]?.rowCount || 0;
+    const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
+    const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
 
-    // Calculate total pages
-    const totalPages = Math.ceil(totalItems / limit);
-
-    // Query to fetch paginated records (with pagination)
+    // Query to get paginated records grouped by tempdatDATE
     const paginatedQuery = `
       SELECT
-        bf.*, sri.*, ss.*
+        DATE(bf.createdAt) AS tempdatDATE,
+        COUNT(*) AS sessionCount,
+        bf.*, ss.*, sri.*
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
+      GROUP BY tempdatDATE
+      ORDER BY tempdatDATE DESC
       LIMIT ? OFFSET ?;
     `;
     const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
@@ -1866,15 +2015,16 @@ const totalSessionsConducted = async (req, res) => {
       status: true,
       message: 'Records fetched successfully.',
       data: records,
+      totalSessionsConducted: totalRecords,
       pagination: {
         currentPage: pageNum,
         pageSize: limit,
-        totalItems,
-        totalPages,
+        totalPages: Math.ceil(totalRecords / limit),
+        totalRecords,
       },
     });
   } catch (error) {
-    console.error('Error fetching paginated records:', error);
+    console.error('Error fetching records:', error);
     res.status(500).json({
       status: false,
       message: 'Failed to fetch records.',
@@ -1882,6 +2032,8 @@ const totalSessionsConducted = async (req, res) => {
     });
   }
 };
+
+
 
 const getInstituteNCategoryList = async (req, res) => {
   try {
