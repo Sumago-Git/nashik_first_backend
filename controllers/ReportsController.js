@@ -2409,14 +2409,10 @@ const schoolWiseSessionsConducted = async (req, res) => {
     // Combine filters into the query
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
-    // Query to count sessions by category, year, month, and week for school-wise report
+    // Query to count sessions by school name, year, month, and week
     const schoolWiseQuery = `
       SELECT
         sri.institution_name AS schoolName,
-        CASE 
-          WHEN bf.category = 'School Students Training – Group' THEN 'School'
-          ELSE 'Adult'
-        END AS trainingType,
         YEAR(bf.createdAt) AS year,
         MONTH(bf.createdAt) AS month,
         WEEK(bf.createdAt, 1) AS week,
@@ -2425,12 +2421,11 @@ const schoolWiseSessionsConducted = async (req, res) => {
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
-      GROUP BY sri.institution_name, trainingType, year, month, week
-      ORDER BY sri.institution_name ASC, year DESC, month DESC, week DESC
-      LIMIT ? OFFSET ?;
+      GROUP BY sri.institution_name, year, month, week
+      ORDER BY sri.institution_name ASC, year DESC, month DESC, week DESC;
     `;
 
-    const [records] = await dbObj.query(schoolWiseQuery, [...params, limit, offset]);
+    const [records] = await dbObj.query(schoolWiseQuery, params);
 
     // Query to count total records for pagination
     const totalRecordsQuery = `
@@ -2443,88 +2438,60 @@ const schoolWiseSessionsConducted = async (req, res) => {
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
 
-    // Month names for formatting
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June', 
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-
-    // Week names for formatting (could be Week 1, Week 2, etc.)
-    const weekNames = (weekNum) => `Week ${weekNum}`;
-
-    // Format the result into an object where each school's name is a key
+    // Format the result into the desired structure
     const result = {};
 
     records.forEach(record => {
-      const { schoolName, trainingType, year, month, week, sessionCount } = record;
+      const { schoolName, year, month, week, sessionCount } = record;
 
       // Initialize the school object if not already initialized
       if (!result[schoolName]) {
         result[schoolName] = {
           schoolName,
-          totalSessions: 0, // Initialize total session count
-          data: [] // Initialize array for training types
+          sessionCount: 0, // Total session count
+          years: [] // Array for year-wise data
         };
       }
 
       // Add session count to the total sessions for the school
-      result[schoolName].totalSessions += sessionCount;
+      result[schoolName].sessionCount += sessionCount;
 
-      // Find or create the training type object
-      let trainingTypeObj = result[schoolName].data.find(t => t.trainingType === trainingType);
-
-      if (!trainingTypeObj) {
-        trainingTypeObj = { 
-          trainingType,
-          years: [] 
-        };
-        result[schoolName].data.push(trainingTypeObj);
-      }
-
-      // Find or create the year object within the training type
-      let yearObj = trainingTypeObj.years.find(y => y.year === year);
-
+      // Find or create the year object for this school
+      let yearObj = result[schoolName].years.find(y => y.year === year);
       if (!yearObj) {
-        yearObj = {
-          year,
-          totalSessions: 0, // Initialize totalSessions for the year
-          months: [] // Initialize array for months
-        };
-        trainingTypeObj.years.push(yearObj);
+        yearObj = { year, sessionCount: 0, months: [] };
+        result[schoolName].years.push(yearObj);
       }
 
-      // Add session count to the total sessions of the year
-      yearObj.totalSessions += sessionCount;
+      // Add session count to the year object
+      yearObj.sessionCount += sessionCount;
 
-      // Find or create the month object within the year
+      // Find or create the month object for the year
       let monthObj = yearObj.months.find(m => m.month === month);
-
       if (!monthObj) {
-        monthObj = {
-          month,
-          monthName: monthNames[month - 1], // Get month name
-          totalSessions: 0, // Initialize total sessions for the month
-          weeks: {} // Initialize object for weeks breakdown
-        };
+        monthObj = { month, monthName: new Date(year, month - 1).toLocaleString('default', { month: 'long' }), sessionCount: 0, weeks: [] };
         yearObj.months.push(monthObj);
       }
 
-      // Add session count to the month
-      monthObj.totalSessions += sessionCount;
+      // Add session count to the month object
+      monthObj.sessionCount += sessionCount;
 
-      // Add session count for the specific week
-      const weekKey = weekNames(week);
-      if (!monthObj.weeks[weekKey]) {
-        monthObj.weeks[weekKey] = 0;
+      // Find or create the week object for the month
+      let weekObj = monthObj.weeks.find(w => w.week === week);
+      if (!weekObj) {
+        weekObj = { week, sessionCount: 0 };
+        monthObj.weeks.push(weekObj);
       }
-      monthObj.weeks[weekKey] += sessionCount;
+
+      // Add session count to the week object
+      weekObj.sessionCount += sessionCount;
     });
 
     // Prepare the response
     res.status(200).json({
       status: true,
-      message: 'School-wise session count with breakdown fetched successfully.',
-      data: Object.values(result), // Each school is a key, with their session data inside
+      message: 'School-wise session count with monthly and weekly breakdown fetched successfully.',
+      data: Object.values(result), // Returning the structured result
       totalSessionsConducted: totalRecords,
       pagination: {
         currentPage: pageNum,
@@ -2542,6 +2509,9 @@ const schoolWiseSessionsConducted = async (req, res) => {
     });
   }
 };
+
+
+
 
 
 
