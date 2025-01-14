@@ -15,7 +15,8 @@ const {
     trainingTypeWiseCountByYearAllAdult,
     trainingTypeWiseCountRTO,
     trainingYearWiseCount,
-    totalSessionsConducted
+    totalSessionsConducted,
+    getInstituteNCategoryList
   } = require('../controllers/ReportsController');
 // Add Sessionslot
 router.post('/trainingTypeWiseCount',authenticateToken, (req, res, next) => {
@@ -108,6 +109,15 @@ router.post('/totalSessionsConducted',authenticateToken, (req, res, next) => {
   next();
 
 }, totalSessionsConducted);
+
+router.post('/getInstitudeNCategoryList',authenticateToken, (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return apiResponse.validationErrorWithData(res, 'Validation Error', errors.array());
+  }
+  next();
+
+}, getInstituteNCategoryList);
 
 
 module.exports = router;
