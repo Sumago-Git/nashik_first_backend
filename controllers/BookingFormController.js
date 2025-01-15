@@ -38,7 +38,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const startingUserId = 55;
     const startingCertificateNo = 0;
     const convertDateToDDMMYYYY = (dateString) => {
-      const [month, day, year] = dateString.split('/');
+      const [month, day, year] = dateString.split("/");
       return `${day}/${month}/${year}`;
     };
     // Get the count of existing records to determine the next user_id and certificate_no
@@ -56,7 +56,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
     const booking = await Sessionslot.findOne({
       where: { id: sessionSlotId },
-
     });
 
     if (!booking) {
@@ -65,8 +64,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
 
     const sessionTime = booking.time || "Not Provided";
 
-    console.log("newtime__________", sessionTime)
-
+    console.log("newtime__________", sessionTime);
 
     // Case 1: Handle file upload (XLSX)
     if (req.file) {
@@ -117,28 +115,30 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             let filteredCategorys = category.replace(/-/g, "");
             // Send SMS
             const formatTimeTo12Hour = (time) => {
-              const [hour, minute] = time.split(':');
+              const [hour, minute] = time.split(":");
               const hours = parseInt(hour, 10);
-              const period = hours >= 12 ? 'PM' : 'AM';
+              const period = hours >= 12 ? "PM" : "AM";
               const formattedHour = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
               return `${formattedHour}:${minute} ${period}`;
             };
 
-
-            let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${formatTimeTo12Hour(sessionTime)}`
-            console.log(slotDateandTime)
-            const smsMessage = `Hi ${fname}, Your booking for ${category == "RTO - Learner Driving License Holder Training"
-              ? "RTO Learner Driving License Holder"
-              : category == "RTO – Suspended Driving License Holders Training"
+            let slotDateandTime = `${convertDateToDDMMYYYY(
+              slotdate
+            )} at ${formatTimeTo12Hour(sessionTime)}`;
+            console.log(slotDateandTime);
+            const smsMessage = `Hi ${fname}, Your booking for ${
+              category == "RTO - Learner Driving License Holder Training"
+                ? "RTO Learner Driving License Holder"
+                : category == "RTO – Suspended Driving License Holders Training"
                 ? "RTO Suspended Driving License Holders"
                 : category == "RTO – Training for School Bus Driver"
-                  ? "RTO Training for School Bus Driver"
-                  : category == "School Students Training – Group"
-                    ? "School Students Training Group"
-                    : category == "College/Organization Training – Group"
-                      ? "College/Organization Training Group"
-                      : ""
-              } Training is confirmed on ${slotDateandTime} at ${sessionTime}. Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query, please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+                ? "RTO Training for School Bus Driver"
+                : category == "School Students Training – Group"
+                ? "School Students Training Group"
+                : category == "College/Organization Training – Group"
+                ? "College/Organization Training Group"
+                : ""
+            } Training is confirmed on ${slotDateandTime} at ${sessionTime}. Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query, please call 0253-2315966 Email: secretary@nashikfirst.com.`;
             const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
             const senderId = "NSKFST";
             const DLT_TE_ID = "1707171473228451822";
@@ -246,7 +246,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       isDelete: false,
     });
 
-
     await sessionSlot.update({
       available_seats: sessionSlot.available_seats - 1,
     });
@@ -255,18 +254,45 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     console.log("filteredCategorys", filteredCategorys);
     console.log("sessionTime===>", sessionTime);
     const formatTimeTo12Hour = (time) => {
-      const [hour, minute] = time.split(':');
+      const [hour, minute] = time.split(":");
       const hours = parseInt(hour, 10);
-      const period = hours >= 12 ? 'PM' : 'AM';
+      const period = hours >= 12 ? "PM" : "AM";
       const formattedHour = hours % 12 || 12; // Convert 0 to 12 for 12-hour format
       return `${formattedHour}:${minute} ${period}`;
     };
-    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${formatTimeTo12Hour(sessionTime)}`
+    let slotDateandTime = `${convertDateToDDMMYYYY(
+      slotdate
+    )} at ${formatTimeTo12Hour(sessionTime)}`;
     // let filteredCategory = category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""
-    console.log("testcategory", category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : "");
+    console.log(
+      "testcategory",
+      category == "RTO - Learner Driving License Holder Training"
+        ? "RTO Learner Driving License Holder"
+        : category == "RTO – Suspended Driving License Holders Training"
+        ? "RTO Suspended Driving License Holders"
+        : category == "RTO – Training for School Bus Driver"
+        ? "RTO Training for School Bus Driver"
+        : category == "School Students Training – Group"
+        ? "School Students Training Group"
+        : category == "College/Organization Training – Group"
+        ? "College/Organization Training Group"
+        : ""
+    );
 
     // Send SMS
-    const smsMessage = `Hi ${fname},Your booking for ${category == "RTO – Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    const smsMessage = `Hi ${fname},Your booking for ${
+      category == "RTO – Learner Driving License Holder Training"
+        ? "RTO Learner Driving License Holder"
+        : category == "RTO – Suspended Driving License Holders Training"
+        ? "RTO Suspended Driving License Holders"
+        : category == "RTO – Training for School Bus Driver"
+        ? "RTO Training for School Bus Driver"
+        : category == "School Students Training – Group"
+        ? "School Students Training Group"
+        : category == "College/Organization Training – Group"
+        ? "College/Organization Training Group"
+        : ""
+    } Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
@@ -439,7 +465,7 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
         sessionSlotId,
         category,
         slotdate,
-        isDelete: false
+        isDelete: false,
       },
       include: [
         {
@@ -505,6 +531,73 @@ exports.getAllEntriesByCategory = async (req, res) => {
   }
 };
 
+// exports.updateTrainingStatus = async (req, res) => {
+//   const transaction = await sequelize.transaction();
+//   try {
+//     const { bookingId, trainingStatus } = req.body;
+
+//     // Fetch the BookingForm by ID
+//     const bookingForm = await BookingForm.findByPk(bookingId, { transaction });
+
+//     if (!bookingForm) {
+//       return res.status(404).json({ message: "Booking not found" });
+//     }
+
+//     // Update training_status
+//     bookingForm.training_status = trainingStatus;
+
+//     if (trainingStatus === "Attended") {
+//       const validCategories = [
+//         "RTO – Learner Driving License Holder Training",
+//         "RTO – Suspended Driving License Holders Training",
+//         "RTO – Training for School Bus Driver",
+//         "College/Organization Training – Group",
+//       ];
+
+//       if (validCategories.includes(bookingForm.category)) {
+//         // Obtain a database lock to avoid race conditions
+//         const startingCertificateNo = 76;
+
+//         // Lock table or use transaction isolation to ensure unique numbers
+//         const attendedCount = await BookingForm.count({
+//           where: {
+//             training_status: "Attended",
+//             category: {
+//               [Op.in]: validCategories, // Ensure the category is in the validCategories array
+//             },
+//           },
+//           lock: transaction.LOCK.UPDATE, // Locking mechanism
+//           transaction,
+//         });
+
+//         // Calculate the next certificate_no
+//         const nextCertificateNo = startingCertificateNo + attendedCount + 1;
+
+//         // Update the certificate_no for the current record
+//         bookingForm.certificate_no = nextCertificateNo;
+//       }
+//     }
+
+//     // Save changes to the database
+//     await bookingForm.save({ transaction });
+
+//     // Commit the transaction
+//     await transaction.commit();
+
+//     return res.json({
+//       message: `Training status updated to ${trainingStatus}`,
+//       data: bookingForm,
+//     });
+//   } catch (error) {
+//     // Rollback the transaction on error
+//     await transaction.rollback();
+//     console.error("Error updating training status:", error);
+//     return res
+//       .status(500)
+//       .json({ message: "An error occurred", error: error.message });
+//   }
+// };
+
 exports.updateTrainingStatus = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
@@ -517,38 +610,48 @@ exports.updateTrainingStatus = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    console.log("Fetched category:", bookingForm.category);
+
     // Update training_status
     bookingForm.training_status = trainingStatus;
 
     if (trainingStatus === "Attended") {
-      const validCategories = [
-        "RTO – Learner Driving License Holder Training",
-        "RTO – Suspended Driving License Holders Training",
-        "RTO – Training for School Bus Driver",
-        "College/Organization Training – Group",
-      ];
+      // Define starting certificate numbers for categories
+      const categoryStartingNumbers = {
+        "RTO – Learner Driving License Holder Training": 90,
+        "RTO – Suspended Driving License Holders Training": 20,
+        "School Students Training – Group": 40,
+        "College/Organization Training – Group": 80,
+      };
 
+      const validCategories = Object.keys(categoryStartingNumbers);
+
+      // Ensure the category is valid
       if (validCategories.includes(bookingForm.category)) {
-        // Obtain a database lock to avoid race conditions
-        const startingCertificateNo = 76;
-
-        // Lock table or use transaction isolation to ensure unique numbers
-        const attendedCount = await BookingForm.count({
+        // Fetch the last record with training_status "Attended" for this category
+        const lastAttendedRecord = await BookingForm.findOne({
           where: {
             training_status: "Attended",
-            category: {
-              [Op.in]: validCategories, // Ensure the category is in the validCategories array
-            },
+            category: bookingForm.category,
           },
-          lock: transaction.LOCK.UPDATE, // Locking mechanism
+          order: [["certificate_no", "DESC"]], // Order by certificate_no descending to get the last one
           transaction,
         });
 
-        // Calculate the next certificate_no
-        const nextCertificateNo = startingCertificateNo + attendedCount + 1;
+        // Determine the next certificate number
+        const startingCertificateNo =
+          categoryStartingNumbers[bookingForm.category];
+        const nextCertificateNo = lastAttendedRecord
+          ? lastAttendedRecord.certificate_no + 1 // Increment from last certificate number
+          : startingCertificateNo; // Start from the defined starting number if no record exists
 
         // Update the certificate_no for the current record
         bookingForm.certificate_no = nextCertificateNo;
+      } else {
+        // If category is not valid, throw an error
+        return res.status(400).json({
+          message: `Invalid category: ${bookingForm.category}`,
+        });
       }
     }
 
@@ -571,7 +674,6 @@ exports.updateTrainingStatus = async (req, res) => {
       .json({ message: "An error occurred", error: error.message });
   }
 };
-
 exports.updateBookingForm = async (req, res) => {
   try {
     const { id } = req.params;
@@ -671,7 +773,6 @@ exports.isDeleteStatus = async (req, res) => {
 
 exports.deleteBookingForm = async (req, res) => {
   try {
-
     // Parse today's date
     const today = moment().startOf("day"); // Start of the current day
 
@@ -680,7 +781,7 @@ exports.deleteBookingForm = async (req, res) => {
       where: {
         training_status: "Confirmed", // Training status is "Confirmed"
         tempdate: {
-          [Op.lt]: today.format('YYYY-MM-DD'), // Slot date is earlier than today
+          [Op.lt]: today.format("YYYY-MM-DD"), // Slot date is earlier than today
         },
         isActive: true, // Ensure the booking form is active
         isDelete: false, // Ensure the booking form is not marked as deleted
@@ -738,7 +839,6 @@ exports.registerSlotInfo = async (req, res) => {
       !category ||
       !institution_name ||
       !institution_email ||
-
       !coordinator_mobile ||
       !coordinator_name
     ) {
@@ -769,29 +869,28 @@ exports.registerSlotInfo = async (req, res) => {
     // Send SMS
     const booking = await Sessionslot.findOne({
       where: { id: sessionSlotId },
-
     });
 
     if (!booking) {
       throw new Error("Booking not found.");
     }
     const convertDateToDDMMYYYY = (dateString) => {
-      const [month, day, year] = dateString.split('/');
+      const [month, day, year] = dateString.split("/");
       return `${day}/${month}/${year}`;
     };
     const convertTo12HourFormat = (time) => {
-      let [hours, minutes] = time.split(':');
+      let [hours, minutes] = time.split(":");
 
       // Convert hours and minutes to numbers for calculations
       hours = parseInt(hours, 10);
       minutes = parseInt(minutes, 10);
 
       // Initialize period as 'A.M.'
-      let period = 'A.M.';
+      let period = "A.M.";
 
       // Determine if it's P.M. and adjust hours
       if (hours >= 12) {
-        period = 'P.M.';
+        period = "P.M.";
         if (hours > 12) {
           hours -= 12; // Convert hours greater than 12 to 12-hour format
         }
@@ -800,16 +899,30 @@ exports.registerSlotInfo = async (req, res) => {
       }
 
       // Ensure minutes are always two digits
-      minutes = minutes.toString().padStart(2, '0');
+      minutes = minutes.toString().padStart(2, "0");
 
       // Return the formatted time
       return `${hours}:${minutes} ${period}`;
     };
 
     const sessionTime = booking.time || "Not Provided";
-    let slotDateandTime = `${convertDateToDDMMYYYY(slotdate)} at ${convertTo12HourFormat(sessionTime)}`
-    console.log(slotDateandTime)
-    const smsMessage = `Hi ${coordinator_name},Your booking for ${category == "RTO - Learner Driving License Holder Training" ? "RTO Learner Driving License Holder" : category == "RTO – Suspended Driving License Holders Training" ? "RTO Suspended Driving License Holders" : category == "RTO – Training for School Bus Driver" ? "RTO Training for School Bus Driver" : category == "School Students Training – Group" ? "School Students Training Group" : category == "College/Organization Training – Group" ? "College/Organization Training Group" : ""} Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+    let slotDateandTime = `${convertDateToDDMMYYYY(
+      slotdate
+    )} at ${convertTo12HourFormat(sessionTime)}`;
+    console.log(slotDateandTime);
+    const smsMessage = `Hi ${coordinator_name},Your booking for ${
+      category == "RTO - Learner Driving License Holder Training"
+        ? "RTO Learner Driving License Holder"
+        : category == "RTO – Suspended Driving License Holders Training"
+        ? "RTO Suspended Driving License Holders"
+        : category == "RTO – Training for School Bus Driver"
+        ? "RTO Training for School Bus Driver"
+        : category == "School Students Training – Group"
+        ? "School Students Training Group"
+        : category == "College/Organization Training – Group"
+        ? "College/Organization Training Group"
+        : ""
+    } Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
