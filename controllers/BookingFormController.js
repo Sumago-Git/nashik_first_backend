@@ -206,6 +206,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     const existingLearningNo = await BookingForm.findOne({
       where: {
         learningNo,
+        isDelete: false,
         category: "RTO – Learner Driving License Holder Training",
       },
     });
@@ -771,49 +772,29 @@ exports.isDeleteStatus = async (req, res) => {
   }
 };
 
-exports.deleteBookingForm = async (req, res) => {
+exports.deleteBookingForm = async () => {
   try {
-    // Parse today's date
-    const today = moment().startOf("day"); // Start of the current day
+    // Get today's date at the start of the day
+    const today = moment().startOf("day").format("YYYY-MM-DD");
 
-    // Find booking forms matching the criteria
-    const bookingFormsToDelete = await BookingForm.findAll({
-      where: {
-        training_status: "Confirmed", // Training status is "Confirmed"
-        tempdate: {
-          [Op.lt]: today.format("YYYY-MM-DD"), // Slot date is earlier than today
+    // Update the `isDelete` field to true for matching records
+    const updatedCount = await BookingForm.update(
+      { isDelete: true }, // Update field
+      {
+        where: {
+          training_status: "Confirmed", // Status is "Confirmed"
+          tempdate: { [Op.lt]: today }, // Date is before today
+          isActive: true, // Form is active
+          isDelete: false, // Not already marked as deleted
         },
-        isActive: true, // Ensure the booking form is active
-        isDelete: false, // Ensure the booking form is not marked as deleted
-      },
-    });
+      }
+    );
 
-    if (bookingFormsToDelete.length === 0) {
-      console.log("No booking forms found matching the criteria");
-
-      // return apiResponse.notFoundResponse(
-      //   res,
-      //   "No booking forms found matching the criteria"
-      // );
-    }
-
-    // Delete all matching booking forms
-    const deletedCount = await BookingForm.destroy({
-      where: {
-        id: bookingFormsToDelete.map((form) => form.id), // Delete by IDs
-      },
-    });
-
-    // return apiResponse.successResponse(
-    //   res,
-    //   ` booking forms deleted successfully`
-    // );
+    console.log(`${updatedCount[0]} booking forms marked as deleted.`);
   } catch (error) {
-    console.error("Delete booking form failed", error);
-    // return apiResponse.ErrorResponse(res, "Delete booking form failed");
+    console.error("Error in deleteBookingFormCron:", error);
   }
 };
-
 const SlotRegisterInfo = require("../models/SlotRegisterInfo");
 const { default: axios } = require("axios");
 
@@ -1144,3 +1125,54 @@ exports.deleteSlotInfo = async (req, res) => {
       .json({ message: "An error occurred.", error: error.message });
   }
 };
+
+
+
+
+
+
+// exports.getAllEntriesByCategory = async (req, res) => {
+//   try {
+//     const { category } = req.body;
+
+//     // Get today's date at the start of the day, formatted as YYYY-MM-DD
+//     const today = moment().startOf("day").format("YYYY-MM-DD");
+
+//     // Determine if today is Sunday
+//     const isSunday = moment().day() === 0; // Sunday is represented as 0 in moment.js
+
+//     // If today is Sunday, also include records from Saturday
+//     let dateCondition;
+//     if (isSunday) {
+//       const yesterday = moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD");
+//       dateCondition = {
+//         [Op.or]: [
+//           { tempdate: { [Op.eq]: yesterday } }, // Include Saturday's records
+//           { tempdate: { [Op.gt]: today } },    // Include records from today onwards
+//         ],
+//       };
+//     } else {
+//       dateCondition = { tempdate: { [Op.gt]: today } }; // Default condition for other days
+//     }
+
+//     // Query the database for booking entries
+//     const bookingEntries = await BookingForm.findAll({
+//       where: {
+//         category,
+//         ...dateCondition,
+//       },
+//     });
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Booking entries by category retrieved successfully",
+//       bookingEntries
+//     );
+//   } catch (error) {
+//     console.log("Get booking entries by category failed", error);
+//     return apiResponse.ErrorResponse(
+//       res,
+//       "Get booking entries by category failed"
+//     );
+//   }
+// };

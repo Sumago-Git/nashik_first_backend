@@ -41,6 +41,6 @@ router.put('/isactive-booking/:id', authenticateToken, validateBookingFormId, is
 router.put('/updateTrainingStatus', updateTrainingStatus)
 // Toggle booking form delete status
 router.delete('/isdelete-booking/:id', authenticateToken, validateBookingFormId, isDeleteStatus);
-router.delete('/delete-booking/:id', authenticateToken, validateBookingFormId, deleteBookingForm);
+router.put('/delete-booking/:id', authenticateToken, validateBookingFormId, deleteBookingForm);
 
 module.exports = router;

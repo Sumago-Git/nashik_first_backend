@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const port = process.env.PORT || 8000;
 const cors = require("cors");
-// const setupCronJobs = require('./middleware/cronJobs');
+const setupCronJobs = require('./middleware/cronJobs');
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use("/uploads", express.static("uploads"));
 
 // Initialize cron jobs
-// setupCronJobs();
+setupCronJobs();
 const sequelize = require("./config/database");
 const authRoutes = require("./routes/authRoutes");
 const officeRoutes = require("./routes/officeRoutes");
