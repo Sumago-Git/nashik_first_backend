@@ -621,7 +621,7 @@ exports.updateTrainingStatus = async (req, res) => {
       const categoryStartingNumbers = {
         "RTO – Learner Driving License Holder Training": 90,
         "RTO – Suspended Driving License Holders Training": 20,
-        "School Students Training – Group": 40,
+        "RTO – Training for School Bus Driver": 40,
         "College/Organization Training – Group": 80,
       };
 
