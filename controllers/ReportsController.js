@@ -1884,7 +1884,6 @@ const trainingYearWiseCount = async (req, res) => {
 //   }
 // };
 
-
 const totalSessionsConducted = async (req, res) => {
   try {
     const {
@@ -1900,7 +1899,7 @@ const totalSessionsConducted = async (req, res) => {
       financialYear,
       slotType, // New filter for slotType
       rtoFilter, // New filter for RTO category
-      rtoSubCategory
+      rtoSubCategory,
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -1910,7 +1909,9 @@ const totalSessionsConducted = async (req, res) => {
     const filters = [];
     const params = [];
 
-    // Add filters dynamically based on input
+    filters.push("bf.training_status = ?");
+    params.push("Attended");
+
     if (date) {
       filters.push("DATE(bf.createdAt) = ?");
       params.push(date);
@@ -1995,9 +1996,34 @@ const totalSessionsConducted = async (req, res) => {
         ss.tempdate AS tempDate,
         ss.time AS timeSlot,
         COUNT(*) AS sessionCount,
-        CONCAT(ss.tempdate, '','') AS slotDateOnly,
+        bf.category AS categoryName,
+        MONTHNAME(ss.tempdate) AS monthName,
+        CASE
+          WHEN MONTH(ss.tempdate) >= 4 THEN CONCAT(YEAR(ss.tempdate), '-', YEAR(ss.tempdate) + 1)
+          ELSE CONCAT(YEAR(ss.tempdate) - 1, '-', YEAR(ss.tempdate))
+        END AS financialYear,
+        CASE 
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
+          ELSE 'Adult'
+        END AS trainingType,
+        WEEK(ss.tempdate, 1) AS weekNumber,
+        CASE
+          WHEN bf.category IN (
+            'RTO – Learner Driving License Holder Training',
+            'RTO – Suspended Driving License Holders Training',
+            'RTO – Training for School Bus Driver'
+          ) THEN 'RTO'
+          ELSE NULL
+        END AS RTO,
+        CASE
+          WHEN bf.category = 'RTO – Learner Driving License Holder Training' THEN 'Learner'
+          WHEN bf.category = 'RTO – Suspended Driving License Holders Training' THEN 'Suspended'
+          WHEN bf.category = 'RTO – Training for School Bus Driver' THEN 'School Bus'
+          ELSE NULL
+        END AS rtoSubcategory,
         CONCAT(ss.tempdate, ' ', ss.time) AS slotDateTime,
-        CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo,        
+        ss.id  AS slotId,
+        CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo,
         bf.*, ss.*, sri.*
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
@@ -2031,6 +2057,8 @@ const totalSessionsConducted = async (req, res) => {
     });
   }
 };
+
+
 
 
 
@@ -2115,6 +2143,8 @@ const trainerWiseSessionsConducted = async (req, res) => {
     const filters = [];
     const params = [];
 
+    filters.push("bf.training_status = ?");
+    params.push("Attended");
     // Filter for date (optional)
     if (date) {
       filters.push("DATE(bf.createdAt) = ?");
