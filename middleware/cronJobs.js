@@ -3,7 +3,7 @@ const { deleteBookingForm } = require('../controllers/BookingFormController');
 
 // Schedule the cron job to run at 12 AM every day except Saturdays
 const setupCronJobs = () => {
-  cron.schedule('0 0  * * 0-5,7', async () => {
+  cron.schedule('15 15  * * 0-5,7', async () => {
     console.log("Running nightly delete job for bookings...");
     try {
       await deleteBookingForm(); // Call your function directly
