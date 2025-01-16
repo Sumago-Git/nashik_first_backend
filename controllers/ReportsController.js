@@ -2207,8 +2207,8 @@ const totalSessionsConducted = async (req, res) => {
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
-      GROUP BY ss.tempdate, ss.time
-      ORDER BY ss.tempdate DESC, ss.time ASC
+      GROUP BY ss.id
+      ORDER BY ss.id DESC
       LIMIT ? OFFSET ?;
     `;
     const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
@@ -2412,11 +2412,11 @@ const trainerWiseSessionsConducted = async (req, res) => {
         WEEK(bf.createdAt, 1) AS week,
         COUNT(*) AS sessionCount,
         bf.category AS categoryName
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM sessionslots ss
+      LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
-      GROUP BY ss.trainer, year, month, week, bf.category
+      GROUP BY ss.trainer
       ORDER BY ss.trainer ASC, year DESC, month DESC, week DESC, bf.category ASC
       LIMIT ? OFFSET ?;
     `;
@@ -2425,9 +2425,9 @@ const trainerWiseSessionsConducted = async (req, res) => {
 
     // Query to count total records for pagination
     const totalRecordsQuery = `
-      SELECT COUNT(*) AS totalRecords
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      SELECT COUNT(DISTINCT ss.trainer) AS totalRecords
+      FROM sessionslots ss
+      LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
       ${filterCondition};
     `;
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
@@ -2540,6 +2540,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
     });
   }
 };
+
 
 
 
