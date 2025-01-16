@@ -2542,7 +2542,6 @@ const getInstituteNCategoryList = async (req, res) => {
 //   }
 // };
 
-
 const trainerWiseSessionsConducted = async (req, res) => {
   try {
     const {
@@ -2568,9 +2567,6 @@ const trainerWiseSessionsConducted = async (req, res) => {
     // Filters array to handle dynamic filtering
     const filters = [];
     const params = [];
-
-    filters.push("bf.training_status = ?");
-    params.push("Attended");
 
     if (date) {
       filters.push("DATE(bf.createdAt) = ?");
@@ -2638,6 +2634,10 @@ const trainerWiseSessionsConducted = async (req, res) => {
       params.push(rtoSubCategory);
     }
 
+    // Add the critical "Attended" filter as the last filter
+    filters.push("bf.training_status = ?");
+    params.push("Attended");
+
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
     // Query to count sessions by trainer and category for trainer-wise report
@@ -2654,7 +2654,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
-      GROUP BY ss.trainer, year, month, week, bf.category
+      GROUP BY ss.trainer
       ORDER BY ss.trainer ASC, year DESC, month DESC, week DESC, bf.category ASC
       LIMIT ? OFFSET ?;
     `;
@@ -2768,6 +2768,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
     });
   }
 };
+
 
 
 
