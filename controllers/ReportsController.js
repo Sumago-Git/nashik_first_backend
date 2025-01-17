@@ -1438,13 +1438,11 @@ const flattenJson = (obj, parent = '', res = {}) => {
   }
   return res;
 };
-
-
 const totalSessionsConducted = async (req, res) => {
   try {
     const {
-      page = 1, // Default to page 1 if not provided
-      pageSize = 50, // Default page size is 50
+      page = 1,
+      pageSize = 50,
       date,
       schoolName,
       trainer,
@@ -1474,7 +1472,7 @@ const totalSessionsConducted = async (req, res) => {
     }
 
     if (schoolName) {
-      filters.push("bf.institution_name LIKE ?");
+      filters.push("sri.institution_name LIKE ?");
       params.push(`%${schoolName}%`);
     }
 
@@ -1539,56 +1537,26 @@ const totalSessionsConducted = async (req, res) => {
 
     // Query to count all rows matching the filters
     const totalRecordsQuery = `
-      SELECT COUNT(*) AS totalRecords
+      SELECT COUNT(DISTINCT bf.sessionSlotId) AS totalRecords
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition};
     `;
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
 
-    // Query to get paginated records grouped by tempdate and time
+    // Query to get paginated records, selecting all columns from all tables
     const paginatedQuery = `
       SELECT
-        bf.*,
-        ss.*,
-        sri.*,
-        ss.tempdate AS tempDate,
-        ss.time AS timeSlot,
-        COUNT(*) AS sessionCount,
-        bf.category AS categoryName,
-        MONTHNAME(ss.tempdate) AS monthName,
-        CASE
-          WHEN MONTH(ss.tempdate) >= 4 THEN CONCAT(YEAR(ss.tempdate), '-', YEAR(ss.tempdate) + 1)
-          ELSE CONCAT(YEAR(ss.tempdate) - 1, '-', YEAR(ss.tempdate))
-        END AS financialYear,
-        CASE
-          WHEN bf.category = 'School Students Training – Group' THEN 'School'
-          ELSE 'Adult'
-        END AS trainingType,
-        WEEK(ss.tempdate, 1) AS weekNumber,
-        CASE
-          WHEN bf.category IN (
-            'RTO – Learner Driving License Holder Training',
-            'RTO – Suspended Driving License Holders Training',
-            'RTO – Training for School Bus Driver'
-          ) THEN 'RTO'
-          ELSE NULL
-        END AS RTO,
-        CASE
-          WHEN bf.category = 'RTO – Learner Driving License Holder Training' THEN 'Learner'
-          WHEN bf.category = 'RTO – Suspended Driving License Holders Training' THEN 'Suspended'
-          WHEN bf.category = 'RTO – Training for School Bus Driver' THEN 'School Bus'
-          ELSE NULL
-        END AS rtoSubcategory,
-        CONCAT(ss.tempdate, ' ', ss.time) AS slotDateTime,
-        ss.id AS slotId,
-        CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo
+        bf.*,  -- Select all columns from bookingforms
+        ss.*,  -- Select all columns from sessionslots
+        sri.*  -- Select all columns from slotregisterinfos
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
-      GROUP BY ss.id
+      GROUP BY bf.sessionSlotId
       ORDER BY ss.id DESC
       LIMIT ? OFFSET ?;
     `;
@@ -1616,7 +1584,6 @@ const totalSessionsConducted = async (req, res) => {
     });
   }
 };
-
 
 
 
@@ -1931,7 +1898,7 @@ const schoolWiseSessionsConducted = async (req, res) => {
 
     filters.push("bf.training_status = ?");
     params.push("Attended");
-    
+
     // Filter for date (optional)
     if (date) {
       filters.push("DATE(bf.createdAt) = ?");
