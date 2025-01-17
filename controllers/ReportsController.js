@@ -1153,6 +1153,240 @@ const trainingTypeWiseCountRTO = async (req, res) => {
 
 
 
+// const trainingYearWiseCount = async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       pageSize = 50,
+//       date,
+//       schoolName,
+//       trainingType, // School / Adult
+//       day,
+//       week,
+//       month,
+//       financialYear,
+//       slotType, // New filter for slotType
+//       rtoFilter, // Filter for RTO category
+//       rtoSubCategory, // New subfilter for specific RTO subcategories
+//       download
+//     } = req.body;
+
+//     const pageNum = parseInt(page, 10) || 1;
+//     const limit = parseInt(pageSize, 10) || 50;
+//     const offset = (pageNum - 1) * limit;
+
+//     const filters = [];
+//     const params = [];
+
+//     // Short name mapping for RTO categories
+//     const categoryShortNames = {
+//       'RTO – Learner Driving License Holder Training': 'Learner',
+//       'RTO – Suspended Driving License Holders Training': 'Suspended',
+//       'RTO – Training for School Bus Driver': 'School BUS',
+//     };
+//  // Month name mapping
+//  const monthNames = [
+//   "January", "February", "March", "April", "May", "June",
+//   "July", "August", "September", "October", "November", "December"
+// ];
+
+//     if (date) {
+//       filters.push("DATE(sri.slotdate) = ?");
+//       params.push(date);
+//     }
+
+//     if (schoolName) {
+//       filters.push("sri.institution_name LIKE ?");
+//       params.push(`%${schoolName}%`);
+//     }
+
+//     if (trainingType) {
+//       filters.push(`
+//         CASE 
+//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END = ?`);
+//       params.push(trainingType);
+//     }
+
+//     if (day) {
+//       filters.push("DAYOFWEEK(sri.slotdate) = ?");
+//       params.push(day);
+//     }
+
+//     if (week) {
+//       filters.push("WEEK(sri.slotdate, 1) = ?");
+//       params.push(week);
+//     }
+
+//     if (month) {
+//       filters.push("MONTH(sri.slotdate) = ?");
+//       params.push(month);
+//     }
+
+//     if (financialYear) {
+//       const startDate = `${financialYear}-04-01`;
+//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+//       filters.push("sri.slotdate BETWEEN ? AND ?");
+//       params.push(startDate, endDate);
+//     }
+
+//     if (slotType) {
+//       filters.push("ss.slotType = ?");
+//       params.push(slotType);
+//     }
+
+//     if (rtoFilter) {
+//       filters.push(`
+//         bf.category IN (
+//           'RTO – Learner Driving License Holder Training',
+//           'RTO – Suspended Driving License Holders Training',
+//           'RTO – Training for School Bus Driver'
+//         )
+//       `);
+//     }
+
+//     if (rtoSubCategory) {
+//       filters.push("bf.category = ?");
+//       params.push(rtoSubCategory);
+//     }
+
+//     // Apply the "Attended" filter for bookingforms only at the last stage
+//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")} AND bf.training_status = 'Attended'` : "WHERE bf.training_status = 'Attended'";
+
+//     const query = `
+//       SELECT
+//         sri.institution_name AS instituteName,
+//         YEAR(sri.slotdate) AS year,
+//         MONTH(sri.slotdate) AS month,
+//         WEEK(sri.slotdate, 1) AS week,
+//         bf.category AS category,
+//         COUNT(*) AS sessionCount,
+//         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions
+//       FROM slotregisterinfos sri
+//       LEFT JOIN sessionslots ss ON sri.sessionSlotId = ss.id
+//       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
+//       ${filterCondition}
+//       GROUP BY sri.institution_name, year, month, week, bf.category
+//       ORDER BY sri.institution_name, year DESC, month DESC, week DESC
+//       LIMIT ? OFFSET ?;
+//     `;
+
+//     const [records] = await dbObj.query(query, [...params, limit, offset]);
+
+//     const totalRecordsQuery = `
+//       SELECT COUNT(DISTINCT sri.institution_name) AS totalRecords
+//       FROM slotregisterinfos sri
+//       LEFT JOIN sessionslots ss ON sri.sessionSlotId = ss.id
+//       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
+//       ${filterCondition};
+//     `;
+
+//     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
+//     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
+//     const years = [...new Set(records.map(record => record.year))].sort((a, b) => b - a);
+
+//     // Format the response with short names applied for RTO
+//     const groupedData = records.reduce((acc, record) => {
+//       const { instituteName, year, month, week, category, sessionCount, totalSessions } = record;
+
+//       // Replace category name with short name if RTO filter is applied
+//       const categoryShort = rtoFilter && categoryShortNames[category] ? categoryShortNames[category] : category;
+
+//       let institute = acc.find((i) => i.instituteName === instituteName);
+//       if (!institute) {
+//         institute = {
+//           instituteName,
+//           sessionCount: 0,
+//           totalSessions: 0,
+//           years: [],
+//         };
+//         acc.push(institute);
+//       }
+
+//       institute.sessionCount += sessionCount;
+//       institute.totalSessions += totalSessions;
+
+//       let yearData = institute.years.find((y) => y.year === year);
+//       if (!yearData) {
+//         yearData = { year, trainingTypes: [] };
+//         institute.years.push(yearData);
+//       }
+
+//       const trainingType = categoryShort.includes("School") ? "School" : "Adult";
+//       let trainingTypeData = yearData.trainingTypes.find((t) => t.trainingType === trainingType);
+//       if (!trainingTypeData) {
+//         trainingTypeData = { trainingType, months: [] };
+//         yearData.trainingTypes.push(trainingTypeData);
+//       }
+
+//       let monthData = trainingTypeData.months.find((m) => m.month === month);
+//       if (!monthData) {
+//         monthData = { month, monthName: monthNames[month - 1], weeks: [] }; // Add monthName
+//         trainingTypeData.months.push(monthData);
+//       }
+
+//       let weekData = monthData.weeks.find((w) => w.week === week);
+//       if (!weekData) {
+//         weekData = { week, categories: [] };
+//         monthData.weeks.push(weekData);
+//       }
+
+//       weekData.categories.push({ category: categoryShort, sessionCount, totalSessions });
+//       return acc;
+//     }, []);
+
+//     // res.status(200).json({
+//     //   status: true,
+//     //   message: "Year-wise session count fetched successfully.",
+//     //   data: groupedData,
+//     //   totalSessionsConducted: totalRecords,
+//     //   pagination: {
+//     //     currentPage: pageNum,
+//     //     pageSize: limit,
+//     //     totalPages: Math.ceil(totalRecords / limit),
+//     //     totalRecords,
+//     //   },
+//     // });
+//     const flattenedData = records.map(record => flattenJson(record));
+
+//     // Format data for Excel export if download is true
+//     if (download) {
+//       const ws = xlsx.utils.json_to_sheet(flattenedData);
+//       const wb = xlsx.utils.book_new();
+//       xlsx.utils.book_append_sheet(wb, ws, 'Training Data');
+
+//       const fileName = 'Training_Yearwise_Data.xlsx';
+//       const fileBuffer = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+
+//       // Set response headers and send the file
+//       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+//       res.send(fileBuffer);
+//     } else {
+//       res.status(200).json({
+//         status: true,
+//         message: "Year-wise session count fetched successfully.",
+//         data: groupedData,
+//         totalSessionsConducted: totalRecords,
+//         pagination: {
+//           currentPage: pageNum,
+//           pageSize: limit,
+//           totalPages: Math.ceil(totalRecords / limit),
+//           totalRecords,
+//         },
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error fetching year-wise records:", error);
+//     res.status(500).json({
+//       status: false,
+//       message: "Failed to fetch year-wise records.",
+//       error: error.message,
+//     });
+//   }
+// };
+
 const trainingYearWiseCount = async (req, res) => {
   try {
     const {
@@ -1168,6 +1402,7 @@ const trainingYearWiseCount = async (req, res) => {
       slotType, // New filter for slotType
       rtoFilter, // Filter for RTO category
       rtoSubCategory, // New subfilter for specific RTO subcategories
+      download
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -1183,6 +1418,12 @@ const trainingYearWiseCount = async (req, res) => {
       'RTO – Suspended Driving License Holders Training': 'Suspended',
       'RTO – Training for School Bus Driver': 'School BUS',
     };
+
+    // Month name mapping
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
 
     if (date) {
       filters.push("DATE(sri.slotdate) = ?");
@@ -1275,9 +1516,9 @@ const trainingYearWiseCount = async (req, res) => {
       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
       ${filterCondition};
     `;
-
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
+    const years = [...new Set(records.map(record => record.year))].sort((a, b) => b - a);
 
     // Format the response with short names applied for RTO
     const groupedData = records.reduce((acc, record) => {
@@ -1290,57 +1531,84 @@ const trainingYearWiseCount = async (req, res) => {
       if (!institute) {
         institute = {
           instituteName,
-          sessionCount: 0,
-          totalSessions: 0,
+          sessionCount: 0, // To accumulate session count for the entire institute
+          totalSessions: 0, // To accumulate total sessions for the entire institute
           years: [],
         };
         acc.push(institute);
       }
 
+      // Aggregate session count and total sessions at the institute level
       institute.sessionCount += sessionCount;
       institute.totalSessions += totalSessions;
 
       let yearData = institute.years.find((y) => y.year === year);
       if (!yearData) {
-        yearData = { year, trainingTypes: [] };
+        yearData = { year, sessionCount: 0, totalSessions: 0, months: [] };
         institute.years.push(yearData);
       }
 
+      // Aggregate session count and total sessions at the year level
+      yearData.sessionCount += sessionCount;
+      yearData.totalSessions += totalSessions;
+
       const trainingType = categoryShort.includes("School") ? "School" : "Adult";
-      let trainingTypeData = yearData.trainingTypes.find((t) => t.trainingType === trainingType);
+      let trainingTypeData = yearData.months.find((m) => m.month === month);
       if (!trainingTypeData) {
-        trainingTypeData = { trainingType, months: [] };
-        yearData.trainingTypes.push(trainingTypeData);
+        trainingTypeData = {
+          month,
+          monthName: monthNames[month - 1], // Add monthName
+          sessionCount: 0, // Initialize session count
+          totalSessions: 0, // Initialize totalSessions
+          weeks: []
+        };
+        yearData.months.push(trainingTypeData);
       }
 
-      let monthData = trainingTypeData.months.find((m) => m.month === month);
-      if (!monthData) {
-        monthData = { month, weeks: [] };
-        trainingTypeData.months.push(monthData);
-      }
+      // Aggregate session count and total sessions at the month level
+      trainingTypeData.sessionCount += sessionCount;
+      trainingTypeData.totalSessions += totalSessions;
 
-      let weekData = monthData.weeks.find((w) => w.week === week);
+      let weekData = trainingTypeData.weeks.find((w) => w.week === week);
       if (!weekData) {
         weekData = { week, categories: [] };
-        monthData.weeks.push(weekData);
+        trainingTypeData.weeks.push(weekData);
       }
 
       weekData.categories.push({ category: categoryShort, sessionCount, totalSessions });
       return acc;
     }, []);
 
-    res.status(200).json({
-      status: true,
-      message: "Year-wise session count fetched successfully.",
-      data: groupedData,
-      totalSessionsConducted: totalRecords,
-      pagination: {
-        currentPage: pageNum,
-        pageSize: limit,
-        totalPages: Math.ceil(totalRecords / limit),
-        totalRecords,
-      },
-    });
+    // Flatten the data for Excel export
+    const flattenedData = records.map(record => flattenJson(record));
+
+    // Format data for Excel export if download is true
+    if (download) {
+      const ws = xlsx.utils.json_to_sheet(flattenedData);
+      const wb = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(wb, ws, 'Training Data');
+
+      const fileName = 'Training_Yearwise_Data.xlsx';
+      const fileBuffer = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+
+      // Set response headers and send the file
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.send(fileBuffer);
+    } else {
+      res.status(200).json({
+        status: true,
+        message: "Year-wise session count fetched successfully.",
+        data: groupedData,
+        totalSessionsConducted: totalRecords,
+        pagination: {
+          currentPage: pageNum,
+          pageSize: limit,
+          totalPages: Math.ceil(totalRecords / limit),
+          totalRecords,
+        },
+      });
+    }
   } catch (error) {
     console.error("Error fetching year-wise records:", error);
     res.status(500).json({
@@ -1349,6 +1617,19 @@ const trainingYearWiseCount = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+const flattenJson = (obj, parent = '', res = {}) => {
+  for (let key in obj) {
+    const propName = parent ? `${parent}_${key}` : key;
+    
+    if (typeof obj[key] === 'object' && !Array.isArray(obj[key]) && obj[key] !== null) {
+      flattenJson(obj[key], propName, res); // Recurse if it's an object
+    } else {
+      res[propName] = obj[key]; // Direct assignment for primitive types
+    }
+  }
+  return res;
 };
 
 
