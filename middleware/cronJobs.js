@@ -5,12 +5,31 @@ const { deleteBookingForm } = require('../controllers/BookingFormController');
 const setupCronJobs = () => {
   cron.schedule('0 0  * * 0-5,7', async () => {
     console.log("Running nightly delete job for bookings...");
+
     try {
       await deleteBookingForm(); // Call your function directly
       console.log("Nightly delete job completed.");
     } catch (error) {
       console.error("Error during nightly delete job:", error);
     }
+    
+    try {
+      await sendEmail(
+        "skothavade09@gmail.com",
+        "Test Subject",
+        "Test Subject",
+        "emailHtml"
+      );
+      console.log(
+        `Confirmation email sent successfully to ${"skothavade09@gmail.com"}`
+      );
+    } catch (error) {
+      console.error(
+        `Error sending email to ${"skothavade09@gmail.com"}:`,
+        error
+      );
+    }
+
   });
 
   console.log("Cron jobs initialized.");
