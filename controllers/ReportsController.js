@@ -1549,9 +1549,40 @@ const totalSessionsConducted = async (req, res) => {
     // Query to get paginated records, selecting all columns from all tables
     const paginatedQuery = `
       SELECT
-        bf.*,  -- Select all columns from bookingforms
-        ss.*,  -- Select all columns from sessionslots
-        sri.*  -- Select all columns from slotregisterinfos
+        bf.*,  
+        ss.*,  
+        sri.*  ,
+        ss.tempdate AS tempDate,
+        ss.time AS timeSlot,
+        COUNT(*) AS sessionCount,
+        bf.category AS categoryName,
+        MONTHNAME(ss.tempdate) AS monthName,
+        CASE
+          WHEN MONTH(ss.tempdate) >= 4 THEN CONCAT(YEAR(ss.tempdate), '-', YEAR(ss.tempdate) + 1)
+          ELSE CONCAT(YEAR(ss.tempdate) - 1, '-', YEAR(ss.tempdate))
+        END AS financialYear,
+        CASE
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
+          ELSE 'Adult'
+        END AS trainingType,
+        WEEK(ss.tempdate, 1) AS weekNumber,
+        CASE
+          WHEN bf.category IN (
+            'RTO – Learner Driving License Holder Training',
+            'RTO – Suspended Driving License Holders Training',
+            'RTO – Training for School Bus Driver'
+          ) THEN 'RTO'
+          ELSE NULL
+        END AS RTO,
+        CASE
+          WHEN bf.category = 'RTO – Learner Driving License Holder Training' THEN 'Learner'
+          WHEN bf.category = 'RTO – Suspended Driving License Holders Training' THEN 'Suspended'
+          WHEN bf.category = 'RTO – Training for School Bus Driver' THEN 'School Bus'
+          ELSE NULL
+        END AS rtoSubcategory,
+        CONCAT(ss.tempdate, ' ', ss.time) AS slotDateTime,
+        ss.id AS slotId,
+        CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
