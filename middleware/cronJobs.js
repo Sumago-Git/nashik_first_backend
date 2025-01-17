@@ -1,9 +1,10 @@
 const cron = require('node-cron');
 const { deleteBookingForm } = require('../controllers/BookingFormController');
+const sendEmail = require('./nodemailer');
 
 // Schedule the cron job to run at 12 AM every day except Saturdays
 const setupCronJobs = () => {
-  cron.schedule('0 13  * * 0-5,7', async () => {
+  cron.schedule('0 20  * * 0-5,7', async () => {
     console.log("Running nightly delete job for bookings...");
 
     try {
@@ -15,7 +16,7 @@ const setupCronJobs = () => {
 
     try {
       await sendEmail(
-        "skothavade09@gmail.com",
+        "maheshmhaske500@gmail.com",
         "Test Subject",
         "Test Subject",
         "emailHtml"
