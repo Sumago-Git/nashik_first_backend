@@ -2628,7 +2628,7 @@ LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
 LEFT JOIN sessionslots ss ON bf.sessionSlotId = ss.id
  ${filterCondition}
  GROUP BY rowLabel, category, year, MONTH(bf.tempdate), WEEK(bf.tempdate)
-ORDER BY rowLabel, year, MONTH(bf.tempdate), WEEK(bf.tempdate);
+ORDER BY rowLabel, year DESC, MONTH(bf.tempdate) DESC, WEEK(bf.tempdate) DESC;
 
     `;
 
@@ -2699,6 +2699,7 @@ const groupedData = records.reduce((acc, record) => {
   monthData.totalNoOfStudent += totalNoOfStudent;
   monthData.totalNoSessions += totalNoSessions;
 
+  // Grouping by week inside the month
   let weekData = monthData.weeks.find((w) => w.week === week);
   if (!weekData) {
     weekData = { week, totalNoOfStudent, totalNoSessions };
@@ -2707,6 +2708,10 @@ const groupedData = records.reduce((acc, record) => {
     weekData.totalNoOfStudent += totalNoOfStudent;
     weekData.totalNoSessions += totalNoSessions;
   }
+
+  // Ensure totalNoOfStudent is correctly propagated up to year
+  yearData.totalNoOfStudent += totalNoOfStudent;
+  yearData.totalNoSessions += totalNoSessions;
 
   return acc;
 }, {});
