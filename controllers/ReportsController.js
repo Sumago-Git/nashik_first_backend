@@ -2620,27 +2620,64 @@ const yearWiseFinalSessionCount = async (req, res) => {
   bf.category AS category,
   YEAR(bf.tempdate) AS year,
   MONTHNAME(bf.tempdate) AS month,
+  WEEK(bf.tempdate) AS week,
   COUNT(DISTINCT bf.id) AS totalNoOfStudent,
   COUNT(DISTINCT bf.sessionSlotId) AS totalNoSessions
 FROM bookingforms bf
 LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
 LEFT JOIN sessionslots ss ON bf.sessionSlotId = ss.id
  ${filterCondition}
- GROUP BY rowLabel, category, year, MONTH(bf.tempdate)
-ORDER BY rowLabel, year, MONTH(bf.tempdate);
+ GROUP BY rowLabel, category, year, MONTH(bf.tempdate), WEEK(bf.tempdate)
+ORDER BY rowLabel, year, MONTH(bf.tempdate), WEEK(bf.tempdate);
 
     `;
 
-    params.push(limit, offset);
-    const [records] = await dbObj.query(query, params);
+//     params.push(limit, offset);
+//     const [records] = await dbObj.query(query, params);
 
-    // Grouping data by rowLabel, then by year and month
-    // Grouping data by rowLabel, then by year and month
+//     // Grouping data by rowLabel, then by year and month
+//     // Grouping data by rowLabel, then by year and month
+// const groupedData = records.reduce((acc, record) => {
+//   const { rowLabel, category, year, month, totalNoOfStudent, totalNoSessions } = record;
+
+//   if (!acc[rowLabel]) {
+//     acc[rowLabel] = { rowLabel, category, sessionCount: 0,totalNoOfStudent:0,years: [] };
+//   }
+
+//   const categoryData = acc[rowLabel];
+//   categoryData.sessionCount += totalNoSessions;
+//   categoryData.totalNoOfStudent += totalNoOfStudent;
+
+//   let yearData = categoryData.years.find((y) => y.year === year);
+//   if (!yearData) {
+//     yearData = { year, totalNoOfStudent: 0, totalNoSessions: 0, months: [] };
+//     categoryData.years.push(yearData);
+//   }
+
+//   yearData.totalNoOfStudent += totalNoOfStudent;
+//   yearData.totalNoSessions += totalNoSessions;
+
+//   const monthExists = yearData.months.some((m) => m.month === month);
+//   if (!monthExists) {
+//     yearData.months.push({
+//       month,
+//       totalNoOfStudent,
+//       totalNoSessions,
+//     });
+//   }
+
+//   return acc;
+// }, {});
+
+params.push(limit, offset);
+const [records] = await dbObj.query(query, params);
+
+// Grouping data by rowLabel, then by year, month, and week
 const groupedData = records.reduce((acc, record) => {
-  const { rowLabel, category, year, month, totalNoOfStudent, totalNoSessions } = record;
+  const { rowLabel, category, year, month, week, totalNoOfStudent, totalNoSessions } = record;
 
   if (!acc[rowLabel]) {
-    acc[rowLabel] = { rowLabel, category, sessionCount: 0,totalNoOfStudent:0,years: [] };
+    acc[rowLabel] = { rowLabel, category, sessionCount: 0, totalNoOfStudent: 0, years: [] };
   }
 
   const categoryData = acc[rowLabel];
@@ -2653,20 +2690,27 @@ const groupedData = records.reduce((acc, record) => {
     categoryData.years.push(yearData);
   }
 
-  yearData.totalNoOfStudent += totalNoOfStudent;
-  yearData.totalNoSessions += totalNoSessions;
+  let monthData = yearData.months.find((m) => m.month === month);
+  if (!monthData) {
+    monthData = { month, totalNoOfStudent: 0, totalNoSessions: 0, weeks: [] };
+    yearData.months.push(monthData);
+  }
 
-  const monthExists = yearData.months.some((m) => m.month === month);
-  if (!monthExists) {
-    yearData.months.push({
-      month,
-      totalNoOfStudent,
-      totalNoSessions,
-    });
+  monthData.totalNoOfStudent += totalNoOfStudent;
+  monthData.totalNoSessions += totalNoSessions;
+
+  let weekData = monthData.weeks.find((w) => w.week === week);
+  if (!weekData) {
+    weekData = { week, totalNoOfStudent, totalNoSessions };
+    monthData.weeks.push(weekData);
+  } else {
+    weekData.totalNoOfStudent += totalNoOfStudent;
+    weekData.totalNoSessions += totalNoSessions;
   }
 
   return acc;
 }, {});
+
 
 // Instead of Object.values(groupedData), you can return all the grouped rows here.
 const result = Object.values(groupedData);
