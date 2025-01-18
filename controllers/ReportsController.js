@@ -1878,7 +1878,7 @@ const getInstituteNCategoryList = async (req, res) => {
     const query = `
       SELECT id, slotdate, sessionSlotId, slotsession, category, institution_name
       FROM slotregisterinfos
-      WHERE ${filterCondition}
+      WHERE ${filterCondition} group by institution_name
     `;
 
     // Use async/await for handling the query
