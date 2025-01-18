@@ -2600,6 +2600,14 @@ const yearWiseFinalSessionCount = async (req, res) => {
       filters.push("bf.tempdate <= ?");
       params.push(toDate);
     }
+    if (trainingType) {
+      filters.push(`
+        CASE 
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
+          ELSE 'Adult'
+        END = ?`);
+      params.push(trainingType);
+    }
 
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
