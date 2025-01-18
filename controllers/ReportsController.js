@@ -2572,9 +2572,10 @@ const yearWiseFinalSessionCount = async (req, res) => {
       params.push(month);
     }
     if (financialYear) {
-      filters.push("YEAR(bf.tempdate) BETWEEN ? AND ?");
-      const [startYear, endYear] = financialYear.split("-").map(Number);
-      params.push(startYear, endYear);
+      const startDate = `${financialYear}-04-01`;
+      const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(startDate, endDate);
     }
     if (slotType) {
       filters.push("ss.slot_type = ?");
