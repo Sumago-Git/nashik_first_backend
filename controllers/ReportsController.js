@@ -2149,8 +2149,6 @@ const schoolWiseSessionsConducted = async (req, res) => {
       month,
       financialYear,
       slotType, // Filter for slot type (optional)
-      rtoFilter, // Filter for RTO category
-      rtoSubCategory, // Filter for RTO subcategory
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -2161,8 +2159,20 @@ const schoolWiseSessionsConducted = async (req, res) => {
     const filters = [];
     const params = [];
 
+    // Filter for attended status
     filters.push("bf.training_status = ?");
     params.push("Attended");
+
+    // Default filter for specific categories (School Students Training – Group, College/Organization Training – Group)
+    filters.push("bf.category IN (?, ?)");
+    params.push('School Students Training – Group', 'College/Organization Training – Group');
+    filters.push("sri.institution_name IS NOT NULL AND sri.institution_name != ''");
+
+    // If any other category filter is provided, override the default category filter
+    if (req.body.category) {
+      filters.push("bf.category = ?");
+      params.push(req.body.category);
+    }
 
     // Filter for date (optional)
     if (date) {
@@ -2217,23 +2227,6 @@ const schoolWiseSessionsConducted = async (req, res) => {
       filters.push("ss.slotType = ?");
       params.push(slotType);
     }
-
-    // Filter for RTO category (optional)
-    if (rtoFilter) {
-      filters.push(`bf.category IN (
-        'RTO – Learner Driving License Holder Training',
-        'RTO – Suspended Driving License Holders Training',
-        'RTO – Training for School Bus Driver'
-      )`);
-    }
-
-    // Filter for RTO subcategories (optional)
-    if (rtoSubCategory) {
-      filters.push("bf.category = ?");
-      params.push(rtoSubCategory);
-    }
-
-
 
     // Combine filters into the query
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
@@ -2350,6 +2343,7 @@ const schoolWiseSessionsConducted = async (req, res) => {
     });
   }
 };
+
 
 // const schoolWiseSessionsConducted = async (req, res) => {
 //   try {
@@ -2556,7 +2550,7 @@ const yearWiseFinalSessionCount = async (req, res) => {
       params.push(date);
     }
     if (schoolName) {
-      filters.push("sri.institution_name LIKE ? AND sri.institution_name IS NOT NULL");
+      filters.push("sri.institution_name LIKE ?");
       params.push(`%${schoolName}%`);
     }
     if (day) {
