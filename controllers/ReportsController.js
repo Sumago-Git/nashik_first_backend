@@ -2559,10 +2559,6 @@ const yearWiseFinalSessionCount = async (req, res) => {
       filters.push("sri.institution_name LIKE ?");
       params.push(`%${schoolName}%`);
     }
-    if (trainingType) {
-      filters.push("bf.training_type = ?");
-      params.push(trainingType);
-    }
     if (day) {
       filters.push("DAYOFWEEK(bf.tempdate) = ?");
       params.push(day);
