@@ -6,6 +6,7 @@ const path = require('path')
 /**
  * Controller for fetching training summary
  */
+const excelJS = require("exceljs"); // Ensure you have exceljs installed in your project
 const trainingTypeWiseCount = async (req, res) => {
   try {
     const { category } = req.body; // Optional category parameter
@@ -1438,6 +1439,185 @@ const flattenJson = (obj, parent = '', res = {}) => {
   }
   return res;
 };
+// const totalSessionsConducted = async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       pageSize = 50,
+//       date,
+//       schoolName,
+//       trainer,
+//       trainingType, // School / Adult
+//       day,
+//       week,
+//       month,
+//       financialYear,
+//       slotType, // New filter for slotType
+//       rtoFilter, // New filter for RTO category
+//       rtoSubCategory,
+//     } = req.body;
+
+//     const pageNum = parseInt(page, 10) || 1;
+//     const limit = parseInt(pageSize, 10) || 50;
+//     const offset = (pageNum - 1) * limit;
+
+//     const filters = [];
+//     const params = [];
+
+//     filters.push("bf.training_status = ?");
+//     params.push("Attended");
+
+//     if (date) {
+//       filters.push("DATE(bf.createdAt) = ?");
+//       params.push(date);
+//     }
+
+//     if (schoolName) {
+//       filters.push("sri.institution_name LIKE ?");
+//       params.push(`%${schoolName}%`);
+//     }
+
+//     if (trainer) {
+//       filters.push("ss.trainer LIKE ?");
+//       params.push(`%${trainer}%`);
+//     }
+
+//     if (trainingType) {
+//       filters.push(`
+//         CASE
+//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END = ?
+//       `);
+//       params.push(trainingType);
+//     }
+
+//     if (day) {
+//       filters.push("DAYOFWEEK(bf.createdAt) = ?");
+//       params.push(day);
+//     }
+
+//     if (week) {
+//       filters.push("WEEK(bf.createdAt, 1) = ?");
+//       params.push(week);
+//     }
+
+//     if (month) {
+//       filters.push("MONTH(bf.createdAt) = ?");
+//       params.push(month);
+//     }
+
+//     if (financialYear) {
+//       const startDate = `${financialYear}-04-01`;
+//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+//       filters.push("bf.createdAt BETWEEN ? AND ?");
+//       params.push(startDate, endDate);
+//     }
+
+//     if (slotType) {
+//       filters.push("ss.slotType = ?");
+//       params.push(slotType);
+//     }
+
+//     if (rtoFilter) {
+//       filters.push(`
+//         bf.category IN (
+//           'RTO – Learner Driving License Holder Training',
+//           'RTO – Suspended Driving License Holders Training',
+//           'RTO – Training for School Bus Driver'
+//         )
+//       `);
+//     }
+
+//     if (rtoSubCategory) {
+//       filters.push("bf.category = ?");
+//       params.push(rtoSubCategory);
+//     }
+
+//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+//     // Query to count all rows matching the filters
+//     const totalRecordsQuery = `
+//       SELECT COUNT(DISTINCT bf.sessionSlotId) AS totalRecords
+//       FROM bookingforms bf
+//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+//       ${filterCondition};
+//     `;
+//     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
+//     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
+
+//     // Query to get paginated records, selecting all columns from all tables
+//     const paginatedQuery = `
+//       SELECT
+//         bf.*,  
+//         ss.*,  
+//         sri.*,
+//         ss.tempdate AS tempDate,
+//         ss.time AS timeSlot,
+//         COUNT(*) AS sessionCount,
+//         bf.category AS categoryName,
+//         MONTHNAME(ss.tempdate) AS monthName,
+//         CASE
+//           WHEN MONTH(ss.tempdate) >= 4 THEN CONCAT(YEAR(ss.tempdate), '-', YEAR(ss.tempdate) + 1)
+//           ELSE CONCAT(YEAR(ss.tempdate) - 1, '-', YEAR(ss.tempdate))
+//         END AS financialYear,
+//         CASE
+//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
+//           ELSE 'Adult'
+//         END AS trainingType,
+//         WEEK(ss.tempdate, 1) AS weekNumber,
+//         CASE
+//           WHEN bf.category IN (
+//             'RTO – Learner Driving License Holder Training',
+//             'RTO – Suspended Driving License Holders Training',
+//             'RTO – Training for School Bus Driver'
+//           ) THEN 'RTO'
+//           ELSE NULL
+//         END AS RTO,
+//         CASE
+//           WHEN bf.category = 'RTO – Learner Driving License Holder Training' THEN 'Learner'
+//           WHEN bf.category = 'RTO – Suspended Driving License Holders Training' THEN 'Suspended'
+//           WHEN bf.category = 'RTO – Training for School Bus Driver' THEN 'School Bus'
+//           ELSE NULL
+//         END AS rtoSubcategory,
+//         CONCAT(ss.tempdate, ' ', ss.time) AS slotDateTime,
+//         ss.id AS slotId,
+//         CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo
+//       FROM bookingforms bf
+//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
+//       ${filterCondition}
+//       GROUP BY bf.sessionSlotId
+//       ORDER BY ss.id DESC
+//       LIMIT ? OFFSET ?;
+//     `;
+//     const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
+
+//     // Prepare response
+//     res.status(200).json({
+//       status: true,
+//       message: "Records fetched successfully.",
+//       data: records,
+//       totalSessionsConducted: totalRecords,
+//       pagination: {
+//         currentPage: pageNum,
+//         pageSize: limit,
+//         totalPages: Math.ceil(totalRecords / limit),
+//         totalRecords,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error fetching records:", error);
+//     res.status(500).json({
+//       status: false,
+//       message: "Failed to fetch records.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 const totalSessionsConducted = async (req, res) => {
   try {
     const {
@@ -1454,6 +1634,9 @@ const totalSessionsConducted = async (req, res) => {
       slotType, // New filter for slotType
       rtoFilter, // New filter for RTO category
       rtoSubCategory,
+      fromDate,
+      toDate,
+      download = false, // New flag for downloading data
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -1533,6 +1716,11 @@ const totalSessionsConducted = async (req, res) => {
       params.push(rtoSubCategory);
     }
 
+    if (fromDate && toDate) {
+      filters.push("bf.createdAt BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
+
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
     // Query to count all rows matching the filters
@@ -1546,12 +1734,12 @@ const totalSessionsConducted = async (req, res) => {
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
 
-    // Query to get paginated records, selecting all columns from all tables
-    const paginatedQuery = `
+    // Query to get records
+    const dataQuery = `
       SELECT
         bf.*,  
         ss.*,  
-        sri.*  ,
+        sri.*,
         ss.tempdate AS tempDate,
         ss.time AS timeSlot,
         COUNT(*) AS sessionCount,
@@ -1589,9 +1777,52 @@ const totalSessionsConducted = async (req, res) => {
       ${filterCondition}
       GROUP BY bf.sessionSlotId
       ORDER BY ss.id DESC
-      LIMIT ? OFFSET ?;
+      ${download ? "" : "LIMIT ? OFFSET ?"};
     `;
-    const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
+    const [records] = await dbObj.query(dataQuery, download ? params : [...params, limit, offset]);
+
+    if (download) {
+      const workbook = new excelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Total Sessions");    
+      // Define the column structure explicitly
+      worksheet.columns = [
+        { header: "Date", key: "tempDate", width: 15 },
+        { header: "Time", key: "slotTimeInfo", width: 15 },
+        { header: "School / Institution", key: "institution_name", width: 30 },
+        { header: "No.Of Students", key: "sessionCount", width: 15 },
+        { header: "Phone No.", key: "institution_phone", width: 15 },
+        { header: "Email I.D.", key: "institution_email", width: 25 },
+        { header: "H.M. / Main Co-ordinator", key: "hm_principal_manager_name", width: 25 },
+        { header: "Mobile No.1", key: "hm_principal_manager_mobile", width: 15 },
+        { header: "Teacher / Sub Co-ordinator", key: "coordinator_name", width: 25 },
+        { header: "Mobile No.2", key: "coordinator_mobile", width: 15 },
+        { header: "Trainer", key: "trainer", width: 15 },
+        { header: "SCHOOL / ADULT", key: "trainingType", width: 15 },
+        { header: "Location", key: "slotType", width: 20 },
+        { header: "Week", key: "weekNumber", width: 10 },
+        { header: "Month", key: "monthName", width: 10 },
+        { header: "F.Y.", key: "financialYear", width: 10 },
+        { header: "RTO", key: "RTO", width: 10 },
+        { header: "RTO Sub Category", key: "rtoSubcategory", width: 20 },
+      ];
+      // Add records to the worksheet
+      if (records.length > 0) {
+        records.forEach((record) => worksheet.addRow(record));
+      }
+    
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=total_sessions.xlsx"
+      );
+    
+      await workbook.xlsx.write(res);
+      return res.status(200).end();
+    }
+    
 
     // Prepare response
     res.status(200).json({
@@ -1615,8 +1846,6 @@ const totalSessionsConducted = async (req, res) => {
     });
   }
 };
-
-
 
 
 
