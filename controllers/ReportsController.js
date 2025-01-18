@@ -2556,7 +2556,7 @@ const yearWiseFinalSessionCount = async (req, res) => {
       params.push(date);
     }
     if (schoolName) {
-      filters.push("sri.institution_name LIKE ?");
+      filters.push("sri.institution_name LIKE ? AND sri.institution_name IS NOT NULL");
       params.push(`%${schoolName}%`);
     }
     if (day) {
