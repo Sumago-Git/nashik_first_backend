@@ -4,7 +4,7 @@ const sendEmail = require('./nodemailer');
 
 // Schedule the cron job to run at 12 AM every day except Saturdays
 const setupCronJobs = () => {
-  cron.schedule('0 0  * * 0-5,7', async () => {
+  cron.schedule('0 0 * * 1-6', async () => {
     console.log("Running nightly delete job for bookings...");
 
     try {
@@ -22,7 +22,7 @@ const setupCronJobs = () => {
         "emailHtml"
       );
       console.log(
-        `Confirmation email sent successfully to ${"skothavade09@gmail.com"}`
+        `Confirmation email sent successfully to ${"maheshmhaske500@gmail.com"}`
       );
     } catch (error) {
       console.error(
