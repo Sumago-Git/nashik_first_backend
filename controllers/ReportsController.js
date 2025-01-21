@@ -1802,7 +1802,19 @@ const totalSessionsConducted = async (req, res) => {
         END AS rtoSubcategory,
         CONCAT(ss.tempdate, ' ', ss.time) AS slotDateTime,
         ss.id AS slotId,
-        CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo
+        CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo,
+         CASE
+          WHEN bf.institution_name IS NULL OR bf.institution_name = '' THEN
+            CASE
+              WHEN bf.category IN (
+                'RTO – Learner Driving License Holder Training',
+                'RTO – Suspended Driving License Holders Training',
+                'RTO – Training for School Bus Driver'
+              ) THEN  bf.category
+              ELSE sri.institution_name
+            END
+          ELSE bf.institution_name
+        END AS institutionOrCategory
       FROM bookingforms bf
       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
@@ -1820,7 +1832,7 @@ const totalSessionsConducted = async (req, res) => {
       worksheet.columns = [
         { header: "Date", key: "tempDate", width: 15 },
         { header: "Time", key: "slotTimeInfo", width: 15 },
-        { header: "School / Institution", key: "institution_name", width: 30 },
+        { header: "School / Institution", key: "institutionOrCategory", width: 30 },
         { header: "No.Of Students", key: "sessionCount", width: 15 },
         { header: "Phone No.", key: "institution_phone", width: 15 },
         { header: "Email I.D.", key: "institution_email", width: 25 },
