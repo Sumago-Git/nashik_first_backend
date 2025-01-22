@@ -527,7 +527,7 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
     }
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("tempdate BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -1476,6 +1476,14 @@ const totalSessionsConducted = async (req, res) => {
         records.forEach((record) => worksheet.addRow(record));
       }
     
+      const now = new Date();
+      const todaysDate = `${now.getDate().toString().padStart(2, '0')}${now.getMonth() + 1}` +
+        `${now.getFullYear()}${now.getHours().toString().padStart(2, '0')}` +
+        `${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`; 
+      console.log(todaysDate);      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=TotalSessions${todaysDate}.xlsx`
+      );
       // res.setHeader(
       //   "Content-Type",
       //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
