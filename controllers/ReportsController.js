@@ -1476,22 +1476,34 @@ const totalSessionsConducted = async (req, res) => {
         records.forEach((record) => worksheet.addRow(record));
       }
     
+      // res.setHeader(
+      //   "Content-Type",
+      //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      // );
+
+      // const now = new Date();
+      // const todaysDate = `${now.getDate().toString().padStart(2, '0')}${now.getMonth() + 1}` +
+      //   `${now.getFullYear()}${now.getHours().toString().padStart(2, '0')}` +
+      //   `${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`; 
+      // console.log(todaysDate);      res.setHeader(
+      //   "Content-Disposition",
+      //   `attachment; filename=TotalSessions${todaysDate}.xlsx`
+      // );
+    
+      // await workbook.xlsx.write(res);
+      // return res.status(200).end();
+
       res.setHeader(
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       );
-
-      const now = new Date();
-      const todaysDate = `${now.getDate().toString().padStart(2, '0')}${now.getMonth() + 1}` +
-        `${now.getFullYear()}${now.getHours().toString().padStart(2, '0')}` +
-        `${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`; 
-      console.log(todaysDate);      res.setHeader(
+      res.setHeader(
         "Content-Disposition",
         `attachment; filename=TotalSessions${todaysDate}.xlsx`
       );
-    
+      
       await workbook.xlsx.write(res);
-      return res.status(200).end();
+      return res.end(); // Explicitl
     }
     
 
