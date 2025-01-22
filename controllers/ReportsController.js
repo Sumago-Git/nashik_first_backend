@@ -1019,239 +1019,6 @@ const trainingTypeWiseCountRTO = async (req, res) => {
 
 
 
-//   try {
-//     const {
-//       page = 1,
-//       pageSize = 50,
-//       date,
-//       schoolName,
-//       trainingType, // School / Adult
-//       day,
-//       week,
-//       month,
-//       financialYear,
-//       slotType, // New filter for slotType
-//       rtoFilter, // Filter for RTO category
-//       rtoSubCategory, // New subfilter for specific RTO subcategories
-//       download
-//     } = req.body;
-
-//     const pageNum = parseInt(page, 10) || 1;
-//     const limit = parseInt(pageSize, 10) || 50;
-//     const offset = (pageNum - 1) * limit;
-
-//     const filters = [];
-//     const params = [];
-
-//     // Short name mapping for RTO categories
-//     const categoryShortNames = {
-//       'RTO – Learner Driving License Holder Training': 'Learner',
-//       'RTO – Suspended Driving License Holders Training': 'Suspended',
-//       'RTO – Training for School Bus Driver': 'School BUS',
-//     };
-//  // Month name mapping
-//  const monthNames = [
-//   "January", "February", "March", "April", "May", "June",
-//   "July", "August", "September", "October", "November", "December"
-// ];
-
-//     if (date) {
-//       filters.push("DATE(sri.slotdate) = ?");
-//       params.push(date);
-//     }
-
-//     if (schoolName) {
-//       filters.push("sri.institution_name LIKE ?");
-//       params.push(`%${schoolName}%`);
-//     }
-
-//     if (trainingType) {
-//       filters.push(`
-//         CASE 
-//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
-//           ELSE 'Adult'
-//         END = ?`);
-//       params.push(trainingType);
-//     }
-
-//     if (day) {
-//       filters.push("DAYOFWEEK(sri.slotdate) = ?");
-//       params.push(day);
-//     }
-
-//     if (week) {
-//       filters.push("WEEK(sri.slotdate, 1) = ?");
-//       params.push(week);
-//     }
-
-//     if (month) {
-//       filters.push("MONTH(sri.slotdate) = ?");
-//       params.push(month);
-//     }
-
-//     if (financialYear) {
-//       const startDate = `${financialYear}-04-01`;
-//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-//       filters.push("sri.slotdate BETWEEN ? AND ?");
-//       params.push(startDate, endDate);
-//     }
-
-//     if (slotType) {
-//       filters.push("ss.slotType = ?");
-//       params.push(slotType);
-//     }
-
-//     if (rtoFilter) {
-//       filters.push(`
-//         bf.category IN (
-//           'RTO – Learner Driving License Holder Training',
-//           'RTO – Suspended Driving License Holders Training',
-//           'RTO – Training for School Bus Driver'
-//         )
-//       `);
-//     }
-
-//     if (rtoSubCategory) {
-//       filters.push("bf.category = ?");
-//       params.push(rtoSubCategory);
-//     }
-
-//     // Apply the "Attended" filter for bookingforms only at the last stage
-//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")} AND bf.training_status = 'Attended'` : "WHERE bf.training_status = 'Attended'";
-
-//     const query = `
-//       SELECT
-//         sri.institution_name AS instituteName,
-//         YEAR(sri.slotdate) AS year,
-//         MONTH(sri.slotdate) AS month,
-//         WEEK(sri.slotdate, 1) AS week,
-//         bf.category AS category,
-//         COUNT(*) AS sessionCount,
-//         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions
-//       FROM slotregisterinfos sri
-//       LEFT JOIN sessionslots ss ON sri.sessionSlotId = ss.id
-//       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
-//       ${filterCondition}
-//       GROUP BY sri.institution_name, year, month, week, bf.category
-//       ORDER BY sri.institution_name, year DESC, month DESC, week DESC
-//       LIMIT ? OFFSET ?;
-//     `;
-
-//     const [records] = await dbObj.query(query, [...params, limit, offset]);
-
-//     const totalRecordsQuery = `
-//       SELECT COUNT(DISTINCT sri.institution_name) AS totalRecords
-//       FROM slotregisterinfos sri
-//       LEFT JOIN sessionslots ss ON sri.sessionSlotId = ss.id
-//       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
-//       ${filterCondition};
-//     `;
-
-//     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
-//     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
-//     const years = [...new Set(records.map(record => record.year))].sort((a, b) => b - a);
-
-//     // Format the response with short names applied for RTO
-//     const groupedData = records.reduce((acc, record) => {
-//       const { instituteName, year, month, week, category, sessionCount, totalSessions } = record;
-
-//       // Replace category name with short name if RTO filter is applied
-//       const categoryShort = rtoFilter && categoryShortNames[category] ? categoryShortNames[category] : category;
-
-//       let institute = acc.find((i) => i.instituteName === instituteName);
-//       if (!institute) {
-//         institute = {
-//           instituteName,
-//           sessionCount: 0,
-//           totalSessions: 0,
-//           years: [],
-//         };
-//         acc.push(institute);
-//       }
-
-//       institute.sessionCount += sessionCount;
-//       institute.totalSessions += totalSessions;
-
-//       let yearData = institute.years.find((y) => y.year === year);
-//       if (!yearData) {
-//         yearData = { year, trainingTypes: [] };
-//         institute.years.push(yearData);
-//       }
-
-//       const trainingType = categoryShort.includes("School") ? "School" : "Adult";
-//       let trainingTypeData = yearData.trainingTypes.find((t) => t.trainingType === trainingType);
-//       if (!trainingTypeData) {
-//         trainingTypeData = { trainingType, months: [] };
-//         yearData.trainingTypes.push(trainingTypeData);
-//       }
-
-//       let monthData = trainingTypeData.months.find((m) => m.month === month);
-//       if (!monthData) {
-//         monthData = { month, monthName: monthNames[month - 1], weeks: [] }; // Add monthName
-//         trainingTypeData.months.push(monthData);
-//       }
-
-//       let weekData = monthData.weeks.find((w) => w.week === week);
-//       if (!weekData) {
-//         weekData = { week, categories: [] };
-//         monthData.weeks.push(weekData);
-//       }
-
-//       weekData.categories.push({ category: categoryShort, sessionCount, totalSessions });
-//       return acc;
-//     }, []);
-
-//     // res.status(200).json({
-//     //   status: true,
-//     //   message: "Year-wise session count fetched successfully.",
-//     //   data: groupedData,
-//     //   totalSessionsConducted: totalRecords,
-//     //   pagination: {
-//     //     currentPage: pageNum,
-//     //     pageSize: limit,
-//     //     totalPages: Math.ceil(totalRecords / limit),
-//     //     totalRecords,
-//     //   },
-//     // });
-//     const flattenedData = records.map(record => flattenJson(record));
-
-//     // Format data for Excel export if download is true
-//     if (download) {
-//       const ws = xlsx.utils.json_to_sheet(flattenedData);
-//       const wb = xlsx.utils.book_new();
-//       xlsx.utils.book_append_sheet(wb, ws, 'Training Data');
-
-//       const fileName = 'Training_Yearwise_Data.xlsx';
-//       const fileBuffer = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
-
-//       // Set response headers and send the file
-//       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-//       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-//       res.send(fileBuffer);
-//     } else {
-//       res.status(200).json({
-//         status: true,
-//         message: "Year-wise session count fetched successfully.",
-//         data: groupedData,
-//         totalSessionsConducted: totalRecords,
-//         pagination: {
-//           currentPage: pageNum,
-//           pageSize: limit,
-//           totalPages: Math.ceil(totalRecords / limit),
-//           totalRecords,
-//         },
-//       });
-//     }
-//   } catch (error) {
-//     console.error("Error fetching year-wise records:", error);
-//     res.status(500).json({
-//       status: false,
-//       message: "Failed to fetch year-wise records.",
-//       error: error.message,
-//     });
-//   }
-// };
-
 const trainingYearWiseCount = async (req, res) => {
   try {
     const {
@@ -1503,183 +1270,6 @@ const flattenJson = (obj, parent = '', res = {}) => {
   }
   return res;
 };
-// const totalSessionsConducted = async (req, res) => {
-//   try {
-//     const {
-//       page = 1,
-//       pageSize = 50,
-//       date,
-//       schoolName,
-//       trainer,
-//       trainingType, // School / Adult
-//       day,
-//       week,
-//       month,
-//       financialYear,
-//       slotType, // New filter for slotType
-//       rtoFilter, // New filter for RTO category
-//       rtoSubCategory,
-//     } = req.body;
-
-//     const pageNum = parseInt(page, 10) || 1;
-//     const limit = parseInt(pageSize, 10) || 50;
-//     const offset = (pageNum - 1) * limit;
-
-//     const filters = [];
-//     const params = [];
-
-//     filters.push("bf.training_status = ?");
-//     params.push("Attended");
-
-//     if (date) {
-//       filters.push("DATE(bf.tempdate) = ?");
-//       params.push(date);
-//     }
-
-//     if (schoolName) {
-//       filters.push("sri.institution_name LIKE ?");
-//       params.push(`%${schoolName}%`);
-//     }
-
-//     if (trainer) {
-//       filters.push("ss.trainer LIKE ?");
-//       params.push(`%${trainer}%`);
-//     }
-
-//     if (trainingType) {
-//       filters.push(`
-//         CASE
-//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
-//           ELSE 'Adult'
-//         END = ?
-//       `);
-//       params.push(trainingType);
-//     }
-
-//     if (day) {
-//       filters.push("DAYOFWEEK(bf.tempdate) = ?");
-//       params.push(day);
-//     }
-
-//     if (week) {
-//       filters.push("WEEK(bf.tempdate, 1) = ?");
-//       params.push(week);
-//     }
-
-//     if (month) {
-//       filters.push("MONTH(bf.tempdate) = ?");
-//       params.push(month);
-//     }
-
-//     if (financialYear) {
-//       const startDate = `${financialYear}-04-01`;
-//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-//       filters.push("bf.tempdate BETWEEN ? AND ?");
-//       params.push(startDate, endDate);
-//     }
-
-//     if (slotType) {
-//       filters.push("ss.slotType = ?");
-//       params.push(slotType);
-//     }
-
-//     if (rtoFilter) {
-//       filters.push(`
-//         bf.category IN (
-//           'RTO – Learner Driving License Holder Training',
-//           'RTO – Suspended Driving License Holders Training',
-//           'RTO – Training for School Bus Driver'
-//         )
-//       `);
-//     }
-
-//     if (rtoSubCategory) {
-//       filters.push("bf.category = ?");
-//       params.push(rtoSubCategory);
-//     }
-
-//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
-
-//     // Query to count all rows matching the filters
-//     const totalRecordsQuery = `
-//       SELECT COUNT(DISTINCT bf.sessionSlotId) AS totalRecords
-//       FROM bookingforms bf
-//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
-//       ${filterCondition};
-//     `;
-//     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
-//     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
-
-//     // Query to get paginated records, selecting all columns from all tables
-//     const paginatedQuery = `
-//       SELECT
-//         bf.*,  
-//         ss.*,  
-//         sri.*,
-//         ss.tempdate AS tempDate,
-//         ss.time AS timeSlot,
-//         COUNT(*) AS sessionCount,
-//         bf.category AS categoryName,
-//         MONTHNAME(ss.tempdate) AS monthName,
-//         CASE
-//           WHEN MONTH(ss.tempdate) >= 4 THEN CONCAT(YEAR(ss.tempdate), '-', YEAR(ss.tempdate) + 1)
-//           ELSE CONCAT(YEAR(ss.tempdate) - 1, '-', YEAR(ss.tempdate))
-//         END AS financialYear,
-//         CASE
-//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
-//           ELSE 'Adult'
-//         END AS trainingType,
-//         WEEK(ss.tempdate, 1) AS weekNumber,
-//         CASE
-//           WHEN bf.category IN (
-//             'RTO – Learner Driving License Holder Training',
-//             'RTO – Suspended Driving License Holders Training',
-//             'RTO – Training for School Bus Driver'
-//           ) THEN 'RTO'
-//           ELSE NULL
-//         END AS RTO,
-//         CASE
-//           WHEN bf.category = 'RTO – Learner Driving License Holder Training' THEN 'Learner'
-//           WHEN bf.category = 'RTO – Suspended Driving License Holders Training' THEN 'Suspended'
-//           WHEN bf.category = 'RTO – Training for School Bus Driver' THEN 'School Bus'
-//           ELSE NULL
-//         END AS rtoSubcategory,
-//         CONCAT(ss.tempdate, ' ', ss.time) AS slotDateTime,
-//         ss.id AS slotId,
-//         CONCAT(ss.time, ' To ', ss.deadLineTime) AS slotTimeInfo
-//       FROM bookingforms bf
-//       JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
-//       ${filterCondition}
-//       GROUP BY bf.sessionSlotId
-//       ORDER BY ss.id DESC
-//       LIMIT ? OFFSET ?;
-//     `;
-//     const [records] = await dbObj.query(paginatedQuery, [...params, limit, offset]);
-
-//     // Prepare response
-//     res.status(200).json({
-//       status: true,
-//       message: "Records fetched successfully.",
-//       data: records,
-//       totalSessionsConducted: totalRecords,
-//       pagination: {
-//         currentPage: pageNum,
-//         pageSize: limit,
-//         totalPages: Math.ceil(totalRecords / limit),
-//         totalRecords,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error fetching records:", error);
-//     res.status(500).json({
-//       status: false,
-//       message: "Failed to fetch records.",
-//       error: error.message,
-//     });
-//   }
-// };
 
 
 const totalSessionsConducted = async (req, res) => {
@@ -1985,317 +1575,7 @@ const getInstituteNCategoryList = async (req, res) => {
 };
 
 
-// const trainerWiseSessionsConducted = async (req, res) => {
-//   try {
-//     const {
-//       page = 1, // Default to page 1 if not provided
-//       pageSize = 50, // Default page size is 50
-//       date,
-//       schoolName,
-//       trainer,
-//       trainingType, // School / Adult
-//       day,
-//       week,
-//       month,
-//       financialYear,
-//       slotType, // New filter for slotType
-//       rtoFilter, // Filter for RTO category
-//       rtoSubCategory, // New subfilter for specific RTO subcategories
-//     } = req.body;
 
-//     const pageNum = parseInt(page, 10) || 1;
-//     const limit = parseInt(pageSize, 10) || 50;
-//     const offset = (pageNum - 1) * limit;
-
-//     // Filters array to handle dynamic filtering
-//     const filters = [];
-//     const params = [];
-
-//     if (date) {
-//       filters.push("DATE(bf.tempdate) = ?");
-//       params.push(date);
-//     }
-
-//     if (schoolName) {
-//       filters.push("bf.institution_name LIKE ?");
-//       params.push(`%${schoolName}%`);
-//     }
-
-//     if (trainer) {
-//       filters.push("ss.trainer LIKE ?");
-//       params.push(`%${trainer}%`);
-//     }
-
-//     if (trainingType) {
-//       filters.push(`
-//         CASE 
-//           WHEN bf.category = 'School Students Training – Group' THEN 'School'
-//           ELSE 'Adult'
-//         END = ?`);
-//       params.push(trainingType);
-//     }
-
-//     if (day) {
-//       filters.push("DAYOFWEEK(bf.tempdate) = ?");
-//       params.push(day);
-//     }
-
-//     if (week) {
-//       filters.push("WEEK(bf.tempdate, 1) = ?");
-//       params.push(week);
-//     }
-
-//     if (month) {
-//       filters.push("MONTH(bf.tempdate) = ?");
-//       params.push(month);
-//     }
-
-//     if (financialYear) {
-//       const startDate = `${financialYear}-04-01`;
-//       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-//       filters.push("bf.tempdate BETWEEN ? AND ?");
-//       params.push(startDate, endDate);
-//     }
-
-//     if (slotType) {
-//       filters.push("ss.slotType = ?");
-//       params.push(slotType);
-//     }
-
-//     if (rtoFilter) {
-//       filters.push(`
-//         bf.category IN (
-//           'RTO – Learner Driving License Holder Training',
-//           'RTO – Suspended Driving License Holders Training',
-//           'RTO – Training for School Bus Driver'
-//         )
-//       `);
-//     }
-
-//     if (rtoSubCategory) {
-//       filters.push("bf.category = ?");
-//       params.push(rtoSubCategory);
-//     }
-
-//     // Add the critical "Attended" filter as the last filter
-//     filters.push("bf.training_status = ?");
-//     params.push("Attended");
-
-//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
-
-//     // Query to count sessions by trainer and category for trainer-wise report
-//     const trainerWiseQuery = `
-//       SELECT
-//         IFNULL(NULLIF(ss.trainer, ''), 'UnknownTrainer') AS trainerName,         YEAR(bf.tempdate) AS year,
-//         MONTH(bf.tempdate) AS month,
-//         WEEK(bf.tempdate, 1) AS week,
-//         COUNT(*) AS sessionCount,
-//         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions,
-//          COUNT(DISTINCT MONTH(bf.tempdate)) AS monthCount,
-//         bf.category AS categoryName
-//       FROM sessionslots ss
-//       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
-//       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
-//       ${filterCondition}
-//       GROUP BY ss.trainer
-//       ORDER BY ss.trainer ASC, year DESC, month DESC, week DESC, bf.category ASC
-//       LIMIT ? OFFSET ?;
-//     `;
-
-//     const [records] = await dbObj.query(trainerWiseQuery, [...params, limit, offset]);
-
-
-    
-//     console.log("------------------------");
-//     console.log(records);
-
-//     const totalRecordsQuery = `
-//       SELECT COUNT(DISTINCT ss.trainer) AS totalRecords
-//       FROM sessionslots ss
-//       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
-//       ${filterCondition};
-//     `;
-//     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
-//     const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
-
-//     const monthNames = [
-//       'January', 'February', 'March', 'April', 'May', 'June', 
-//       'July', 'August', 'September', 'October', 'November', 'December'
-//     ];
-
-//     const categoryShortNames = {
-//       'RTO – Learner Driving License Holder Training': 'Learner',
-//       'RTO – Suspended Driving License Holders Training': 'Suspended',
-//       'RTO – Training for School Bus Driver': 'School BUS',
-//     };
-
-//     const result = [];
-
-//     // records.forEach(record => {
-//     //   const { trainerName, year, month, week, sessionCount, categoryName, totalSessions } = record;
-
-//     //   let trainerObj = result.find(t => t.trainerName === trainerName);
-//     //   if (!trainerObj) {
-//     //     trainerObj = { trainerName, sessionCount: 0, totalSessions: 0, years: [] };
-//     //     result.push(trainerObj);
-//     //   }
-
-//     //   trainerObj.sessionCount += sessionCount;
-//     //   trainerObj.totalSessions += totalSessions;
-
-//     //   let yearObj = trainerObj.years.find(y => y.year === year);
-//     //   if (!yearObj) {
-//     //     yearObj = { year, sessionCount: 0, totalSessions: 0, months: [] };
-//     //     trainerObj.years.push(yearObj);
-//     //   }
-
-//     //   yearObj.sessionCount += sessionCount;
-//     //   yearObj.totalSessions += totalSessions;
-
-//     //   let monthObj = yearObj.months.find(m => m.month === month);
-//     //   if (!monthObj) {
-//     //     monthObj = { 
-//     //       month, 
-//     //       monthName: monthNames[month - 1], 
-//     //       sessionCount: 0, 
-//     //       totalSessions: 0, 
-//     //       weeks: [],
-//     //       consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 }
-//     //     };
-//     //     yearObj.months.push(monthObj);
-//     //   }
-
-//     //   monthObj.sessionCount += sessionCount;
-//     //   monthObj.totalSessions += totalSessions;
-
-//     //   if (categoryShortNames[categoryName]) {
-//     //     monthObj.consolidatedSessions[categoryShortNames[categoryName]] += sessionCount;
-//     //   }
-
-//     //   let weekObj = monthObj.weeks.find(w => w.week === week);
-//     //   if (!weekObj) {
-//     //     weekObj = { 
-//     //       week, 
-//     //       sessionCount: 0, 
-//     //       totalSessions: 0, 
-//     //       categoryName,
-//     //       consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 }
-//     //     };
-
-//     //     weekObj.shortName = categoryShortNames[categoryName] || categoryName;
-
-//     //     monthObj.weeks.push(weekObj);
-//     //   }
-
-//     //   weekObj.sessionCount += sessionCount;
-//     //   weekObj.totalSessions += totalSessions;
-
-//     //   if (categoryShortNames[categoryName]) {
-//     //     weekObj.consolidatedSessions[categoryShortNames[categoryName]] += sessionCount;
-//     //   }
-//     // });
-
-
-//     records.forEach(record => {
-//       const { trainerName, year, month, week, sessionCount, categoryName, totalSessions,monthCount } = record;
-    
-//       // Log the incoming record to understand the structure
-//       console.log(`Processing record: ${JSON.stringify(record)}`);
-    
-//       // Find or create trainer entry
-//       let trainerObj = result.find(t => t.trainerName === trainerName);
-//       if (!trainerObj) {
-//         trainerObj = { trainerName, sessionCount: 0, totalSessions: 0, years: [] };
-//         result.push(trainerObj);
-//       }
-    
-//       trainerObj.sessionCount += sessionCount;
-//       trainerObj.totalSessions += totalSessions;
-//       trainerObj.monthCount += monthCount;
-    
-//       // Find or create year entry
-//       let yearObj = trainerObj.years.find(y => y.year === year);
-//       if (!yearObj) {
-//         yearObj = { year, sessionCount: 0, totalSessions: 0, months: [] };
-//         trainerObj.years.push(yearObj);
-//       }
-    
-//       yearObj.sessionCount += sessionCount;
-//       yearObj.totalSessions += totalSessions;
-    
-//       // Find or create month entry
-//       let monthObj = yearObj.months.find(m => m.month === month);
-//       if (!monthObj) {
-//         monthObj = { 
-//           month, 
-//           monthName: monthNames[month - 1], 
-//           sessionCount: 0, 
-//           totalSessions: 0, 
-//           weeks: [],
-//           consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 }
-//         };
-//         yearObj.months.push(monthObj);
-//       }
-    
-//       // Log the month object to check if it's correctly grouped
-//       console.log(`Month object for ${monthObj.monthName}: ${JSON.stringify(monthObj)}`);
-    
-//       monthObj.sessionCount += sessionCount;
-//       monthObj.totalSessions += totalSessions;
-    
-//       if (categoryShortNames[categoryName]) {
-//         monthObj.consolidatedSessions[categoryShortNames[categoryName]] += sessionCount;
-//       }
-    
-//       // Find or create week entry
-//       let weekObj = monthObj.weeks.find(w => w.week === week);
-//       if (!weekObj) {
-//         weekObj = { 
-//           week, 
-//           sessionCount: 0, 
-//           totalSessions: 0, 
-//           categoryName,
-//           consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 }
-//         };
-    
-//         weekObj.shortName = categoryShortNames[categoryName] || categoryName;
-    
-//         monthObj.weeks.push(weekObj);
-//       }
-    
-//       // Log the week object to check if it's correctly grouped
-//       console.log(`Week object for week ${week}: ${JSON.stringify(weekObj)}`);
-    
-//       weekObj.sessionCount += sessionCount;
-//       weekObj.totalSessions += totalSessions;
-    
-//       if (categoryShortNames[categoryName]) {
-//         weekObj.consolidatedSessions[categoryShortNames[categoryName]] += sessionCount;
-//       }
-//     });
-    
-    
-//     res.status(200).json({
-//       status: true,
-//       message: 'Trainer-wise session count fetched successfully.',
-//       data: result,
-//       totalSessionsConducted: totalRecords,
-//       pagination: {
-//         currentPage: pageNum,
-//         pageSize: limit,
-//         totalPages: Math.ceil(totalRecords / limit),
-//         totalRecords,
-//       },
-//     });
-//   } catch (error) {
-//     console.error('Error fetching trainer-wise records:', error);
-//     res.status(500).json({
-//       status: false,
-//       message: 'Failed to fetch trainer-wise records.',
-//       error: error.message,
-//     });
-//   }
-// };
 
 const trainerWiseSessionsConducted = async (req, res) => {
   try {
@@ -2315,7 +1595,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
       rtoSubCategory,
       fromDate,
       toDate,
-      download = false, 
+      download = false,
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -2392,27 +1672,27 @@ const trainerWiseSessionsConducted = async (req, res) => {
 
     filters.push("bf.training_status = ?");
     params.push("Attended");
+
     if (fromDate && toDate) {
       filters.push("bf.tempdate BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
+
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
     const trainerWiseQuery = `
       SELECT
         IFNULL(NULLIF(ss.trainer, ''), 'UnknownTrainer') AS trainerName,
-        ss.tempdate as slotDatex,
         YEAR(ss.tempdate) AS year,
         MONTH(ss.tempdate) AS month,
         WEEK(ss.tempdate, 1) AS week,
         COUNT(*) AS sessionCount,
         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions,
-        COUNT(DISTINCT MONTH(bf.tempdate)) AS monthCount,
         bf.category AS categoryName
       FROM sessionslots ss
       LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
       ${filterCondition}
-      GROUP BY trainerName, year, month, week
+      GROUP BY trainerName, year, month, week, bf.category
       ORDER BY trainerName ASC, year DESC, month DESC, week DESC, bf.category ASC
       LIMIT ? OFFSET ?;
     `;
@@ -2447,13 +1727,11 @@ const trainerWiseSessionsConducted = async (req, res) => {
       'RTO – Training for School Bus Driver': 'School BUS',
     };
 
-    // Use an object to separate trainers
     const trainerJson = {};
 
     records.forEach(record => {
       const { trainerName, year, month, week, sessionCount, categoryName, totalSessions } = record;
 
-      // Initialize the trainer object if it doesn't exist
       if (!trainerJson[trainerName]) {
         trainerJson[trainerName] = {
           trainerName,
@@ -2463,28 +1741,24 @@ const trainerWiseSessionsConducted = async (req, res) => {
 
       const trainerObj = trainerJson[trainerName];
 
-      // Find or create year entry
       let yearObj = trainerObj.years.find(y => y.year === year);
       if (!yearObj) {
-        yearObj = { year, months: [] };
+        yearObj = { 
+          year, 
+          months: Array.from({ length: 12 }, (_, i) => ({
+            month: i + 1,
+            monthName: monthNames[i],
+            sessionCount: 0,
+            totalSessions: 0,
+            weeks: [],
+            consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 },
+          }))
+        };
         trainerObj.years.push(yearObj);
       }
 
-      // Find or create month entry
-      let monthObj = yearObj.months.find(m => m.month === month);
-      if (!monthObj) {
-        monthObj = {
-          month,
-          monthName: monthNames[month - 1],
-          sessionCount: 0,
-          totalSessions: 0,
-          weeks: [],
-          consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 },
-        };
-        yearObj.months.push(monthObj);
-      }
+      const monthObj = yearObj.months.find(m => m.month === month);
 
-      // Find or create week entry
       let weekObj = monthObj.weeks.find(w => w.week === week);
       if (!weekObj) {
         weekObj = {
@@ -2492,28 +1766,30 @@ const trainerWiseSessionsConducted = async (req, res) => {
           sessionCount: 0,
           totalSessions: 0,
           categoryName,
-          consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 },
           shortName: categoryShortNames[categoryName] || categoryName,
+          consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 },
         };
         monthObj.weeks.push(weekObj);
       }
 
-      // Aggregating session counts
       weekObj.sessionCount += sessionCount;
       weekObj.totalSessions += totalSessions;
       monthObj.consolidatedSessions[categoryShortNames[categoryName] || categoryName] += sessionCount;
-
-      // Add session counts to month and year
       monthObj.sessionCount += sessionCount;
       monthObj.totalSessions += totalSessions;
-      yearObj.sessionCount = (yearObj.sessionCount || 0) + sessionCount;
-      yearObj.totalSessions = (yearObj.totalSessions || 0) + totalSessions;
+    });
+
+    // Remove months with sessionCount = 0
+    Object.values(trainerJson).forEach(trainer => {
+      trainer.years.forEach(year => {
+        year.months = year.months.filter(month => month.sessionCount > 0);
+      });
     });
 
     res.status(200).json({
       status: true,
       message: 'Trainer-wise session count fetched successfully.',
-      data: Object.values(trainerJson), // This is the transformed `trainerJson` array
+      data: Object.values(trainerJson),
       totalSessionsConducted: totalRecords,
       pagination: {
         currentPage: pageNum,
@@ -2531,6 +1807,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
     });
   }
 };
+
 
 
 
@@ -2763,7 +2040,7 @@ const schoolWiseSessionsConducted = async (req, res) => {
 };
 
 
-// const schoolWiseSessionsConducted = async (req, res) => {
+
 //   try {
 //     const {
 //       page = 1,
