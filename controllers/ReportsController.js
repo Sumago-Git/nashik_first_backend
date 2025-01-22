@@ -310,7 +310,8 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
       "July", "August", "September", "October", "November", "December"
     ];
 
-    const { trainingType, year, month, week, download } = req.body; // Optional filters
+    const { trainingType, year, month, week, download,   fromDate,
+      toDate } = req.body; // Optional filters
 
     // Base conditions for filters
     const filters = [];
@@ -343,6 +344,10 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
       params.push(week);
     }
 
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
     // Combine all filters
     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
 
@@ -489,7 +494,9 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
       "July", "August", "September", "October", "November", "December"
     ];
 
-    const { trainingType, year, month, week } = req.body; // Optional filters
+    const { trainingType, year, month, week,   fromDate,
+      toDate,
+      download = false,  } = req.body; // Optional filters
 
     // Base conditions for filters
     const filters = [];
@@ -517,6 +524,11 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
     if (week) {
       filters.push("WEEK(tempdate, 1) = ?");
       params.push(week);
+    }
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
     }
 
     // Combine all filters
@@ -647,7 +659,9 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
       "July", "August", "September", "October", "November", "December"
     ];
 
-    const { trainingType, year, month, week } = req.body; // Optional filters
+    const { trainingType, year, month, week ,   fromDate,
+      toDate,
+      download = false, } = req.body; // Optional filters
 
     // Base conditions for filters
     const filters = [];
@@ -675,6 +689,11 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
     if (week) {
       filters.push("WEEK(tempdate, 1) = ?");
       params.push(week);
+    }
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
     }
 
     // Combine all filters
@@ -832,6 +851,11 @@ const trainingTypeWiseCountRTO = async (req, res) => {
                       'RTO – Suspended Driving License Holders Training', 
                       'RTO – Training for School Bus Driver')
     `);
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
 
     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
 
@@ -1243,7 +1267,9 @@ const trainingYearWiseCount = async (req, res) => {
       slotType, // New filter for slotType
       rtoFilter, // Filter for RTO category
       rtoSubCategory, // New subfilter for specific RTO subcategories
-      download
+      fromDate,
+      toDate,
+      download = false, 
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -1325,6 +1351,11 @@ const trainingYearWiseCount = async (req, res) => {
     if (rtoSubCategory) {
       filters.push("bf.category = ?");
       params.push(rtoSubCategory);
+    }
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
     }
 
     // Apply the "Attended" filter for bookingforms only at the last stage
@@ -2282,6 +2313,9 @@ const trainerWiseSessionsConducted = async (req, res) => {
       slotType,
       rtoFilter,
       rtoSubCategory,
+      fromDate,
+      toDate,
+      download = false, 
     } = req.body;
 
     const pageNum = parseInt(page, 10) || 1;
@@ -2358,7 +2392,10 @@ const trainerWiseSessionsConducted = async (req, res) => {
 
     filters.push("bf.training_status = ?");
     params.push("Attended");
-
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
     const trainerWiseQuery = `
@@ -2594,14 +2631,19 @@ const schoolWiseSessionsConducted = async (req, res) => {
 
 
      // **Apply the fromDate and toDate filters at the end**
-     if (fromDate) {
-      filters.push("bf.tempdate >= ?");
-      params.push(fromDate);
-    }
+    //  if (fromDate) {
+    //   filters.push("bf.tempdate >= ?");
+    //   params.push(fromDate);
+    // }
 
-    if (toDate) {
-      filters.push("bf.tempdate <= ?");
-      params.push(toDate);
+    // if (toDate) {
+    //   filters.push("bf.tempdate <= ?");
+    //   params.push(toDate);
+    // }
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
     }
 
     // Combine filters into the query
