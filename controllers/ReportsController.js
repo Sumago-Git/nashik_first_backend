@@ -10,30 +10,45 @@ const excelJS = require("exceljs"); // Ensure you have exceljs installed in your
 const { log } = require('console');
 const trainingTypeWiseCount = async (req, res) => {
   try {
-    const { category } = req.body; // Optional category parameter
+    const { category, fromDate, toDate } = req.body; // Optional category, fromDate, and toDate parameters
 
     let query = `
       SELECT 
         CASE 
-          WHEN category = 'School Students Training – Group' THEN 'School'
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
         END AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
-        COUNT(DISTINCT id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms
-      WHERE training_status = 'Attended'
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      WHERE bf.training_status = 'Attended'
     `;
 
+    // Adding date filters if present
+    if (fromDate && toDate) {
+      query += ` AND bf.createdAt BETWEEN ? AND ?`;  // Assuming createdAt is the date field
+    }
+
+    // Adding category filter if present
     if (category && ['School', 'Adult'].includes(category)) {
       query += ` AND CASE 
-                    WHEN category = 'School Students Training – Group' THEN 'School'
+                    WHEN bf.category = 'School Students Training – Group' THEN 'School'
                     ELSE 'Adult'
                   END = ?`;
     }
 
     query += ` GROUP BY TrainingType;`;
 
-    const [result] = await dbObj.query(query, category ? [category] : []);
+    const params = [];
+    if (fromDate && toDate) {
+      params.push(fromDate, toDate);
+    }
+    if (category && ['School', 'Adult'].includes(category)) {
+      params.push(category);
+    }
+
+    const [result] = await dbObj.query(query, params);
 
     if (!result || result.length === 0) {
       return res.status(404).json({
@@ -72,53 +87,56 @@ const trainingTypeWiseCount = async (req, res) => {
 
 const trainingTypeWiseCountByCategory = async (req, res) => {
   try {
-    const { category } = req.body; // Optional category parameter
+    const { category, fromDate, toDate } = req.body; // Optional category, fromDate, and toDate parameters
 
     let query = `
       SELECT 
         CASE 
-          WHEN category = 'School Students Training – Group' THEN 'School'
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
         END AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
-        COUNT(DISTINCT id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms
-      WHERE training_status = 'Attended'
-      GROUP BY TrainingType;
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      WHERE bf.training_status = 'Attended'
     `;
 
-    if (category && (category === 'School' || category === 'Adult')) {
-      query = `
-        SELECT 
-          CASE 
-            WHEN category = 'School Students Training – Group' THEN 'School'
-            ELSE 'Adult'
-          END AS TrainingType,
-          COUNT(DISTINCT sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
-          COUNT(DISTINCT id) AS TotalPeopleAttended,  -- Count of distinct people
-          category AS CategoryName  -- Include the category name
-        FROM bookingforms
-        WHERE training_status = 'Attended' AND 
-          CASE 
-            WHEN category = 'School Students Training – Group' THEN 'School'
-            ELSE 'Adult'
-          END = ? 
-        GROUP BY TrainingType, category;
-      `;
+    // Adding date filters if present
+    if (fromDate && toDate) {
+      query += ` AND bf.createdAt BETWEEN ? AND ?`;  // Assuming createdAt is the date field
     }
 
-    const [result] = await dbObj.query(query, category ? [category] : []);
+    // Adding category filter if present
+    if (category && (category === 'School' || category === 'Adult')) {
+      query += ` AND CASE 
+                    WHEN bf.category = 'School Students Training – Group' THEN 'School'
+                    ELSE 'Adult'
+                  END = ?`;
+    }
+
+    query += ` GROUP BY TrainingType;`;
+
+    const params = [];
+    if (fromDate && toDate) {
+      params.push(fromDate, toDate);
+    }
+    if (category && (category === 'School' || category === 'Adult')) {
+      params.push(category);
+    }
+
+    const [result] = await dbObj.query(query, params);
 
     if (!result || result.length === 0) {
       return res.status(404).json({
         status: false,
-        message: `No training summary found for the category: ${category}`,
+        message: `No training summary found for the category: ${category || 'all categories'}`,
       });
     }
 
     res.status(200).json({
       status: true,
-      message: `Training summary for category '${category}' fetched successfully.`,
+      message: `Training summary for category '${category || 'all categories'}' fetched successfully.`,
       data: result
     });
   } catch (error) {
@@ -134,7 +152,7 @@ const trainingTypeWiseCountByCategory = async (req, res) => {
 
 const trainingTypeWiseCountByYear = async (req, res) => {
   try {
-    const { year, category } = req.body; // Required: year, optional: category
+    const { year, category, fromDate, toDate } = req.body; // Required: year, optional: category, fromDate, toDate
 
     if (!year) {
       return res.status(400).json({
@@ -147,18 +165,25 @@ const trainingTypeWiseCountByYear = async (req, res) => {
     let query = `
       SELECT 
         CASE 
-          WHEN category = 'School Students Training – Group' THEN 'School'
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
         END AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
-        COUNT(DISTINCT id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms
-      WHERE training_status = 'Attended' AND YEAR(tempdate) = ?
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ?
     `;
 
+    // Add date filters if provided
+    if (fromDate && toDate) {
+      query += ` AND bf.tempdate BETWEEN ? AND ?`;  // Assuming `tempdate` is the date field
+    }
+
+    // Add category filter if provided
     if (category && ['School', 'Adult'].includes(category)) {
       query += ` AND CASE 
-                    WHEN category = 'School Students Training – Group' THEN 'School'
+                    WHEN bf.category = 'School Students Training – Group' THEN 'School'
                     ELSE 'Adult'
                   END = ?`;
     }
@@ -166,24 +191,38 @@ const trainingTypeWiseCountByYear = async (req, res) => {
     query += ` GROUP BY TrainingType;`;
 
     // Query to fetch overall totals
-    const overallQuery = `
+    let overallQuery = `
       SELECT 
-        COUNT(DISTINCT sessionSlotId) AS TotalSessions,
-        COUNT(DISTINCT id) AS TotalAttendees
-      FROM bookingforms
-      WHERE training_status = 'Attended' AND YEAR(tempdate) = ?
+        COUNT(DISTINCT bf.sessionSlotId) AS TotalSessions,
+        COUNT(DISTINCT bf.id) AS TotalAttendees
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ?
     `;
+
+    if (fromDate && toDate) {
+      overallQuery += ` AND bf.tempdate BETWEEN ? AND ?`;  // Assuming `tempdate` is the date field
+    }
 
     if (category && ['School', 'Adult'].includes(category)) {
       overallQuery += ` AND CASE 
-                          WHEN category = 'School Students Training – Group' THEN 'School'
+                          WHEN bf.category = 'School Students Training – Group' THEN 'School'
                           ELSE 'Adult'
                         END = ?`;
     }
 
     // Execute both queries
-    const [result] = await dbObj.query(query, category ? [year, category] : [year]);
-    const [overallResult] = await dbObj.query(overallQuery, category ? [year, category] : [year]);
+    const params = [];
+    if (fromDate && toDate) {
+      params.push(fromDate, toDate);
+    }
+    params.push(year);
+    if (category && ['School', 'Adult'].includes(category)) {
+      params.push(category);
+    }
+
+    const [result] = await dbObj.query(query, params);
+    const [overallResult] = await dbObj.query(overallQuery, params);
 
     if (!result || result.length === 0) {
       return res.status(404).json({
@@ -215,10 +254,9 @@ const trainingTypeWiseCountByYear = async (req, res) => {
   }
 };
 
-
 const trainingTypeWiseCountByMonth = async (req, res) => {
   try {
-    const { year, month, category } = req.body; // Required: year, month, optional: category
+    const { year, month, category, fromDate, toDate } = req.body; // Required: year, month, optional: category, fromDate, toDate
 
     if (!year || !month) {
       return res.status(400).json({
@@ -231,18 +269,25 @@ const trainingTypeWiseCountByMonth = async (req, res) => {
     let query = `
       SELECT 
         CASE 
-          WHEN category = 'School Students Training – Group' THEN 'School'
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
         END AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
-        COUNT(DISTINCT id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms
-      WHERE training_status = 'Attended' AND YEAR(tempdate) = ? AND MONTH(tempdate) = ?
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ? AND MONTH(bf.tempdate) = ?
     `;
 
+    // Add date filters if provided
+    if (fromDate && toDate) {
+      query += ` AND bf.tempdate BETWEEN ? AND ?`;  // Assuming `tempdate` is the date field
+    }
+
+    // Add category filter if provided
     if (category && ['School', 'Adult'].includes(category)) {
       query += ` AND CASE 
-                    WHEN category = 'School Students Training – Group' THEN 'School'
+                    WHEN bf.category = 'School Students Training – Group' THEN 'School'
                     ELSE 'Adult'
                   END = ?`;
     }
@@ -250,24 +295,38 @@ const trainingTypeWiseCountByMonth = async (req, res) => {
     query += ` GROUP BY TrainingType;`;
 
     // Query to fetch overall totals for the month
-    var overallQuery = `
+    let overallQuery = `
       SELECT 
-        COUNT(DISTINCT sessionSlotId) AS TotalSessions,
-        COUNT(DISTINCT id) AS TotalAttendees
-      FROM bookingforms
-      WHERE training_status = 'Attended' AND YEAR(tempdate) = ? AND MONTH(tempdate) = ?
+        COUNT(DISTINCT bf.sessionSlotId) AS TotalSessions,
+        COUNT(DISTINCT bf.id) AS TotalAttendees
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ? AND MONTH(bf.tempdate) = ?
     `;
+
+    if (fromDate && toDate) {
+      overallQuery += ` AND bf.tempdate BETWEEN ? AND ?`;  // Assuming `tempdate` is the date field
+    }
 
     if (category && ['School', 'Adult'].includes(category)) {
       overallQuery += ` AND CASE 
-                          WHEN category = 'School Students Training – Group' THEN 'School'
+                          WHEN bf.category = 'School Students Training – Group' THEN 'School'
                           ELSE 'Adult'
                         END = ?`;
     }
 
     // Execute both queries
-    const [result] = await dbObj.query(query, category ? [year, month, category] : [year, month]);
-    const [overallResult] = await dbObj.query(overallQuery, category ? [year, month, category] : [year, month]);
+    const params = [];
+    if (fromDate && toDate) {
+      params.push(fromDate, toDate);
+    }
+    params.push(year, month);
+    if (category && ['School', 'Adult'].includes(category)) {
+      params.push(category);
+    }
+
+    const [result] = await dbObj.query(query, params);
+    const [overallResult] = await dbObj.query(overallQuery, params);
 
     if (!result || result.length === 0) {
       return res.status(404).json({
@@ -484,367 +543,6 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
 };
 
 
-// const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
-//   try {
-//     const currentYear = new Date().getFullYear();
-//     const startYear = 2007;
-
-//     const monthNames = [
-//       "January", "February", "March", "April", "May", "June",
-//       "July", "August", "September", "October", "November", "December"
-//     ];
-
-//     const { trainingType, year, month, week,   fromDate,
-//       toDate,
-//       download = false,  } = req.body; // Optional filters
-
-
-
-//       console.log(fromDate);
-//       console.log(toDate);
-//     // Base conditions for filters
-//     let filters = [];
-//     let params = [];
-
-//     // Handle filters (Only Adult, so no need for "School" logic)
-//     filters.push(`
-//       CASE 
-//         WHEN category = 'School Students Training – Group' THEN 'School'
-//         ELSE 'Adult'
-//       END = 'Adult'
-//     `);
-
-//     // Handle other filters (year, month, week)
-//     if (year) {
-//       filters.push("YEAR(tempdate) = ?");
-//       params.push(year);
-//     }
-
-//     if (month) {
-//       filters.push("MONTH(tempdate) = ?");
-//       params.push(month);
-//     }
-
-//     if (week) {
-//       filters.push("WEEK(tempdate, 1) = ?");
-//       params.push(week);
-//     }
-
- 
-
-//     // Add filters for date range
-// if (fromDate && toDate) {
-//   filters.push("tempdate BETWEEN ? AND ?");
-//   params.push(fromDate, toDate);
-// }
-
-//     // Combine all filters
-//     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
-
-//     // Queries for dynamic filters
-//     const overallStatsQuery = `
-//       SELECT 
-//         COUNT(DISTINCT sessionSlotId) AS TotalSessions,
-//         COUNT(DISTINCT id) AS TotalAttendees
-//       FROM bookingforms
-//       WHERE training_status = 'Attended' ${filterCondition};
-//     `;
-
-//     console.log('------------------------------');
-//     console.log(filterCondition);
-
-//     const yearlyStatsQuery = `
-//       SELECT 
-//         YEAR(tempdate) AS Year,
-//         'Adult' AS TrainingType,
-//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-//         COUNT(DISTINCT id) AS TotalPeopleAttended
-//       FROM bookingforms
-//       WHERE training_status = 'Attended' ${filterCondition}
-//       GROUP BY Year, TrainingType
-//       HAVING Year = ?;
-//     `;
-
-//     const monthlyStatsQuery = `
-//       SELECT 
-//         YEAR(tempdate) AS Year,
-//         MONTH(tempdate) AS MonthNumber,
-//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-//         COUNT(DISTINCT id) AS TotalPeopleAttended,
-//         'Adult' AS TrainingType
-//       FROM bookingforms
-//       WHERE training_status = 'Attended' ${filterCondition}
-//       GROUP BY Year, MonthNumber, TrainingType
-//       HAVING Year = ?;
-//     `;
-
-//     const weeklyStatsQuery = `
-//       SELECT 
-//         YEAR(tempdate) AS Year,
-//         WEEK(tempdate, 1) AS WeekNumber,
-//         MONTH(tempdate) AS MonthNumber,
-//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-//         COUNT(DISTINCT id) AS TotalPeopleAttended,
-//         'Adult' AS TrainingType
-//       FROM bookingforms
-//       WHERE training_status = 'Attended' ${filterCondition}
-//       GROUP BY Year, WeekNumber, MonthNumber, TrainingType
-//       HAVING Year = ?;
-//     `;
-
-//     const response = [];
-
-//     // Fetch overall stats
-//     const [overallStats] = await dbObj.query(overallStatsQuery, params);
-
-//     // Determine which years to process
-//     const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
-
-//     for (const processingYear of yearsToProcess) {
-//       const yearParams = year ? params : [processingYear, ...params];
-
-//       // Fetch data for the current year
-//       const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
-//       const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
-//       const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
-
-//       // If there's data for the year, process and add to response
-//       if (yearlyStats.length > 0) {
-//         const monthsWithWeeks = monthlyStats.map(month => {
-//           const weeks = weeklyStats
-//             .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
-//             .map(week => ({
-//               WeekNumber: week.WeekNumber,
-//               NoOfSessions: week.NoOfSessions,
-//               TotalPeopleAttended: week.TotalPeopleAttended,
-//             }))
-//             .sort((a, b) => b.WeekNumber - a.WeekNumber); // Sort weeks in descending order
-
-//           return {
-//             ...month,
-//             MonthName: monthNames[month.MonthNumber - 1],
-//             weeks
-//           };
-//         }).sort((a, b) => b.MonthNumber - a.MonthNumber); // Sort months in descending order
-
-//         response.push({
-//           year: processingYear,
-//           stats: yearlyStats,
-//           months: monthsWithWeeks
-//         });
-//       }
-//     }
-
-//     if (response.length === 0) {
-//       return res.status(404).json({
-//         status: false,
-//         message: 'No training summary data found for the provided filters.',
-//       });
-//     }
-
-//     res.status(200).json({
-//       status: true,
-//       message: 'Training summary data fetched successfully.',
-//       overallStats: overallStats[0],
-//       data: response
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       status: false,
-//       message: 'Failed to fetch training summary data.',
-//       error: error.message
-//     });
-//   }
-// };
-
-
-
-const trainingTypeWiseCountByYearAllAdultx = async (req, res) => {
-  try {
-    const currentYear = new Date().getFullYear();
-    const startYear = 2007;
-
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
-    const { trainingType, year, month, week, fromDate, toDate, download = false } = req.body; // Optional filters
-
-    console.log('Request Body:', req.body);
-
-    let filters = [];
-    let params = [];
-
-    // Handle filters (Only Adult, so no need for "School" logic)
-    filters.push(`
-      CASE 
-        WHEN bf.category = 'School Students Training – Group' THEN 'School'
-        ELSE 'Adult'
-      END = 'Adult'
-    `);
-
-    if (year) {
-      filters.push("YEAR(bf.tempdate) = ?");
-      params.push(year);
-    }
-
-    if (month) {
-      filters.push("MONTH(bf.tempdate) = ?");
-      params.push(month);
-    }
-
-    if (week) {
-      filters.push("WEEK(bf.tempdate, 1) = ?");
-      params.push(week);
-    }
-
-    if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
-      params.push(fromDate, toDate);
-    }
-
-    const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
-
-    console.log('Filter Condition:', filterCondition);
-    console.log('Parameters:', params);
-
-    const overallStatsQuery = `
-      SELECT 
-        COUNT(DISTINCT bf.sessionSlotId) AS TotalSessions,
-        COUNT(DISTINCT bf.id) AS TotalAttendees
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-      WHERE bf.training_status = 'Attended' ${filterCondition};
-    `;
-
-    const yearlyStatsQuery = `
-      SELECT 
-        YEAR(bf.tempdate) AS Year,
-        'Adult' AS TrainingType,
-        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-      WHERE bf.training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, TrainingType;
-    `;
-
-    const monthlyStatsQuery = `
-      SELECT 
-        YEAR(bf.tempdate) AS Year,
-        MONTH(bf.tempdate) AS MonthNumber,
-        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT bf.id) AS TotalPeopleAttended,
-        'Adult' AS TrainingType
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-      WHERE bf.training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, MonthNumber, TrainingType;
-    `;
-
-    const weeklyStatsQuery = `
-      SELECT 
-        YEAR(bf.tempdate) AS Year,
-        WEEK(bf.tempdate, 1) AS WeekNumber,
-        MONTH(bf.tempdate) AS MonthNumber,
-        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT bf.id) AS TotalPeopleAttended,
-        'Adult' AS TrainingType
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-      WHERE bf.training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, WeekNumber, MonthNumber, TrainingType;
-    `;
-
-    console.log('Overall Stats Query:', overallStatsQuery);
-    console.log('Yearly Stats Query:', yearlyStatsQuery);
-    console.log('Monthly Stats Query:', monthlyStatsQuery);
-    console.log('Weekly Stats Query:', weeklyStatsQuery);
-
-    const [overallStats] = await dbObj.query(overallStatsQuery, params);
-
-//    const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
-
-    let yearsToProcess;
-    if (fromDate && toDate) {
-      const startProcessingYear = new Date(fromDate).getFullYear();
-      const endProcessingYear = new Date(toDate).getFullYear();
-      yearsToProcess = Array.from({ length: endProcessingYear - startProcessingYear + 1 }, (_, i) => startProcessingYear + i);
-    } else {
-      yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
-    }
-
-
-    console.log('Years to Process:', yearsToProcess);
-
-    const response = [];
-
-    for (const processingYear of yearsToProcess) {
-      const yearParams = year ? params : [processingYear, ...params];
-
-      console.log(`Processing Year: ${processingYear}, Year Params:`, yearParams);
-
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
-
-      console.log(`Yearly Stats for ${processingYear}:`, yearlyStats);
-      console.log(`Monthly Stats for ${processingYear}:`, monthlyStats);
-      console.log(`Weekly Stats for ${processingYear}:`, weeklyStats);
-
-      if (yearlyStats.length > 0) {
-        const monthsWithWeeks = monthlyStats.map(month => {
-          const weeks = weeklyStats
-            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
-            .map(week => ({
-              WeekNumber: week.WeekNumber,
-              NoOfSessions: week.NoOfSessions,
-              TotalPeopleAttended: week.TotalPeopleAttended,
-            }))
-            .sort((a, b) => b.WeekNumber - a.WeekNumber);
-
-          return {
-            ...month,
-            MonthName: monthNames[month.MonthNumber - 1],
-            weeks
-          };
-        }).sort((a, b) => b.MonthNumber - a.MonthNumber);
-
-        response.push({
-          year: processingYear,
-          stats: yearlyStats,
-          months: monthsWithWeeks
-        });
-      }
-    }
-
-    if (response.length === 0) {
-      console.log('No data found for the provided filters.');
-      return res.status(404).json({
-        status: false,
-        message: 'No training summary data found for the provided filters.',
-      });
-    }
-
-    console.log('Final Response:', response);
-
-    res.status(200).json({
-      status: true,
-      message: 'Training summary data fetched successfully.',
-      overallStats: overallStats[0],
-      data: response
-    });
-  } catch (error) {
-    console.error('Error occurred:', error);
-    res.status(500).json({
-      status: false,
-      message: 'Failed to fetch training summary data.',
-      error: error.message
-    });
-  }
-};
 
 
 
@@ -2506,177 +2204,6 @@ const schoolWiseSessionsConducted = async (req, res) => {
 };
 
 
-
-//   try {
-//     const {
-//       page = 1,
-//       pageSize = 50,
-//       date,
-//       schoolName,
-//       trainingType,
-//       day,
-//       week,
-//       month,
-//       financialYear,
-//       slotType,
-//       rtoFilter,
-//       rtoSubCategory,
-//       fromDate,
-//       toDate
-//     } = req.body;
-
-//     const pageNum = parseInt(page, 10) || 1;
-//     const limit = parseInt(pageSize, 10) || 50;
-//     const offset = (pageNum - 1) * limit;
-
-//     const filters = [];
-//     const params = [];
-
-//     filters.push("bf.training_status = ?");
-//     params.push("Attended");
-
-//     if (date) {
-//       filters.push("DATE(bf.tempdate) = ?");
-//       params.push(date);
-//     }
-//     if (schoolName) {
-//       filters.push("sri.institution_name LIKE ?");
-//       params.push(`%${schoolName}%`);
-//     }
-//     if (trainingType) {
-//       filters.push("bf.training_type = ?");
-//       params.push(trainingType);
-//     }
-//     if (day) {
-//       filters.push("DAYOFWEEK(bf.tempdate) = ?");
-//       params.push(day);
-//     }
-//     if (week) {
-//       filters.push("WEEK(bf.tempdate) = ?");
-//       params.push(week);
-//     }
-//     if (month) {
-//       filters.push("MONTH(bf.tempdate) = ?");
-//       params.push(month);
-//     }
-//     if (financialYear) {
-//       filters.push("YEAR(bf.tempdate) BETWEEN ? AND ?");
-//       const [startYear, endYear] = financialYear.split("-").map(Number);
-//       params.push(startYear, endYear);
-//     }
-//     if (slotType) {
-//       filters.push("ss.slot_type = ?");
-//       params.push(slotType);
-//     }
-//     if (rtoFilter) {
-//       filters.push("bf.rto_category = ?");
-//       params.push(rtoFilter);
-//     }
-//     if (rtoSubCategory) {
-//       filters.push("bf.rto_subcategory = ?");
-//       params.push(rtoSubCategory);
-//     }
-//     if (fromDate) {
-//       filters.push("bf.tempdate >= ?");
-//       params.push(fromDate);
-//     }
-//     if (toDate) {
-//       filters.push("bf.tempdate <= ?");
-//       params.push(toDate);
-//     }
-
-//     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
-
-//     const query = `
-//       SELECT
-//   CASE
-//     WHEN bf.category IN (
-//       'RTO – Learner Driving License Holder Training',
-//       'RTO – Suspended Driving License Holders Training',
-//       'RTO – Training for School Bus Driver'
-//     ) THEN bf.category
-//     WHEN bf.category IN (
-//       'School Students Training – Group',
-//       'College/Organization Training – Group'
-//     ) THEN COALESCE(sri.institution_name, 'Unknown Institution')
-//     ELSE 'Unknown Category'
-//   END AS rowLabel,
-//   bf.category AS category,
-//   YEAR(bf.tempdate) AS year,
-//   MONTHNAME(bf.tempdate) AS month,
-//   COUNT(DISTINCT bf.id) AS totalNoOfStudent,
-//   COUNT(DISTINCT bf.sessionSlotId) AS totalNoSessions
-// FROM bookingforms bf
-// LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
-// LEFT JOIN sessionslots ss ON bf.sessionSlotId = ss.id
-//  ${filterCondition}
-//  GROUP BY rowLabel, category, year, MONTH(bf.tempdate)
-// ORDER BY rowLabel, year, MONTH(bf.tempdate);
-
-//     `;
-
-//     params.push(limit, offset);
-//     const [records] = await dbObj.query(query, params);
-
-//     // Grouping data by rowLabel, then by year and month
-//     // Grouping data by rowLabel, then by year and month
-// const groupedData = records.reduce((acc, record) => {
-//   const { rowLabel, category, year, month, totalNoOfStudent, totalNoSessions } = record;
-
-//   if (!acc[rowLabel]) {
-//     acc[rowLabel] = { rowLabel, category, sessionCount: 0,totalNoOfStudent:0,years: [] };
-//   }
-
-//   const categoryData = acc[rowLabel];
-//   categoryData.sessionCount += totalNoSessions;
-//   categoryData.totalNoOfStudent += totalNoOfStudent;
-
-//   let yearData = categoryData.years.find((y) => y.year === year);
-//   if (!yearData) {
-//     yearData = { year, totalNoOfStudent: 0, totalNoSessions: 0, months: [] };
-//     categoryData.years.push(yearData);
-//   }
-
-//   yearData.totalNoOfStudent += totalNoOfStudent;
-//   yearData.totalNoSessions += totalNoSessions;
-
-//   const monthExists = yearData.months.some((m) => m.month === month);
-//   if (!monthExists) {
-//     yearData.months.push({
-//       month,
-//       totalNoOfStudent,
-//       totalNoSessions,
-//     });
-//   }
-
-//   return acc;
-// }, {});
-
-// // Instead of Object.values(groupedData), you can return all the grouped rows here.
-// const result = Object.values(groupedData);
-
-//     res.status(200).json({
-//       status: true,
-//       message: "Grouped session count fetched successfully.",
-//       data: result,
-//       pagination: {
-//         currentPage: pageNum,
-//         pageSize: limit,
-//         totalPages: Math.ceil(records.length / limit),
-//         totalRecords: records.length,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error fetching grouped records:", error);
-//     res.status(500).json({
-//       status: false,
-//       message: "Failed to fetch grouped records.",
-//       error: error.message,
-//     });
-//   }
-// };
-
-
 const yearWiseFinalSessionCount = async (req, res) => {
   try {
     const {
@@ -2792,42 +2319,7 @@ ORDER BY rowLabel, year DESC, MONTH(bf.tempdate) DESC, WEEK(bf.tempdate) DESC;
 
     `;
 
-//     params.push(limit, offset);
-//     const [records] = await dbObj.query(query, params);
 
-//     // Grouping data by rowLabel, then by year and month
-//     // Grouping data by rowLabel, then by year and month
-// const groupedData = records.reduce((acc, record) => {
-//   const { rowLabel, category, year, month, totalNoOfStudent, totalNoSessions } = record;
-
-//   if (!acc[rowLabel]) {
-//     acc[rowLabel] = { rowLabel, category, sessionCount: 0,totalNoOfStudent:0,years: [] };
-//   }
-
-//   const categoryData = acc[rowLabel];
-//   categoryData.sessionCount += totalNoSessions;
-//   categoryData.totalNoOfStudent += totalNoOfStudent;
-
-//   let yearData = categoryData.years.find((y) => y.year === year);
-//   if (!yearData) {
-//     yearData = { year, totalNoOfStudent: 0, totalNoSessions: 0, months: [] };
-//     categoryData.years.push(yearData);
-//   }
-
-//   yearData.totalNoOfStudent += totalNoOfStudent;
-//   yearData.totalNoSessions += totalNoSessions;
-
-//   const monthExists = yearData.months.some((m) => m.month === month);
-//   if (!monthExists) {
-//     yearData.months.push({
-//       month,
-//       totalNoOfStudent,
-//       totalNoSessions,
-//     });
-//   }
-
-//   return acc;
-// }, {});
 
 params.push(limit, offset);
 const [records] = await dbObj.query(query, params);
