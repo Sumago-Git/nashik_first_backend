@@ -484,6 +484,371 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
 };
 
 
+// const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
+//   try {
+//     const currentYear = new Date().getFullYear();
+//     const startYear = 2007;
+
+//     const monthNames = [
+//       "January", "February", "March", "April", "May", "June",
+//       "July", "August", "September", "October", "November", "December"
+//     ];
+
+//     const { trainingType, year, month, week,   fromDate,
+//       toDate,
+//       download = false,  } = req.body; // Optional filters
+
+
+
+//       console.log(fromDate);
+//       console.log(toDate);
+//     // Base conditions for filters
+//     let filters = [];
+//     let params = [];
+
+//     // Handle filters (Only Adult, so no need for "School" logic)
+//     filters.push(`
+//       CASE 
+//         WHEN category = 'School Students Training – Group' THEN 'School'
+//         ELSE 'Adult'
+//       END = 'Adult'
+//     `);
+
+//     // Handle other filters (year, month, week)
+//     if (year) {
+//       filters.push("YEAR(tempdate) = ?");
+//       params.push(year);
+//     }
+
+//     if (month) {
+//       filters.push("MONTH(tempdate) = ?");
+//       params.push(month);
+//     }
+
+//     if (week) {
+//       filters.push("WEEK(tempdate, 1) = ?");
+//       params.push(week);
+//     }
+
+ 
+
+//     // Add filters for date range
+// if (fromDate && toDate) {
+//   filters.push("tempdate BETWEEN ? AND ?");
+//   params.push(fromDate, toDate);
+// }
+
+//     // Combine all filters
+//     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
+
+//     // Queries for dynamic filters
+//     const overallStatsQuery = `
+//       SELECT 
+//         COUNT(DISTINCT sessionSlotId) AS TotalSessions,
+//         COUNT(DISTINCT id) AS TotalAttendees
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition};
+//     `;
+
+//     console.log('------------------------------');
+//     console.log(filterCondition);
+
+//     const yearlyStatsQuery = `
+//       SELECT 
+//         YEAR(tempdate) AS Year,
+//         'Adult' AS TrainingType,
+//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
+//         COUNT(DISTINCT id) AS TotalPeopleAttended
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition}
+//       GROUP BY Year, TrainingType
+//       HAVING Year = ?;
+//     `;
+
+//     const monthlyStatsQuery = `
+//       SELECT 
+//         YEAR(tempdate) AS Year,
+//         MONTH(tempdate) AS MonthNumber,
+//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
+//         COUNT(DISTINCT id) AS TotalPeopleAttended,
+//         'Adult' AS TrainingType
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition}
+//       GROUP BY Year, MonthNumber, TrainingType
+//       HAVING Year = ?;
+//     `;
+
+//     const weeklyStatsQuery = `
+//       SELECT 
+//         YEAR(tempdate) AS Year,
+//         WEEK(tempdate, 1) AS WeekNumber,
+//         MONTH(tempdate) AS MonthNumber,
+//         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
+//         COUNT(DISTINCT id) AS TotalPeopleAttended,
+//         'Adult' AS TrainingType
+//       FROM bookingforms
+//       WHERE training_status = 'Attended' ${filterCondition}
+//       GROUP BY Year, WeekNumber, MonthNumber, TrainingType
+//       HAVING Year = ?;
+//     `;
+
+//     const response = [];
+
+//     // Fetch overall stats
+//     const [overallStats] = await dbObj.query(overallStatsQuery, params);
+
+//     // Determine which years to process
+//     const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+//     for (const processingYear of yearsToProcess) {
+//       const yearParams = year ? params : [processingYear, ...params];
+
+//       // Fetch data for the current year
+//       const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
+//       const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
+//       const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
+
+//       // If there's data for the year, process and add to response
+//       if (yearlyStats.length > 0) {
+//         const monthsWithWeeks = monthlyStats.map(month => {
+//           const weeks = weeklyStats
+//             .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
+//             .map(week => ({
+//               WeekNumber: week.WeekNumber,
+//               NoOfSessions: week.NoOfSessions,
+//               TotalPeopleAttended: week.TotalPeopleAttended,
+//             }))
+//             .sort((a, b) => b.WeekNumber - a.WeekNumber); // Sort weeks in descending order
+
+//           return {
+//             ...month,
+//             MonthName: monthNames[month.MonthNumber - 1],
+//             weeks
+//           };
+//         }).sort((a, b) => b.MonthNumber - a.MonthNumber); // Sort months in descending order
+
+//         response.push({
+//           year: processingYear,
+//           stats: yearlyStats,
+//           months: monthsWithWeeks
+//         });
+//       }
+//     }
+
+//     if (response.length === 0) {
+//       return res.status(404).json({
+//         status: false,
+//         message: 'No training summary data found for the provided filters.',
+//       });
+//     }
+
+//     res.status(200).json({
+//       status: true,
+//       message: 'Training summary data fetched successfully.',
+//       overallStats: overallStats[0],
+//       data: response
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       status: false,
+//       message: 'Failed to fetch training summary data.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
+
+const trainingTypeWiseCountByYearAllAdultx = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2007;
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const { trainingType, year, month, week, fromDate, toDate, download = false } = req.body; // Optional filters
+
+    console.log('Request Body:', req.body);
+
+    let filters = [];
+    let params = [];
+
+    // Handle filters (Only Adult, so no need for "School" logic)
+    filters.push(`
+      CASE 
+        WHEN bf.category = 'School Students Training – Group' THEN 'School'
+        ELSE 'Adult'
+      END = 'Adult'
+    `);
+
+    if (year) {
+      filters.push("YEAR(bf.tempdate) = ?");
+      params.push(year);
+    }
+
+    if (month) {
+      filters.push("MONTH(bf.tempdate) = ?");
+      params.push(month);
+    }
+
+    if (week) {
+      filters.push("WEEK(bf.tempdate, 1) = ?");
+      params.push(week);
+    }
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
+
+    const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
+
+    console.log('Filter Condition:', filterCondition);
+    console.log('Parameters:', params);
+
+    const overallStatsQuery = `
+      SELECT 
+        COUNT(DISTINCT bf.sessionSlotId) AS TotalSessions,
+        COUNT(DISTINCT bf.id) AS TotalAttendees
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition};
+    `;
+
+    const yearlyStatsQuery = `
+      SELECT 
+        YEAR(bf.tempdate) AS Year,
+        'Adult' AS TrainingType,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, TrainingType;
+    `;
+
+    const monthlyStatsQuery = `
+      SELECT 
+        YEAR(bf.tempdate) AS Year,
+        MONTH(bf.tempdate) AS MonthNumber,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended,
+        'Adult' AS TrainingType
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, MonthNumber, TrainingType;
+    `;
+
+    const weeklyStatsQuery = `
+      SELECT 
+        YEAR(bf.tempdate) AS Year,
+        WEEK(bf.tempdate, 1) AS WeekNumber,
+        MONTH(bf.tempdate) AS MonthNumber,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended,
+        'Adult' AS TrainingType
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, WeekNumber, MonthNumber, TrainingType;
+    `;
+
+    console.log('Overall Stats Query:', overallStatsQuery);
+    console.log('Yearly Stats Query:', yearlyStatsQuery);
+    console.log('Monthly Stats Query:', monthlyStatsQuery);
+    console.log('Weekly Stats Query:', weeklyStatsQuery);
+
+    const [overallStats] = await dbObj.query(overallStatsQuery, params);
+
+//    const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+    let yearsToProcess;
+    if (fromDate && toDate) {
+      const startProcessingYear = new Date(fromDate).getFullYear();
+      const endProcessingYear = new Date(toDate).getFullYear();
+      yearsToProcess = Array.from({ length: endProcessingYear - startProcessingYear + 1 }, (_, i) => startProcessingYear + i);
+    } else {
+      yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+    }
+
+
+    console.log('Years to Process:', yearsToProcess);
+
+    const response = [];
+
+    for (const processingYear of yearsToProcess) {
+      const yearParams = year ? params : [processingYear, ...params];
+
+      console.log(`Processing Year: ${processingYear}, Year Params:`, yearParams);
+
+      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
+      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
+      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
+
+      console.log(`Yearly Stats for ${processingYear}:`, yearlyStats);
+      console.log(`Monthly Stats for ${processingYear}:`, monthlyStats);
+      console.log(`Weekly Stats for ${processingYear}:`, weeklyStats);
+
+      if (yearlyStats.length > 0) {
+        const monthsWithWeeks = monthlyStats.map(month => {
+          const weeks = weeklyStats
+            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
+            .map(week => ({
+              WeekNumber: week.WeekNumber,
+              NoOfSessions: week.NoOfSessions,
+              TotalPeopleAttended: week.TotalPeopleAttended,
+            }))
+            .sort((a, b) => b.WeekNumber - a.WeekNumber);
+
+          return {
+            ...month,
+            MonthName: monthNames[month.MonthNumber - 1],
+            weeks
+          };
+        }).sort((a, b) => b.MonthNumber - a.MonthNumber);
+
+        response.push({
+          year: processingYear,
+          stats: yearlyStats,
+          months: monthsWithWeeks
+        });
+      }
+    }
+
+    if (response.length === 0) {
+      console.log('No data found for the provided filters.');
+      return res.status(404).json({
+        status: false,
+        message: 'No training summary data found for the provided filters.',
+      });
+    }
+
+    console.log('Final Response:', response);
+
+    res.status(200).json({
+      status: true,
+      message: 'Training summary data fetched successfully.',
+      overallStats: overallStats[0],
+      data: response
+    });
+  } catch (error) {
+    console.error('Error occurred:', error);
+    res.status(500).json({
+      status: false,
+      message: 'Failed to fetch training summary data.',
+      error: error.message
+    });
+  }
+};
+
+
+
+
 const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
   try {
     const currentYear = new Date().getFullYear();
@@ -494,324 +859,201 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
       "July", "August", "September", "October", "November", "December"
     ];
 
-    const { trainingType, year, month, week,   fromDate,
-      toDate,
-      download = false,  } = req.body; // Optional filters
+    const { year, month, week,fromDate,toDate } = req.body; // Optional filters
 
     // Base conditions for filters
     const filters = [];
     const params = [];
 
-    // Handle filters (Only Adult, so no need for "School" logic)
+    if (year) {
+      filters.push("YEAR(bf.tempdate) = ?");
+      params.push(year);
+    }
+
+    if (month) {
+      filters.push("MONTH(bf.tempdate) = ?");
+      params.push(month);
+    }
+
+    if (week) {
+      filters.push("WEEK(bf.tempdate, 1) = ?");
+      params.push(week);
+    }
+
+    // Filter for specific RTO categories
     filters.push(`
       CASE 
-        WHEN category = 'School Students Training – Group' THEN 'School'
+        WHEN bf.category = 'School Students Training – Group' THEN 'School'
         ELSE 'Adult'
       END = 'Adult'
     `);
-
-    // Handle other filters (year, month, week)
-    if (year) {
-      filters.push("YEAR(tempdate) = ?");
-      params.push(year);
-    }
-
-    if (month) {
-      filters.push("MONTH(tempdate) = ?");
-      params.push(month);
-    }
-
-    if (week) {
-      filters.push("WEEK(tempdate, 1) = ?");
-      params.push(week);
-    }
-
-    if (fromDate && toDate) {
-      filters.push("tempdate BETWEEN ? AND ?");
-      params.push(fromDate, toDate);
-    }
-
-    // Combine all filters
-    const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
-
-    // Queries for dynamic filters
-    const overallStatsQuery = `
-      SELECT 
-        COUNT(DISTINCT sessionSlotId) AS TotalSessions,
-        COUNT(DISTINCT id) AS TotalAttendees
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition};
-    `;
-
-    const yearlyStatsQuery = `
-      SELECT 
-        YEAR(tempdate) AS Year,
-        'Adult' AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, TrainingType
-      HAVING Year = ?;
-    `;
-
-    const monthlyStatsQuery = `
-      SELECT 
-        YEAR(tempdate) AS Year,
-        MONTH(tempdate) AS MonthNumber,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        'Adult' AS TrainingType
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, MonthNumber, TrainingType
-      HAVING Year = ?;
-    `;
-
-    const weeklyStatsQuery = `
-      SELECT 
-        YEAR(tempdate) AS Year,
-        WEEK(tempdate, 1) AS WeekNumber,
-        MONTH(tempdate) AS MonthNumber,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        'Adult' AS TrainingType
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, WeekNumber, MonthNumber, TrainingType
-      HAVING Year = ?;
-    `;
-
-    const response = [];
-
-    // Fetch overall stats
-    const [overallStats] = await dbObj.query(overallStatsQuery, params);
-
-    // Determine which years to process
-    const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
-
-    for (const processingYear of yearsToProcess) {
-      const yearParams = year ? params : [processingYear, ...params];
-
-      // Fetch data for the current year
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
-
-      // If there's data for the year, process and add to response
-      if (yearlyStats.length > 0) {
-        const monthsWithWeeks = monthlyStats.map(month => {
-          const weeks = weeklyStats
-            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
-            .map(week => ({
-              WeekNumber: week.WeekNumber,
-              NoOfSessions: week.NoOfSessions,
-              TotalPeopleAttended: week.TotalPeopleAttended,
-            }))
-            .sort((a, b) => b.WeekNumber - a.WeekNumber); // Sort weeks in descending order
-
-          return {
-            ...month,
-            MonthName: monthNames[month.MonthNumber - 1],
-            weeks
-          };
-        }).sort((a, b) => b.MonthNumber - a.MonthNumber); // Sort months in descending order
-
-        response.push({
-          year: processingYear,
-          stats: yearlyStats,
-          months: monthsWithWeeks
-        });
-      }
-    }
-
-    if (response.length === 0) {
-      return res.status(404).json({
-        status: false,
-        message: 'No training summary data found for the provided filters.',
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: 'Training summary data fetched successfully.',
-      overallStats: overallStats[0],
-      data: response
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      status: false,
-      message: 'Failed to fetch training summary data.',
-      error: error.message
-    });
-  }
-};
-
-
-const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
-  try {
-    const currentYear = new Date().getFullYear();
-    const startYear = 2007;
-
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
-
-    const { trainingType, year, month, week ,   fromDate,
-      toDate,
-      download = false, } = req.body; // Optional filters
-
-    // Base conditions for filters
-    const filters = [];
-    const params = [];
-
-    // Handle trainingType filter (only School)
-    filters.push(`
-      CASE 
-        WHEN category = 'School Students Training – Group' THEN 'School'
-        ELSE 'Adult'
-      END = 'School'
-    `);
-
-    // Handle other filters (year, month, week)
-    if (year) {
-      filters.push("YEAR(tempdate) = ?");
-      params.push(year);
-    }
-
-    if (month) {
-      filters.push("MONTH(tempdate) = ?");
-      params.push(month);
-    }
-
-    if (week) {
-      filters.push("WEEK(tempdate, 1) = ?");
-      params.push(week);
-    }
 
     if (fromDate && toDate) {
       filters.push("bf.tempdate BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
-    // Combine all filters
     const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
 
-    // Queries with dynamic filters for School only
-    const overallStatsQuery = `
-      SELECT 
-        COUNT(DISTINCT sessionSlotId) AS TotalSessions,
-        COUNT(DISTINCT id) AS TotalAttendees
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition};
-    `;
-
+    // Query for yearly stats
     const yearlyStatsQuery = `
       SELECT 
-        YEAR(tempdate) AS Year,
-        'School' AS TrainingType,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, TrainingType
-      HAVING Year = ?;
+        YEAR(bf.tempdate) AS Year,
+        bf.category AS TrainingCategory,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, bf.category;
     `;
 
+    // Query for monthly stats
     const monthlyStatsQuery = `
       SELECT 
-        YEAR(tempdate) AS Year,
-        MONTH(tempdate) AS MonthNumber,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        'School' AS TrainingType
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, MonthNumber, TrainingType
-      HAVING Year = ?;
+        YEAR(bf.tempdate) AS Year,
+        MONTH(bf.tempdate) AS MonthNumber,
+        bf.category AS TrainingCategory,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, MonthNumber, bf.category;
     `;
 
+    // Query for weekly stats
     const weeklyStatsQuery = `
       SELECT 
-        YEAR(tempdate) AS Year,
-        WEEK(tempdate, 1) AS WeekNumber,
-        MONTH(tempdate) AS MonthNumber,
-        COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
-        COUNT(DISTINCT id) AS TotalPeopleAttended,
-        'School' AS TrainingType
-      FROM bookingforms
-      WHERE training_status = 'Attended' ${filterCondition}
-      GROUP BY Year, WeekNumber, MonthNumber, TrainingType
-      HAVING Year = ?;
+        YEAR(bf.tempdate) AS Year,
+        WEEK(bf.tempdate, 1) AS WeekNumber,
+        MONTH(bf.tempdate) AS MonthNumber,
+        bf.category AS TrainingCategory,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, WeekNumber, MonthNumber, bf.category;
     `;
 
-    const response = [];
+    // Execute the queries to get the stats
+    const [yearlyStats] = await dbObj.query(yearlyStatsQuery, params);
+    const [monthlyStats] = await dbObj.query(monthlyStatsQuery, params);
+    const [weeklyStats] = await dbObj.query(weeklyStatsQuery, params);
 
-    // Fetch overall stats
-    const [overallStats] = await dbObj.query(overallStatsQuery, params);
 
-    // Determine which years to process
-    const yearsToProcess = year ? [year] : Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
 
-    for (const processingYear of yearsToProcess) {
-      const yearParams = year ? params : [processingYear, ...params];
 
-      // Fetch data for the current year
-      const [yearlyStats] = await dbObj.query(yearlyStatsQuery, [...yearParams, processingYear]);
-      const [monthlyStats] = await dbObj.query(monthlyStatsQuery, [...yearParams, processingYear]);
-      const [weeklyStats] = await dbObj.query(weeklyStatsQuery, [...yearParams, processingYear]);
-
-      // If there's data for the year, process and add to response
-      if (yearlyStats.length > 0) {
-        const monthsWithWeeks = monthlyStats.map(month => {
-          const weeks = weeklyStats
-            .filter(week => week.Year === month.Year && week.MonthNumber === month.MonthNumber && week.TrainingType === month.TrainingType)
-            .map(week => ({
-              WeekNumber: week.WeekNumber,
-              NoOfSessions: week.NoOfSessions,
-              TotalPeopleAttended: week.TotalPeopleAttended,
-            }))
-            .sort((a, b) => b.WeekNumber - a.WeekNumber); // Sort weeks in descending order
-
-          return {
-            ...month,
-            MonthName: monthNames[month.MonthNumber - 1],
-            weeks
-          };
-        }).sort((a, b) => b.MonthNumber - a.MonthNumber); // Sort months in descending order
-
-        response.push({
-          year: processingYear,
-          stats: yearlyStats,
-          months: monthsWithWeeks
-        });
-      }
-    }
-
-    if (response.length === 0) {
+    // If no data is found for yearly stats, return a 404 response
+    if (!yearlyStats.length) {
       return res.status(404).json({
         status: false,
         message: 'No training summary data found for the provided filters.',
       });
     }
 
+    const response = [];
+    const overallStats = { totalSessions: 0, totalAttendees: 0 };
+
+    // Create a map to hold category labels and their corresponding sessions
+    const categoryLabels = {
+      'RTO – Learner Driving License Holder Training': 'Adult',
+      'RTO – Suspended Driving License Holders Training': 'Adult',
+      'RTO – Training for School Bus Driver': 'Adult'      
+    };
+
+    // Group and aggregate the yearly stats
+    const groupedByYear = yearlyStats.reduce((acc, stat) => {
+      const { Year, TrainingCategory, NoOfSessions, TotalPeopleAttended } = stat;
+      const categoryLabel = categoryLabels[TrainingCategory] || 'Other';
+
+      if (!acc[Year]) {
+        acc[Year] = { 
+          year: Year, 
+          stats: [], 
+          months: [], 
+          consolidatedStats: { totalSessions: 0, totalAttendees: 0 },
+          totalSessionsInYear: 0,  // New field for total sessions in the year
+          totalAttendeesInYear: 0   // New field for total attendees in the year
+        };
+      }
+
+      acc[Year].stats.push({
+        categoryLabel, // Add the label to the stats
+        TrainingCategory,
+        NoOfSessions,
+        TotalPeopleAttended
+      });
+
+      // Aggregate overall stats for the year
+      acc[Year].consolidatedStats.totalSessions += NoOfSessions;
+      acc[Year].consolidatedStats.totalAttendees += TotalPeopleAttended;
+      acc[Year].totalSessionsInYear += NoOfSessions;  // Add to year total
+      acc[Year].totalAttendeesInYear += TotalPeopleAttended;  // Add to year total
+
+      overallStats.totalSessions += NoOfSessions;
+      overallStats.totalAttendees += TotalPeopleAttended;
+
+      return acc;
+    }, {});
+
+    // Now, process the monthly and weekly stats
+    for (const year in groupedByYear) {
+      const monthsWithWeeks = monthlyStats
+        .filter(month => month.Year == year)
+        .map(month => {
+          const weeks = weeklyStats
+            .filter(week => week.Year == year && week.MonthNumber === month.MonthNumber && week.TrainingCategory === month.TrainingCategory)
+            .map(week => ({
+              WeekNumber: week.WeekNumber,
+              NoOfSessions: week.NoOfSessions,
+              TotalPeopleAttended: week.TotalPeopleAttended,
+            }))
+            .sort((a, b) => b.WeekNumber - a.WeekNumber);
+
+          return {
+            ...month,
+            MonthName: monthNames[month.MonthNumber - 1],
+            weeks,
+          };
+        })
+        .sort((a, b) => b.MonthNumber - a.MonthNumber);
+
+      groupedByYear[year].months = monthsWithWeeks;
+
+      // Include overall stats for the year in the response
+      response.push({
+        ...groupedByYear[year],
+        NoOfSessions: groupedByYear[year].totalSessionsInYear,  // Add yearly total sessions
+        TotalPeopleAttended: groupedByYear[year].totalAttendeesInYear,  // Add yearly total attendees
+        overallStats: {
+          totalSessions: groupedByYear[year].totalSessionsInYear,
+          totalAttendees: groupedByYear[year].totalAttendeesInYear,
+        }
+      });
+    }
+
+    // Sort the response by year in descending order
+    response.sort((a, b) => b.year - a.year); 
+
+    // Send the response
     res.status(200).json({
       status: true,
       message: 'Training summary data fetched successfully.',
-      overallStats: overallStats[0],
-      data: response
+      overallStats,
+      data: response,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       status: false,
       message: 'Failed to fetch training summary data.',
-      error: error.message
+      error: error.message,
     });
   }
 };
+
 
 
 const trainingTypeWiseCountRTO = async (req, res) => {
@@ -905,6 +1147,9 @@ const trainingTypeWiseCountRTO = async (req, res) => {
     const [yearlyStats] = await dbObj.query(yearlyStatsQuery, params);
     const [monthlyStats] = await dbObj.query(monthlyStatsQuery, params);
     const [weeklyStats] = await dbObj.query(weeklyStatsQuery, params);
+
+
+
 
     // If no data is found for yearly stats, return a 404 response
     if (!yearlyStats.length) {
@@ -1017,6 +1262,207 @@ const trainingTypeWiseCountRTO = async (req, res) => {
 
 
 
+const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2007;
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const { year, month, week,fromDate,toDate } = req.body; // Optional filters
+
+    // Base conditions for filters
+    const filters = [];
+    const params = [];
+
+    if (year) {
+      filters.push("YEAR(bf.tempdate) = ?");
+      params.push(year);
+    }
+
+    if (month) {
+      filters.push("MONTH(bf.tempdate) = ?");
+      params.push(month);
+    }
+
+    if (week) {
+      filters.push("WEEK(bf.tempdate, 1) = ?");
+      params.push(week);
+    }
+
+    filters.push(`
+      CASE 
+        WHEN bf.category = 'School Students Training – Group' THEN 'School'
+        ELSE 'Adult'
+      END = 'School'
+    `);
+
+    if (fromDate && toDate) {
+      filters.push("bf.tempdate BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
+
+    const filterCondition = filters.length > 0 ? `AND ${filters.join(" AND ")}` : "";
+
+    // Query for yearly stats
+    const yearlyStatsQuery = `
+      SELECT 
+        YEAR(bf.tempdate) AS Year,
+        bf.category AS TrainingCategory,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, bf.category;
+    `;
+
+    // Query for monthly stats
+    const monthlyStatsQuery = `
+      SELECT 
+        YEAR(bf.tempdate) AS Year,
+        MONTH(bf.tempdate) AS MonthNumber,
+        bf.category AS TrainingCategory,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, MonthNumber, bf.category;
+    `;
+
+    // Query for weekly stats
+    const weeklyStatsQuery = `
+      SELECT 
+        YEAR(bf.tempdate) AS Year,
+        WEEK(bf.tempdate, 1) AS WeekNumber,
+        MONTH(bf.tempdate) AS MonthNumber,
+        bf.category AS TrainingCategory,
+        COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
+        COUNT(DISTINCT bf.id) AS TotalPeopleAttended
+      FROM bookingforms bf
+      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      WHERE bf.training_status = 'Attended' ${filterCondition}
+      GROUP BY Year, WeekNumber, MonthNumber, bf.category;
+    `;
+
+    // Execute the queries to get the stats
+    const [yearlyStats] = await dbObj.query(yearlyStatsQuery, params);
+    const [monthlyStats] = await dbObj.query(monthlyStatsQuery, params);
+    const [weeklyStats] = await dbObj.query(weeklyStatsQuery, params);
+
+
+
+
+    // If no data is found for yearly stats, return a 404 response
+    if (!yearlyStats.length) {
+      return res.status(404).json({
+        status: false,
+        message: 'No training summary data found for the provided filters.',
+      });
+    }
+
+    const response = [];
+    const overallStats = { totalSessions: 0, totalAttendees: 0 };
+
+    // Create a map to hold category labels and their corresponding sessions
+    const categoryLabels = {      
+      'School Students Training – Group': 'School'
+    };
+
+    // Group and aggregate the yearly stats
+    const groupedByYear = yearlyStats.reduce((acc, stat) => {
+      const { Year, TrainingCategory, NoOfSessions, TotalPeopleAttended } = stat;
+      const categoryLabel = categoryLabels[TrainingCategory] || 'Other';
+
+      if (!acc[Year]) {
+        acc[Year] = { 
+          year: Year, 
+          stats: [], 
+          months: [], 
+          consolidatedStats: { totalSessions: 0, totalAttendees: 0 },
+          totalSessionsInYear: 0,  // New field for total sessions in the year
+          totalAttendeesInYear: 0   // New field for total attendees in the year
+        };
+      }
+
+      acc[Year].stats.push({
+        categoryLabel, // Add the label to the stats
+        TrainingCategory,
+        NoOfSessions,
+        TotalPeopleAttended
+      });
+
+      // Aggregate overall stats for the year
+      acc[Year].consolidatedStats.totalSessions += NoOfSessions;
+      acc[Year].consolidatedStats.totalAttendees += TotalPeopleAttended;
+      acc[Year].totalSessionsInYear += NoOfSessions;  // Add to year total
+      acc[Year].totalAttendeesInYear += TotalPeopleAttended;  // Add to year total
+
+      overallStats.totalSessions += NoOfSessions;
+      overallStats.totalAttendees += TotalPeopleAttended;
+
+      return acc;
+    }, {});
+
+    // Now, process the monthly and weekly stats
+    for (const year in groupedByYear) {
+      const monthsWithWeeks = monthlyStats
+        .filter(month => month.Year == year)
+        .map(month => {
+          const weeks = weeklyStats
+            .filter(week => week.Year == year && week.MonthNumber === month.MonthNumber && week.TrainingCategory === month.TrainingCategory)
+            .map(week => ({
+              WeekNumber: week.WeekNumber,
+              NoOfSessions: week.NoOfSessions,
+              TotalPeopleAttended: week.TotalPeopleAttended,
+            }))
+            .sort((a, b) => b.WeekNumber - a.WeekNumber);
+
+          return {
+            ...month,
+            MonthName: monthNames[month.MonthNumber - 1],
+            weeks,
+          };
+        })
+        .sort((a, b) => b.MonthNumber - a.MonthNumber);
+
+      groupedByYear[year].months = monthsWithWeeks;
+
+      // Include overall stats for the year in the response
+      response.push({
+        ...groupedByYear[year],
+        NoOfSessions: groupedByYear[year].totalSessionsInYear,  // Add yearly total sessions
+        TotalPeopleAttended: groupedByYear[year].totalAttendeesInYear,  // Add yearly total attendees
+        overallStats: {
+          totalSessions: groupedByYear[year].totalSessionsInYear,
+          totalAttendees: groupedByYear[year].totalAttendeesInYear,
+        }
+      });
+    }
+
+    // Sort the response by year in descending order
+    response.sort((a, b) => b.year - a.year); 
+
+    // Send the response
+    res.status(200).json({
+      status: true,
+      message: 'Training summary data fetched successfully.',
+      overallStats,
+      data: response,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: false,
+      message: 'Failed to fetch training summary data.',
+      error: error.message,
+    });
+  }
+};
 
 
 const trainingYearWiseCount = async (req, res) => {
