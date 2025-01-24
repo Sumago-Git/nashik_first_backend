@@ -20,8 +20,8 @@ const trainingTypeWiseCount = async (req, res) => {
         END AS TrainingType,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with Sessionslots table
       WHERE bf.training_status = 'Attended'
     `;
 
@@ -97,8 +97,8 @@ const trainingTypeWiseCountByCategory = async (req, res) => {
         END AS TrainingType,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with Sessionslots table
       WHERE bf.training_status = 'Attended'
     `;
 
@@ -170,8 +170,8 @@ const trainingTypeWiseCountByYear = async (req, res) => {
         END AS TrainingType,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with Sessionslots table
       WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ?
     `;
 
@@ -195,8 +195,8 @@ const trainingTypeWiseCountByYear = async (req, res) => {
       SELECT 
         COUNT(DISTINCT bf.sessionSlotId) AS TotalSessions,
         COUNT(DISTINCT bf.id) AS TotalAttendees
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with Sessionslots table
       WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ?
     `;
 
@@ -274,8 +274,8 @@ const trainingTypeWiseCountByMonth = async (req, res) => {
         END AS TrainingType,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,  -- Count of distinct sessions
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended  -- Count of distinct people
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with Sessionslots table
       WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ? AND MONTH(bf.tempdate) = ?
     `;
 
@@ -299,8 +299,8 @@ const trainingTypeWiseCountByMonth = async (req, res) => {
       SELECT 
         COUNT(DISTINCT bf.sessionSlotId) AS TotalSessions,
         COUNT(DISTINCT bf.id) AS TotalAttendees
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with sessionslots table
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id  -- Join with Sessionslots table
       WHERE bf.training_status = 'Attended' AND YEAR(bf.tempdate) = ? AND MONTH(bf.tempdate) = ?
     `;
 
@@ -415,7 +415,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
       SELECT 
         COUNT(DISTINCT sessionSlotId) AS TotalSessions,
         COUNT(DISTINCT id) AS TotalAttendees
-      FROM bookingforms
+      FROM BookingForms
       WHERE training_status = 'Attended' ${filterCondition};
     `;
 
@@ -429,7 +429,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
         END AS TrainingType,
         COUNT(DISTINCT sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT id) AS TotalPeopleAttended
-      FROM bookingforms
+      FROM BookingForms
       WHERE training_status = 'Attended' ${filterCondition}
       GROUP BY Year, TrainingType
       HAVING Year = ?;
@@ -445,7 +445,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
           WHEN category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
         END AS TrainingType
-      FROM bookingforms
+      FROM BookingForms
       WHERE training_status = 'Attended' ${filterCondition}
       GROUP BY Year, MonthNumber, TrainingType
       HAVING Year = ?;
@@ -462,7 +462,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
           WHEN category = 'School Students Training – Group' THEN 'School'
           ELSE 'Adult'
         END AS TrainingType
-      FROM bookingforms
+      FROM BookingForms
       WHERE training_status = 'Attended' ${filterCondition}
       GROUP BY Year, WeekNumber, MonthNumber, TrainingType
       HAVING Year = ?;
@@ -600,8 +600,8 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, bf.category;
     `;
@@ -614,8 +614,8 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, MonthNumber, bf.category;
     `;
@@ -629,8 +629,8 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, WeekNumber, MonthNumber, bf.category;
     `;
@@ -806,8 +806,8 @@ const trainingTypeWiseCountRTO = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, bf.category;
     `;
@@ -820,8 +820,8 @@ const trainingTypeWiseCountRTO = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, MonthNumber, bf.category;
     `;
@@ -835,8 +835,8 @@ const trainingTypeWiseCountRTO = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, WeekNumber, MonthNumber, bf.category;
     `;
@@ -1012,8 +1012,8 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, bf.category;
     `;
@@ -1026,8 +1026,8 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, MonthNumber, bf.category;
     `;
@@ -1041,8 +1041,8 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
         bf.category AS TrainingCategory,
         COUNT(DISTINCT bf.sessionSlotId) AS NoOfSessions,
         COUNT(DISTINCT bf.id) AS TotalPeopleAttended
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       WHERE bf.training_status = 'Attended' ${filterCondition}
       GROUP BY Year, WeekNumber, MonthNumber, bf.category;
     `;
@@ -1269,7 +1269,7 @@ const trainingYearWiseCount = async (req, res) => {
       params.push(fromDate, toDate);
     }
 
-    // Apply the "Attended" filter for bookingforms only at the last stage
+    // Apply the "Attended" filter for BookingForms only at the last stage
     const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")} AND bf.training_status = 'Attended'` : "WHERE bf.training_status = 'Attended'";
 
     const query = `
@@ -1282,8 +1282,8 @@ const trainingYearWiseCount = async (req, res) => {
         COUNT(*) AS sessionCount,
         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions
       FROM slotregisterinfos sri
-      LEFT JOIN sessionslots ss ON sri.sessionSlotId = ss.id
-      LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
+      LEFT JOIN Sessionslots ss ON sri.sessionSlotId = ss.id
+      LEFT JOIN BookingForms bf ON ss.id = bf.sessionSlotId
       ${filterCondition}
       GROUP BY sri.institution_name, year, month, week, bf.category
       ORDER BY sri.institution_name, year DESC, month DESC, week DESC
@@ -1295,8 +1295,8 @@ const trainingYearWiseCount = async (req, res) => {
     const totalRecordsQuery = `
       SELECT COUNT(DISTINCT sri.institution_name) AS totalRecords
       FROM slotregisterinfos sri
-      LEFT JOIN sessionslots ss ON sri.sessionSlotId = ss.id
-      LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
+      LEFT JOIN Sessionslots ss ON sri.sessionSlotId = ss.id
+      LEFT JOIN BookingForms bf ON ss.id = bf.sessionSlotId
       ${filterCondition};
     `;
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
@@ -1524,8 +1524,8 @@ const totalSessionsConducted = async (req, res) => {
     // Query to count all rows matching the filters
     const totalRecordsQuery = `
       SELECT COUNT(DISTINCT bf.sessionSlotId) AS totalRecords
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition};
     `;
@@ -1581,8 +1581,8 @@ const totalSessionsConducted = async (req, res) => {
             END
           ELSE bf.institution_name
         END AS institutionOrCategory
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
       GROUP BY bf.sessionSlotId
@@ -1853,8 +1853,8 @@ const trainerWiseSessionsConducted = async (req, res) => {
         COUNT(*) AS sessionCount,
         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions,
         bf.category AS categoryName
-      FROM sessionslots ss
-      LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
+      FROM Sessionslots ss
+      LEFT JOIN BookingForms bf ON ss.id = bf.sessionSlotId
       ${filterCondition}
       GROUP BY trainerName, year, month, week, bf.category
       ORDER BY trainerName ASC, year DESC, month DESC, week DESC, bf.category ASC
@@ -1873,8 +1873,8 @@ const trainerWiseSessionsConducted = async (req, res) => {
 
     const totalRecordsQuery = `
       SELECT COUNT(DISTINCT ss.trainer) AS totalRecords
-      FROM sessionslots ss
-      LEFT JOIN bookingforms bf ON ss.id = bf.sessionSlotId
+      FROM Sessionslots ss
+      LEFT JOIN BookingForms bf ON ss.id = bf.sessionSlotId
       ${filterCondition};
     `;
     const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
@@ -2099,8 +2099,8 @@ const schoolWiseSessionsConducted = async (req, res) => {
         WEEK(bf.tempdate, 1) AS week,
         COUNT(*) AS sessionCount,
         COUNT(DISTINCT bf.sessionSlotId) AS totalSessions
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition}
       GROUP BY sri.institution_name, year, month, week
@@ -2112,8 +2112,8 @@ const schoolWiseSessionsConducted = async (req, res) => {
     // Query to count total records for pagination
     const totalRecordsQuery = `
       SELECT COUNT(DISTINCT sri.institution_name) AS totalRecords
-      FROM bookingforms bf
-      JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+      FROM BookingForms bf
+      JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
       LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
       ${filterCondition};
     `;
@@ -2310,9 +2310,9 @@ const yearWiseFinalSessionCount = async (req, res) => {
   WEEK(bf.tempdate) AS week,
   COUNT(DISTINCT bf.id) AS totalNoOfStudent,
   COUNT(DISTINCT bf.sessionSlotId) AS totalNoSessions
-FROM bookingforms bf
+FROM BookingForms bf
 LEFT JOIN slotregisterinfos sri ON bf.sessionSlotId = sri.sessionSlotId
-LEFT JOIN sessionslots ss ON bf.sessionSlotId = ss.id
+LEFT JOIN Sessionslots ss ON bf.sessionSlotId = ss.id
  ${filterCondition}
  GROUP BY rowLabel, category, year, MONTH(bf.tempdate), WEEK(bf.tempdate)
 ORDER BY rowLabel, year DESC, MONTH(bf.tempdate) DESC, WEEK(bf.tempdate) DESC;
