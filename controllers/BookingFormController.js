@@ -501,20 +501,66 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 
 // Ensure moment is imported
 
+// exports.getAllEntriesByCategory = async (req, res) => {
+//   try {
+//     const { category } = req.body;
+
+//     // Get today's date at the start of the day, formatted as MM/DD/YYYY
+//     const today = moment().startOf("day").format("YYYY-MM-DD"); // Format today's date as MM/DD/YYYY
+
+//     // Query the database for booking entries where slotdate is today or later
+//     const bookingEntries = await BookingForm.findAll({
+//       where: {
+//         category,
+//         tempdate: {
+//           [Op.gt]: today, // Compare slotdate to today's date (formatted as MM/DD/YYYY)
+//         },
+//       },
+//     });
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Booking entries by category retrieved successfully",
+//       bookingEntries
+//     );
+//   } catch (error) {
+//     console.log("Get booking entries by category failed", error);
+//     return apiResponse.ErrorResponse(
+//       res,
+//       "Get booking entries by category failed"
+//     );
+//   }
+// };
+
+
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
-    // Get today's date at the start of the day, formatted as MM/DD/YYYY
-    const today = moment().startOf("day").format("YYYY-MM-DD"); // Format today's date as MM/DD/YYYY
+    // Get today's date at the start of the day
+    const today = moment().startOf("day");
+    let dateCondition;
 
-    // Query the database for booking entries where slotdate is today or later
+    // Check if today is Sunday
+    if (today.day() === 0) { // Sunday is represented by 0 in moment.js
+      const saturday = today.clone().subtract(1, "days").format("YYYY-MM-DD"); // Get Saturday
+      dateCondition = {
+        [Op.or]: [
+          { tempdate: { [Op.eq]: saturday } }, // Include Saturday's date
+          { tempdate: { [Op.gt]: today.format("YYYY-MM-DD") } }, // Include dates greater than today
+        ],
+      };
+    } else {
+      dateCondition = {
+        tempdate: { [Op.gt]: today.format("YYYY-MM-DD") },
+      };
+    }
+
+    // Query the database for booking entries with the condition
     const bookingEntries = await BookingForm.findAll({
       where: {
         category,
-        tempdate: {
-          [Op.gt]: today, // Compare slotdate to today's date (formatted as MM/DD/YYYY)
-        },
+        ...dateCondition,
       },
     });
 

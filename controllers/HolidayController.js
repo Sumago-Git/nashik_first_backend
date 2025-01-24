@@ -4,7 +4,7 @@ const SessionSlot = require("../models/sesssionslot")
 // Add holiday
 exports.addHoliday = async (req, res) => {
   try {
-    const { holiday_date } = req.body; // Expecting a single string
+    const { holiday_date, tempdate } = req.body; // Expecting a single string
 
     // Check if holiday_date exists in SessionSlot table as slotdate
     const sessionSlotExists = await SessionSlot.findOne({
@@ -21,7 +21,7 @@ exports.addHoliday = async (req, res) => {
     // Proceed to add holiday if no session slot exists for the given date
     const holiday = await Holiday.create({
       holiday_date,
-      tempdate: holiday_date,
+      tempdate: tempdate,
       isActive: true,
       isDelete: false,
     });
@@ -42,13 +42,29 @@ exports.addHoliday = async (req, res) => {
 exports.updateHoliday = async (req, res) => {
   try {
     const { id } = req.params;
-    const holiday = await Holiday.findByPk(id);
+    const { holiday_date, tempdate } = req.body;  // Get both holiday_date and tempdate from the request body
 
+    // Find the holiday by ID
+    const holiday = await Holiday.findByPk(id);
     if (!holiday) {
       return apiResponse.notFoundResponse(res, "Holiday not found");
     }
 
-    holiday.holiday_date = req.body.holiday_date; // Update holiday date
+    // Check if the new holiday_date exists in the SessionSlot table as slotdate
+    const sessionSlotExists = await SessionSlot.findOne({
+      where: { slotdate: holiday_date },
+    });
+
+    if (sessionSlotExists) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Cannot update holiday. A session slot is already scheduled on this date."
+      );
+    }
+
+    // Proceed with updating both holiday_date and tempdate
+    holiday.holiday_date = holiday_date;  // Update holiday date
+    holiday.tempdate = tempdate;  // Update tempdate
     await holiday.save();
 
     return apiResponse.successResponseWithData(
@@ -61,6 +77,7 @@ exports.updateHoliday = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Update holiday failed");
   }
 };
+
 
 // Get all holidays
 exports.getHolidays = async (req, res) => {

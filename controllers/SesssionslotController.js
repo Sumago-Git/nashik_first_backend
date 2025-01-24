@@ -56,7 +56,7 @@ exports.addSessionslot = async (req, res) => {
       },
     });
 
-    if (trainerConflict) {
+    if (trainerConflict && trainer !== "") {
       return apiResponse.ErrorResponse(
         res,
         `The trainer ${trainerConflict.trainer} is already assigned to a slot between ${trainerConflict.time} and ${trainerConflict.deadlineTime}. Please choose another trainer or time.`
@@ -140,7 +140,7 @@ exports.checkTrainerConflictByDate = async (req, res) => {
       },
     });
 
-    if (trainerConflict) {
+    if (trainerConflict && trainer !== "") {
       return apiResponse.successResponseWithData(res, "Trainer conflict", {
         conflict: true,
         trainer: trainerConflict.trainer,
@@ -205,7 +205,7 @@ exports.updateSessionslot = async (req, res) => {
       },
     });
 
-    if (trainerConflict) {
+    if (trainerConflict && trainer !== "") {
       return apiResponse.ErrorResponse(
         res,
         `The trainer ${trainerConflict.trainer} is already assigned to a slot between ${trainerConflict.time} and ${trainerConflict.deadlineTime}. Please choose another trainer or time.`
@@ -216,7 +216,9 @@ exports.updateSessionslot = async (req, res) => {
     if (slotType === "inhouse") {
       const conflictingInhouseSlot = await Sessionslot.findOne({
         where: {
+
           isDelete: false,
+          slotType: "inhouse",
           slotdate, // Ensure it's the same date
           id: { [Op.ne]: id }, // Exclude the current slot being updated
           [Op.or]: [
@@ -531,7 +533,7 @@ exports.getAvailableslots = async (req, res) => {
       } else if (totalAvailableSeats <= 0) {
         status = "closed";
       }
-      
+
       return {
         day,
         status,
