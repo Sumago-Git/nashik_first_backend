@@ -1761,7 +1761,7 @@ const getInstituteNCategoryList = async (req, res) => {
 
 
 
-const trainerWiseSessionsConducted = async (req, res) => {
+const trainerWiseSessionsConductedX = async (req, res) => {
   try {
     const {
       page = 1,
@@ -1974,7 +1974,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
       let rows = [];
 
       // Define headers for the Excel file
-      rows.push(['Trainer Name', 'Session Count', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week', 'Category']);
+      rows.push(['Trainer Name', 'No. Of Students', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week', 'Category']);
 
       const dataObj = Object.values(trainerJson);
 
@@ -2025,6 +2025,315 @@ const trainerWiseSessionsConducted = async (req, res) => {
           totalRecords,
         },
       });
+    }
+
+  
+  } catch (error) {
+    console.error('Error fetching trainer-wise records:', error);
+    res.status(500).json({
+      status: false,
+      message: 'Failed to fetch trainer-wise records.',
+      error: error.message,
+    });
+  }
+};
+
+
+const trainerWiseSessionsConducted = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      pageSize = 50,
+      date,
+      schoolName,
+      trainer,
+      trainingType,
+      day,
+      week,
+      month,
+      financialYear,
+      slotType,
+      rtoFilter,
+      rtoSubCategory,
+      fromDate,
+      toDate,
+      download = false,
+    } = req.body;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limit = parseInt(pageSize, 10) || 50;
+    const offset = (pageNum - 1) * limit;
+
+    const filters = [];
+    const params = [];
+
+    // Add filters based on request body
+    if (date) {
+      filters.push("DATE(bf.tempdate) = ?");
+      params.push(date);
+    }
+
+    if (schoolName) {
+      filters.push("bf.institution_name LIKE ?");
+      params.push(`%${schoolName}%`);
+    }
+
+    if (trainer) {
+      filters.push("ss.trainer LIKE ?");
+      params.push(`%${trainer}%`);
+    }
+
+    if (trainingType) {
+      filters.push(`
+        CASE 
+          WHEN bf.category = 'School Students Training – Group' THEN 'School'
+          ELSE 'Adult'
+        END = ?`);
+      params.push(trainingType);
+    }
+
+    if (day) {
+      filters.push("DAYOFWEEK(bf.tempdate) = ?");
+      params.push(day);
+    }
+
+    if (week) {
+      filters.push("WEEK(bf.tempdate, 1) = ?");
+      params.push(week);
+    }
+
+    if (month) {
+      filters.push("MONTH(bf.tempdate) = ?");
+      params.push(month);
+    }
+
+    if (financialYear) {
+      const startDate = `${financialYear}-04-01`;
+      const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
+      params.push(startDate, endDate);
+    }
+
+    if (slotType) {
+      filters.push("ss.slotType = ?");
+      params.push(slotType);
+    }
+
+    if (rtoFilter) {
+      filters.push(`
+        bf.category IN (
+          'RTO – Learner Driving License Holder Training',
+          'RTO – Suspended Driving License Holders Training',
+          'RTO – Training for School Bus Driver'
+        )`);
+    }
+
+    if (rtoSubCategory) {
+      filters.push("bf.category = ?");
+      params.push(rtoSubCategory);
+    }
+
+    filters.push("bf.training_status = ?");
+    params.push("Attended");
+
+    if (fromDate && toDate) {
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
+      params.push(fromDate, toDate);
+    }
+
+    const filterCondition = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+    const trainerWiseQuery = `
+      SELECT
+        IFNULL(NULLIF(ss.trainer, ''), 'UnknownTrainer') AS trainerName,
+        YEAR(ss.tempdate) AS year,
+        MONTH(ss.tempdate) AS month,
+        WEEK(ss.tempdate, 1) AS week,
+        COUNT(*) AS sessionCount,
+        COUNT(DISTINCT bf.sessionSlotId) AS totalSessions,
+        bf.category AS categoryName
+      FROM Sessionslots ss
+      LEFT JOIN BookingForms bf ON ss.id = bf.sessionSlotId
+      ${filterCondition}
+      GROUP BY trainerName, year, month, week, bf.category
+      ORDER BY trainerName ASC, year DESC, month DESC, week DESC, bf.category ASC
+      LIMIT ? OFFSET ?;
+    `;
+
+    const [records] = await dbObj.query(trainerWiseQuery, [...params, limit, offset]);
+
+    if (records.length === 0) {
+      return res.status(200).json({
+        status: true,
+        message: 'No data found for trainer-wise session count.',
+        data: [],
+      });
+    }
+
+    const totalRecordsQuery = `SELECT COUNT(DISTINCT ss.trainer) AS totalRecords FROM Sessionslots ss`;  // Your SQL query
+    const [totalRecordsResult] = await dbObj.query(totalRecordsQuery, params);
+    const totalRecords = totalRecordsResult[0]?.totalRecords || 0;
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const categoryShortNames = {
+      'RTO – Learner Driving License Holder Training': 'Learner',
+      'RTO – Suspended Driving License Holders Training': 'Suspended',
+      'RTO – Training for School Bus Driver': 'School BUS',
+    };
+
+    const trainerJson = {};
+
+    // Process records and aggregate data...
+    records.forEach(record => {
+      const { trainerName, year, month, week, sessionCount, categoryName, totalSessions } = record;
+
+      if (!trainerJson[trainerName]) {
+        trainerJson[trainerName] = {
+          trainerName,
+          totalSessions: 0, // Total sessions for the trainer
+          totalSessionCount: 0, // Total session count for the trainer
+          years: [],
+        };
+      }
+
+      const trainerObj = trainerJson[trainerName];
+
+      // Update total stats for the trainer
+      trainerObj.totalSessions += totalSessions;
+      trainerObj.totalSessionCount += sessionCount;
+
+      let yearObj = trainerObj.years.find(y => y.year === year);
+      if (!yearObj) {
+        yearObj = { 
+          year, 
+          totalSessions: 0, // Total sessions for the year
+          totalSessionCount: 0, // Total session count for the year
+          months: Array.from({ length: 12 }, (_, i) => ({
+            month: i + 1,
+            monthName: monthNames[i],
+            sessionCount: 0,
+            totalSessions: 0,
+            weeks: [],
+            consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 },
+          }))
+        };
+        trainerObj.years.push(yearObj);
+      }
+
+      // Update total stats for the year
+      yearObj.totalSessions += totalSessions;
+      yearObj.totalSessionCount += sessionCount;
+
+      const monthObj = yearObj.months.find(m => m.month === month);
+
+      let weekObj = monthObj.weeks.find(w => w.week === week);
+      if (!weekObj) {
+        weekObj = {
+          week,
+          sessionCount: 0,
+          totalSessions: 0,
+          categoryName,
+          shortName: categoryShortNames[categoryName] || categoryName,
+          consolidatedSessions: { Learner: 0, Suspended: 0, 'School BUS': 0 },
+        };
+        monthObj.weeks.push(weekObj);
+      }
+
+      weekObj.sessionCount += sessionCount;
+      weekObj.totalSessions += totalSessions;
+      monthObj.consolidatedSessions[categoryShortNames[categoryName] || categoryName] += sessionCount;
+      monthObj.sessionCount += sessionCount;
+      monthObj.totalSessions += totalSessions;
+    });
+
+    // Remove months with sessionCount = 0
+    Object.values(trainerJson).forEach(trainer => {
+      trainer.years.forEach(year => {
+        year.months = year.months.filter(month => month.sessionCount > 0);
+      });
+    });
+
+    // Format response based on your structure
+    const response = {
+      status: true,
+      message: 'Trainer-wise session count fetched successfully.',
+      data: Object.values(trainerJson).map(trainer => ({
+        trainerName: trainer.trainerName,
+        totalSessions: trainer.totalSessions, // Total sessions for the trainer
+        totalSessionCount: trainer.totalSessionCount, // Total session count for the trainer
+        years: trainer.years.map(year => ({
+          year: year.year,
+          totalSessions: year.totalSessions, // Total sessions for the year
+          totalSessionCount: year.totalSessionCount, // Total session count for the year
+          months: year.months.map(month => ({
+            month: month.month,
+            monthName: month.monthName,
+            sessionCount: month.sessionCount,
+            totalSessions: month.totalSessions,
+            weeks: month.weeks.map(week => ({
+              week: week.week,
+              sessionCount: week.sessionCount,
+              totalSessions: week.totalSessions,
+              categoryName: week.shortName || week.categoryName,
+            })),
+            consolidatedSessions: month.consolidatedSessions,
+          }))
+        }))
+      })),
+      totalSessionsConducted: totalRecords,
+      pagination: {
+        currentPage: pageNum,
+        pageSize: limit,
+        totalPages: Math.ceil(totalRecords / limit),
+        totalRecords,
+      },
+    };
+
+    if (download) {
+      let rows = [];
+      rows.push(['Trainer Name', 'No. Of Student', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week', 'Category']);
+      
+      const dataObj = Object.values(trainerJson);
+
+      dataObj.forEach(trainer => {
+        trainer.years.forEach(year => {
+          year.months.forEach(month => {
+            month.weeks.forEach(week => {
+              rows.push([
+                trainer.trainerName,
+                week.sessionCount,
+                week.totalSessions,
+                year.year,
+                month.month,
+                month.monthName,
+                week.week || 'N/A',
+                week.shortName || week.categoryName,
+              ]);
+            });
+          });
+        });
+      });
+
+      // Create Excel sheet
+      const ws = xlsx.utils.aoa_to_sheet(rows);
+      const wb = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(wb, ws, 'Trainer Sessions');
+
+      // Write to a buffer first
+      const buffer = await xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+
+      // Set headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename="TrainerWiseSessions_${generateTimestampIST()}.xlsx"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      // Send the buffer as response
+      res.end(buffer);
+    } else {
+      res.status(200).json(response);
     }
 
   
@@ -2249,7 +2558,7 @@ const schoolWiseSessionsConducted = async (req, res) => {
       let rows = [];
     
       // Define headers for Excel file
-      rows.push(['School Name', 'Session Count', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week']);  
+      rows.push(['School Name', 'No. Of Students', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week']);  
     
       const dataObj = Object.values(result);
     
