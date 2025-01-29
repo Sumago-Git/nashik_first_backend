@@ -1645,20 +1645,25 @@ const totalSessionsConducted = async (req, res) => {
       // await workbook.xlsx.write(res);
       // return res.status(200).end();
 
-      res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      );
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename=TotalSessions${todaysDate}.xlsx`
-      );
+      // res.setHeader(
+      //   "Content-Type",
+      //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      // );
+      // res.setHeader(
+      //   "Content-Disposition",
+      //   `attachment; filename=TotalSessions${todaysDate}.xlsx`
+      // );
       
-      await workbook.xlsx.write(res);
-      return res.end(); // Explicitl
-    }
-    
+      // await workbook.xlsx.write(res);
+      // return res.end(); // Explicitl
 
+      res.setHeader('Content-Disposition', `attachment; filename="TotalSessions${generateTimestampIST()}.xlsx"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+     // return res.send(buffer);
+      await workbook.xlsx.write(res);
+      res.end();
+    }
+  
     // Prepare response
     res.status(200).json({
       status: true,
@@ -1682,7 +1687,22 @@ const totalSessionsConducted = async (req, res) => {
   }
 };
 
+function generateTimestampIST() {
+  const now = new Date();
+  const options = { timeZone: 'Asia/Kolkata' };
 
+  // Get the current date and time in IST
+  const day = now.toLocaleString('en-GB', { ...options, day: '2-digit' });
+  const month = now.toLocaleString('en-GB', { ...options, month: '2-digit' });
+  const year = now.toLocaleString('en-GB', { ...options, year: '2-digit' });
+  const hours = now.toLocaleString('en-GB', { ...options, hour: '2-digit', hour12: false });
+  const minutes = now.toLocaleString('en-GB', { ...options, minute: '2-digit' });
+  const seconds = now.toLocaleString('en-GB', { ...options, second: '2-digit' });
+  const milliseconds = now.getMilliseconds().toString().padStart(3, '0');
+
+  // Format the timestamp as DDMMYYHHMMSSSSS
+  return `${day}${month}${year}${hours}${minutes}${seconds}${milliseconds}`;
+}
 
 const getInstituteNCategoryList = async (req, res) => {
   try {
@@ -2179,20 +2199,66 @@ const schoolWiseSessionsConducted = async (req, res) => {
       weekObj.sessionCount += sessionCount;
       weekObj.totalSessions += totalSessions;
     });
+    if (download) {
+      let rows = [];
+    
+      // Define headers for Excel file
+      rows.push(['School Name', 'Session Count', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week']);  
+    
+      const dataObj = Object.values(result);
+    
+      dataObj.forEach(school => {
+        school.years.forEach(year => {
+          year.months.forEach(month => {
+            month.weeks.forEach(week => {
+              // Add a row for each week with relevant data
+              rows.push([
+                school.schoolName,                     // School Name
+                month.sessionCount,                    // Session Count for the month
+                month.totalSessions,                   // Total Sessions for the month
+                year.year,                             // Year
+                month.month,                           // Month number
+                month.monthName,                       // Month Name
+                week.week || 'N/A',                    // Week or N/A if not present
+              ]);
+            });
+          });
+        });
+      });
+    
+      const ws = xlsx.utils.aoa_to_sheet(rows);
+      const wb = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(wb, ws, 'School Sessions');
+      
+      // Write to a buffer first
+      const buffer = await xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+    
+      // Set headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename="SchoolWiseReports_${generateTimestampIST()}.xlsx"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    
+      // Send the buffer as response
+      res.end(buffer);
+    } else {
+      res.status(200).json({
+        status: true,
+        message: 'School-wise session count with monthly and weekly breakdown fetched successfully.',
+        data: Object.values(result),
+        totalSessionsConducted: totalRecords,
+        pagination: {
+          currentPage: pageNum,
+          pageSize: limit,
+          totalPages: Math.ceil(totalRecords / limit),
+          totalRecords,
+        },
+      });
+    }
+    
+    
+    
 
     // Prepare the response
-    res.status(200).json({
-      status: true,
-      message: 'School-wise session count with monthly and weekly breakdown fetched successfully.',
-      data: Object.values(result), // Returning the structured result
-      totalSessionsConducted: totalRecords,
-      pagination: {
-        currentPage: pageNum,
-        pageSize: limit,
-        totalPages: Math.ceil(totalRecords / limit),
-        totalRecords,
-      },
-    });
+    
   } catch (error) {
     console.error('Error fetching school-wise records:', error);
     res.status(500).json({
@@ -2203,6 +2269,32 @@ const schoolWiseSessionsConducted = async (req, res) => {
   }
 };
 
+
+function processDataForSchool(data) {
+  let rows = [];
+  
+  data.forEach(school => {
+      // Add school level row
+      rows.push([school.schoolName, school.sessionCount, school.totalSessions]);
+
+      school.years.forEach(year => {
+          // Add year level row
+          rows.push([`Year: ${year.year}`, year.sessionCount, year.totalSessions]);
+
+          year.months.forEach(month => {
+              // Add month level row
+              rows.push([`Month: ${month.monthName}`, month.sessionCount, month.totalSessions]);
+
+              month.weeks.forEach(week => {
+                  // Add week level row
+                  rows.push([`Week: ${week.week || 'N/A'}`, week.sessionCount, week.totalSessions]);
+              });
+          });
+      });
+  });
+
+  return rows;
+}
 
 const yearWiseFinalSessionCount = async (req, res) => {
   try {

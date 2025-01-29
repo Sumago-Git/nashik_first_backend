@@ -1,0 +1,144 @@
+ let sample=[
+        {
+          "schoolName": "Shrimati Nargis Datta Kanya Vidyalay, Panchavati",
+          "sessionCount": 150,
+          "totalSessions": 5,
+          "years": [
+            {
+              "year": 2026,
+              "sessionCount": 150,
+              "totalSessions": 5,
+              "months": [
+                {
+                  "month": 1,
+                  "monthName": "January",
+                  "sessionCount": 50,
+                  "totalSessions": 2,
+                  "weeks": [
+                    {
+                      "week": 1,
+                      "sessionCount": 20,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 2,
+                      "sessionCount": 15,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 3,
+                      "sessionCount": 15,
+                      "totalSessions": 1
+                    }
+                  ]
+                },
+                {
+                  "month": 2,
+                  "monthName": "February",
+                  "sessionCount": 60,
+                  "totalSessions": 2,
+                  "weeks": [
+                    {
+                      "week": 1,
+                      "sessionCount": 25,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 2,
+                      "sessionCount": 20,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 3,
+                      "sessionCount": 15,
+                      "totalSessions": 1
+                    }
+                  ]
+                },
+                {
+                  "month": 3,
+                  "monthName": "March",
+                  "sessionCount": 40,
+                  "totalSessions": 1,
+                  "weeks": [
+                    {
+                      "week": 1,
+                      "sessionCount": 20,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 2,
+                      "sessionCount": 20,
+                      "totalSessions": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "schoolName": "WNS Global Services Pvt. Ltd.",
+          "sessionCount": 120,
+          "totalSessions": 4,
+          "years": [
+            {
+              "year": 2026,
+              "sessionCount": 120,
+              "totalSessions": 4,
+              "months": [
+                {
+                  "month": 1,
+                  "monthName": "January",
+                  "sessionCount": 40,
+                  "totalSessions": 2,
+                  "weeks": [
+                    {
+                      "week": 1,
+                      "sessionCount": 15,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 2,
+                      "sessionCount": 25,
+                      "totalSessions": 1
+                    }
+                  ]
+                },
+                {
+                  "month": 2,
+                  "monthName": "February",
+                  "sessionCount": 50,
+                  "totalSessions": 2,
+                  "weeks": [
+                    {
+                      "week": 1,
+                      "sessionCount": 30,
+                      "totalSessions": 1
+                    },
+                    {
+                      "week": 2,
+                      "sessionCount": 20,
+                      "totalSessions": 1
+                    }
+                  ]
+                },
+                {
+                  "month": 3,
+                  "monthName": "March",
+                  "sessionCount": 30,
+                  "totalSessions": 1,
+                  "weeks": [
+                    {
+                      "week": 1,
+                      "sessionCount": 30,
+                      "totalSessions": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ];   
+    
