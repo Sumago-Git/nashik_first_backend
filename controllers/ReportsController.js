@@ -404,7 +404,7 @@ const trainingTypeWiseCountByYearAll = async (req, res) => {
     }
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
     // Combine all filters
@@ -587,7 +587,7 @@ const trainingTypeWiseCountByYearAllAdult = async (req, res) => {
     `);
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -793,7 +793,7 @@ const trainingTypeWiseCountRTO = async (req, res) => {
     `);
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -999,7 +999,7 @@ const trainingTypeWiseCountByYearAllSchool = async (req, res) => {
     `);
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -1265,7 +1265,7 @@ const trainingYearWiseCount = async (req, res) => {
     }
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -1490,7 +1490,7 @@ const totalSessionsConducted = async (req, res) => {
     if (financialYear) {
       const startDate = `${financialYear}-04-01`;
       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(startDate, endDate);
     }
 
@@ -1515,7 +1515,7 @@ const totalSessionsConducted = async (req, res) => {
     }
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -1679,11 +1679,11 @@ const totalSessionsConducted = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching records:", error);
-    res.status(500).json({
-      status: false,
-      message: "Failed to fetch records.",
-      error: error.message,
-    });
+    // res.status(500).json({
+    //   status: false,
+    //   message: "Failed to fetch records.",
+    //   error: error.message,
+    // });
   }
 };
 
@@ -1831,7 +1831,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
     if (financialYear) {
       const startDate = `${financialYear}-04-01`;
       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(startDate, endDate);
     }
 
@@ -1858,7 +1858,7 @@ const trainerWiseSessionsConducted = async (req, res) => {
     params.push("Attended");
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -1970,18 +1970,64 @@ const trainerWiseSessionsConducted = async (req, res) => {
       });
     });
 
-    res.status(200).json({
-      status: true,
-      message: 'Trainer-wise session count fetched successfully.',
-      data: Object.values(trainerJson),
-      totalSessionsConducted: totalRecords,
-      pagination: {
-        currentPage: pageNum,
-        pageSize: limit,
-        totalPages: Math.ceil(totalRecords / limit),
-        totalRecords,
-      },
-    });
+    if (download) {
+      let rows = [];
+
+      // Define headers for the Excel file
+      rows.push(['Trainer Name', 'Session Count', 'Total Sessions', 'Year', 'Month', 'Month Name', 'Week', 'Category']);
+
+      const dataObj = Object.values(trainerJson);
+
+      dataObj.forEach(trainer => {
+        trainer.years.forEach(year => {
+          year.months.forEach(month => {
+            month.weeks.forEach(week => {
+              // Add a row for each week with relevant data
+              rows.push([
+                trainer.trainerName,                     // Trainer Name
+                week.sessionCount,                       // Session Count for the week
+                week.totalSessions,                      // Total Sessions for the week
+                year.year,                               // Year
+                month.month,                             // Month number
+                month.monthName,                         // Month Name
+                week.week || 'N/A',                      // Week or N/A if not present
+                week.shortName || week.categoryName,     // Category Name (shortened if available)
+              ]);
+            });
+          });
+        });
+      });
+
+      // Create Excel sheet
+      const ws = xlsx.utils.aoa_to_sheet(rows);
+      const wb = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(wb, ws, 'Trainer Sessions');
+
+      // Write to a buffer first
+      const buffer = await xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+
+      // Set headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename="TrainerWiseSessions_${generateTimestampIST()}.xlsx"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      // Send the buffer as response
+      res.end(buffer);
+    } else {
+      res.status(200).json({
+        status: true,
+        message: 'Trainer-wise session count fetched successfully.',
+        data: Object.values(trainerJson),
+        totalSessionsConducted: totalRecords,
+        pagination: {
+          currentPage: pageNum,
+          pageSize: limit,
+          totalPages: Math.ceil(totalRecords / limit),
+          totalRecords,
+        },
+      });
+    }
+
+  
   } catch (error) {
     console.error('Error fetching trainer-wise records:', error);
     res.status(500).json({
@@ -2080,7 +2126,7 @@ const schoolWiseSessionsConducted = async (req, res) => {
     if (financialYear) {
       const startDate = `${financialYear}-04-01`;
       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(startDate, endDate);
     }
 
@@ -2103,7 +2149,7 @@ const schoolWiseSessionsConducted = async (req, res) => {
     // }
 
     if (fromDate && toDate) {
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(fromDate, toDate);
     }
 
@@ -2348,7 +2394,7 @@ const yearWiseFinalSessionCount = async (req, res) => {
     if (financialYear) {
       const startDate = `${financialYear}-04-01`;
       const endDate = `${parseInt(financialYear, 10) + 1}-03-31`;
-      filters.push("bf.tempdate BETWEEN ? AND ?");
+      filters.push("DATE(bf.tempdate) BETWEEN ? AND ?");
       params.push(startDate, endDate);
     }
     if (slotType) {
