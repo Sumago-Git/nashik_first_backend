@@ -157,10 +157,14 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             // Send email for each record created
             const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
             // const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
-            const emailText = `Dear ${item.fname},<br>
+            const emailText = `${
+              category == "School Students Training – Group" ||
+              category == "College/Organization Training – Group"
+                ? `Dear ${coordinator_name}, \n Your ${category} booking for <b>'Road Safety & Traffic Awareness Training'</b> is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
+                : `Dear ${item.fname},<br>
             <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
-            <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-
+            <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
+            }`;
             const emailHtml = `
               <h1>Booking Confirmation</h1>
               ${emailText}
@@ -252,8 +256,6 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     });
     console.log("category333", category);
     let filteredCategorys = category.replace(/-/g, "");
-    console.log("filteredCategorys", filteredCategorys);
-    console.log("sessionTime===>", sessionTime);
     const formatTimeTo12Hour = (time) => {
       const [hour, minute] = time.split(":");
       const hours = parseInt(hour, 10);
@@ -312,10 +314,14 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Send email for the newly created booking form
     const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
     // const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
-    const emailText = `Dear ${fname} ${lname},<br>
+    const emailText = `${
+      category == "School Students Training – Group" ||
+      category == "College/Organization Training – Group"
+        ? `Dear ${coordinator_name}, \n Your ${category} booking for <b>'Road Safety & Traffic Awareness Training'</b> is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
+        : `Dear ${item.fname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
-    <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-
+    <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
+    }`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
     ${emailText}
@@ -532,7 +538,6 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 //   }
 // };
 
-
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
@@ -542,7 +547,8 @@ exports.getAllEntriesByCategory = async (req, res) => {
     let dateCondition;
 
     // Check if today is Sunday
-    if (today.day() === 0) { // Sunday is represented by 0 in moment.js
+    if (today.day() === 0) {
+      // Sunday is represented by 0 in moment.js
       const saturday = today.clone().subtract(1, "days").format("YYYY-MM-DD"); // Get Saturday
       dateCondition = {
         [Op.or]: [
@@ -968,10 +974,17 @@ exports.registerSlotInfo = async (req, res) => {
     const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
     // const emailText = `Dear ,Your booking has been successfully confirmed!\n\nDetails:\nInstitution Name: ${institution_name}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
     // const emailText = `Dear ${coordinator_name}, \n\nYour booking for ${category} is confirmed on ${slotDateandTime} You will have to be present 30mins before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.`;
-    const emailText = `Dear ${coordinator_name},<br>
+    // const emailText = `Dear ${coordinator_name},<br>
+    // <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
+    // <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
+    const emailText = `${
+      category == "School Students Training – Group" ||
+      category == "College/Organization Training – Group"
+        ? `Dear ${coordinator_name}, \n Your ${category} booking for 'Road Safety & Traffic Awareness Training' is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
+        : `Dear ${item.fname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
-    <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-
+    <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
+    }`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
    ${emailText}
@@ -1171,11 +1184,6 @@ exports.deleteSlotInfo = async (req, res) => {
       .json({ message: "An error occurred.", error: error.message });
   }
 };
-
-
-
-
-
 
 // exports.getAllEntriesByCategory = async (req, res) => {
 //   try {
