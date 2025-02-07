@@ -52,8 +52,10 @@ const ContactForm = require("./routes/contactFormRoutes")
 const Trainer = require("./routes/trainerRoutes")
 const Individuals = require('./routes/IndividualsRoutes')
 const certification = require('./routes/certificateRoutes')
+const reportRoutes = require('./routes/ReportRoutes')
 const Counts = require('./routes/CountRoute');
 const { searchBookingFormByCategory } = require("./controllers/SearchbycategoryController");
+
 app.use("/counts", Counts);
 app.use("/certificate", certification);
 app.use("/trainer", Trainer);
@@ -84,6 +86,7 @@ app.use("/AnnualReturn", AnnualReturn)
 app.use("/Sessionslot", Sessionslot)
 app.use("/Individuals", Individuals)
 app.use("/search", SearchbycategoryRoute)
+app.use("/report", reportRoutes)
 
 // Test DB connection
 const testDbConnection = async () => {
