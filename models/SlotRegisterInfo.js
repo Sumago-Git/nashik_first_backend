@@ -14,6 +14,10 @@ const SlotRegisterInfo = sequelize.define("slotregisterinfo", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  bus: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   category: {
     type: DataTypes.STRING,
     allowNull: false,

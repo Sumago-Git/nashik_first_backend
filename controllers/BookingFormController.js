@@ -858,6 +858,7 @@ exports.registerSlotInfo = async (req, res) => {
       coordinator_name,
       hm_principal_manager_mobile,
       hm_principal_manager_name,
+      bus
     } = req.body;
 
     // Validate required fields
@@ -884,7 +885,7 @@ exports.registerSlotInfo = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name,
+      hm_principal_manager_name,bus
     });
     const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
     await sessionSlot.update({
@@ -1078,7 +1079,7 @@ exports.updateSlotInfo = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name,
+      hm_principal_manager_name,bus
     } = req.body;
 
     // Find the slot registration by ID
@@ -1103,7 +1104,7 @@ exports.updateSlotInfo = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name,
+      hm_principal_manager_name,bus
     });
 
     // Update the related session slot's available seats (if needed)

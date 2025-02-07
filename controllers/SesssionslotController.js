@@ -522,6 +522,7 @@ exports.getAvailableslots = async (req, res) => {
       totalMonthlyAvailableSeats += totalAvailableSeats;
 
       const slotsDetails = slotsForDay.map((slot) => ({
+        totalCapacity:slot.capacity,
         time: slot.time,
         deadlineTime: slot.deadlineTime,
         availableSeats: slot.available_seats,
