@@ -126,19 +126,18 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               slotdate
             )} at ${formatTimeTo12Hour(sessionTime)}`;
             console.log(slotDateandTime);
-            const smsMessage = `Hi ${fname}, Your booking for ${
-              category == "RTO - Learner Driving License Holder Training"
-                ? "RTO Learner Driving License Holder"
-                : category == "RTO – Suspended Driving License Holders Training"
+            const smsMessage = `Hi ${fname}, Your booking for ${category == "RTO - Learner Driving License Holder Training"
+              ? "RTO Learner Driving License Holder"
+              : category == "RTO – Suspended Driving License Holders Training"
                 ? "RTO Suspended Driving License Holders"
                 : category == "RTO – Training for School Bus Driver"
-                ? "RTO Training for School Bus Driver"
-                : category == "School Students Training – Group"
-                ? "School Students Training Group"
-                : category == "College/Organization Training – Group"
-                ? "College/Organization Training Group"
-                : ""
-            } Training is confirmed on ${slotDateandTime} at ${sessionTime}. Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query, please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+                  ? "RTO Training for School Bus Driver"
+                  : category == "School Students Training – Group"
+                    ? "School Students Training Group"
+                    : category == "College/Organization Training – Group"
+                      ? "College/Organization Training Group"
+                      : ""
+              } Training is confirmed on ${slotDateandTime} at ${sessionTime}. Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query, please call 0253-2315966 Email: secretary@nashikfirst.com.`;
             const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
             const senderId = "NSKFST";
             const DLT_TE_ID = "1707171473228451822";
@@ -272,30 +271,29 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       category == "RTO - Learner Driving License Holder Training"
         ? "RTO Learner Driving License Holder"
         : category == "RTO – Suspended Driving License Holders Training"
-        ? "RTO Suspended Driving License Holders"
-        : category == "RTO – Training for School Bus Driver"
-        ? "RTO Training for School Bus Driver"
-        : category == "School Students Training – Group"
-        ? "School Students Training Group"
-        : category == "College/Organization Training – Group"
-        ? "College/Organization Training Group"
-        : ""
+          ? "RTO Suspended Driving License Holders"
+          : category == "RTO – Training for School Bus Driver"
+            ? "RTO Training for School Bus Driver"
+            : category == "School Students Training – Group"
+              ? "School Students Training Group"
+              : category == "College/Organization Training – Group"
+                ? "College/Organization Training Group"
+                : ""
     );
 
     // Send SMS
-    const smsMessage = `Hi ${fname},Your booking for ${
-      category == "RTO – Learner Driving License Holder Training"
-        ? "RTO Learner Driving License Holder"
-        : category == "RTO – Suspended Driving License Holders Training"
+    const smsMessage = `Hi ${fname},Your booking for ${category == "RTO – Learner Driving License Holder Training"
+      ? "RTO Learner Driving License Holder"
+      : category == "RTO – Suspended Driving License Holders Training"
         ? "RTO Suspended Driving License Holders"
         : category == "RTO – Training for School Bus Driver"
-        ? "RTO Training for School Bus Driver"
-        : category == "School Students Training – Group"
-        ? "School Students Training Group"
-        : category == "College/Organization Training – Group"
-        ? "College/Organization Training Group"
-        : ""
-    } Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+          ? "RTO Training for School Bus Driver"
+          : category == "School Students Training – Group"
+            ? "School Students Training Group"
+            : category == "College/Organization Training – Group"
+              ? "College/Organization Training Group"
+              : ""
+      } Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
@@ -538,7 +536,6 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 //   }
 // };
 
-
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
@@ -548,7 +545,8 @@ exports.getAllEntriesByCategory = async (req, res) => {
     let dateCondition;
 
     // Check if today is Sunday
-    if (today.day() === 0) { // Sunday is represented by 0 in moment.js
+    if (today.day() === 0) {
+      // Sunday is represented by 0 in moment.js
       const saturday = today.clone().subtract(1, "days").format("YYYY-MM-DD"); // Get Saturday
       dateCondition = {
         [Op.or]: [
@@ -727,17 +725,67 @@ exports.updateTrainingStatus = async (req, res) => {
       .json({ message: "An error occurred", error: error.message });
   }
 };
+// exports.updateBookingForm = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const bookingForm = await BookingForm.findByPk(id);
+
+//     if (!bookingForm) {
+//       return apiResponse.notFoundResponse(res, "Booking form not found");
+//     }
+
+//     // Convert the vehicletype array to a comma-separated string
+
+//     Object.assign(bookingForm, req.body);
+//     await bookingForm.save();
+
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "Booking form updated successfully",
+//       bookingForm
+//     );
+//   } catch (error) {
+//     console.log("Update booking form failed", error);
+//     return apiResponse.ErrorResponse(res, "Update booking form failed");
+//   }
+// };
 exports.updateBookingForm = async (req, res) => {
   try {
     const { id } = req.params;
+    const { sessionSlotId } = req.body;
+
+    // Fetch the existing booking
     const bookingForm = await BookingForm.findByPk(id);
 
     if (!bookingForm) {
       return apiResponse.notFoundResponse(res, "Booking form not found");
     }
 
-    // Convert the vehicletype array to a comma-separated string
+    // Check if sessionSlotId is being updated
+    if (sessionSlotId && sessionSlotId !== bookingForm.sessionSlotId) {
+      const oldSession = await Sessionslot.findByPk(bookingForm.sessionSlotId);
+      const newSession = await Sessionslot.findByPk(sessionSlotId);
 
+      if (!newSession) {
+        return apiResponse.notFoundResponse(res, "New session not found");
+      }
+
+      // Increase capacity of old session
+      if (oldSession) {
+        oldSession.capacity -= 1;
+        await oldSession.save();
+      }
+
+      // Decrease capacity of new session (if available)
+      if (newSession.capacity > 0) {
+        newSession.capacity += 1;
+        await newSession.save();
+      } else {
+        await newSession.save();
+      }
+    }
+
+    // Update booking details
     Object.assign(bookingForm, req.body);
     await bookingForm.save();
 
@@ -891,7 +939,7 @@ exports.registerSlotInfo = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name,bus
+      hm_principal_manager_name, bus
     });
     const sessionSlot = await Sessionslot.findByPk(sessionSlotId);
     await sessionSlot.update({
@@ -944,19 +992,18 @@ exports.registerSlotInfo = async (req, res) => {
       slotdate
     )} at ${convertTo12HourFormat(sessionTime)}`;
     console.log(slotDateandTime);
-    const smsMessage = `Hi ${coordinator_name},Your booking for ${
-      category == "RTO - Learner Driving License Holder Training"
-        ? "RTO Learner Driving License Holder"
-        : category == "RTO – Suspended Driving License Holders Training"
+    const smsMessage = `Hi ${coordinator_name},Your booking for ${category == "RTO - Learner Driving License Holder Training"
+      ? "RTO Learner Driving License Holder"
+      : category == "RTO – Suspended Driving License Holders Training"
         ? "RTO Suspended Driving License Holders"
         : category == "RTO – Training for School Bus Driver"
-        ? "RTO Training for School Bus Driver"
-        : category == "School Students Training – Group"
-        ? "School Students Training Group"
-        : category == "College/Organization Training – Group"
-        ? "College/Organization Training Group"
-        : ""
-    } Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
+          ? "RTO Training for School Bus Driver"
+          : category == "School Students Training – Group"
+            ? "School Students Training Group"
+            : category == "College/Organization Training – Group"
+              ? "College/Organization Training Group"
+              : ""
+      } Training is confirmed on ${slotDateandTime} Please be present 30 mins before at Traffic Park, Nr. Mumbai Naka. If any query please call 0253-2315966 Email: secretary@nashikfirst.com.`;
     const authKeyVal = "296048AL7IRUllNt5f5f388cP1";
     const senderId = "NSKFST";
     const DLT_TE_ID = "1707171473228451822";
@@ -1092,7 +1139,7 @@ exports.updateSlotInfo = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name,bus
+      hm_principal_manager_name, bus
     } = req.body;
 
     // Find the slot registration by ID
@@ -1117,7 +1164,7 @@ exports.updateSlotInfo = async (req, res) => {
       coordinator_mobile,
       coordinator_name,
       hm_principal_manager_mobile,
-      hm_principal_manager_name,bus
+      hm_principal_manager_name, bus
     });
 
     // Update the related session slot's available seats (if needed)
@@ -1185,11 +1232,6 @@ exports.deleteSlotInfo = async (req, res) => {
       .json({ message: "An error occurred.", error: error.message });
   }
 };
-
-
-
-
-
 
 // exports.getAllEntriesByCategory = async (req, res) => {
 //   try {
