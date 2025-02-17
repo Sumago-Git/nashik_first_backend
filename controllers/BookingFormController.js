@@ -160,7 +160,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
               category == "School Students Training – Group" ||
               category == "College/Organization Training – Group"
                 ? `Dear ${coordinator_name}, \n Your ${category} booking for <b>'Road Safety & Traffic Awareness Training'</b> is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
-                : `Dear ${item.fname},<br>
+                : `Dear ${fname},<br>
             <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
             <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
             }`;
@@ -316,7 +316,7 @@ exports.uploadOrAddBookingForm = async (req, res) => {
       category == "School Students Training – Group" ||
       category == "College/Organization Training – Group"
         ? `Dear ${coordinator_name}, \n Your ${category} booking for <b>'Road Safety & Traffic Awareness Training'</b> is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
-        : `Dear ${item.fname},<br>
+        : `Dear ${fname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
     }`;
@@ -1029,7 +1029,7 @@ exports.registerSlotInfo = async (req, res) => {
       category == "School Students Training – Group" ||
       category == "College/Organization Training – Group"
         ? `Dear ${coordinator_name}, \n Your ${category} booking for 'Road Safety & Traffic Awareness Training' is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
-        : `Dear ${item.fname},<br>
+        : `Dear ${fname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
     }`;
