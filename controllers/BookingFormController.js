@@ -1022,7 +1022,7 @@ exports.registerSlotInfo = async (req, res) => {
 
     if(bus == "Yes"){
       let DLT_TE_ID_Bus = "1207162399931698582"
-      const mobileNumbers = ["7530249707", "7796116555", "9823074700", "9822520022", "9924516432"]; // Add multiple numbers
+      const mobileNumbers = ["7530249707", "7796116555","8830187704", "9011654570", "9823074700", "9822520022", "9924516432"]; // Add multiple numbers
       const mobile_Nos = mobileNumbers.join(",");
       let var1 = `Dear, Training of`
       let var2 = `${institution_name} is scheduled on ${slotdate} ${sessionTime}`
