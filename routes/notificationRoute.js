@@ -13,7 +13,7 @@ const authenticateToken = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("/create-notification", (req, res, next) => {
+router.post("/create-notification", authenticateToken, (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return apiResponse.validationErrorWithData(res, "Validation Error", errors.array());
