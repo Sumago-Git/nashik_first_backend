@@ -54,6 +54,7 @@ const Individuals = require('./routes/IndividualsRoutes')
 const certification = require('./routes/certificateRoutes')
 const reportRoutes = require('./routes/ReportRoutes')
 const Counts = require('./routes/CountRoute');
+const notification = require('./routes/notificationRoute');
 const { searchBookingFormByCategory } = require("./controllers/SearchbycategoryController");
 
 app.use("/counts", Counts);
@@ -69,6 +70,7 @@ app.use("/gallery", gallery);
 app.use("/thanksto", thanksto);
 app.use("/objectiveofANF", objectiveofANF);
 app.use("/news", news);
+app.use("/notification", notification);
 app.use("/Videos", Videos);
 app.use("/Directors", Directors)
 app.use("/PostEvents", PostEvents);
