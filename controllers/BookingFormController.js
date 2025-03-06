@@ -1021,11 +1021,15 @@ exports.registerSlotInfo = async (req, res) => {
     // if bus selected
 
     if(bus == "Yes"){
+      function convertDateFormat(dateString) {
+        let [month, day, year] = dateString.split('/');
+        return `${day}/${month}/${year}`;
+    }
       let DLT_TE_ID_Bus = "1207162399931698582"
       const mobileNumbers = ["7350249707", "7796116555", "9823074700", "9822520022", "9924516432"]; // Add multiple numbers
       const mobile_Nos = mobileNumbers.join(",");
       let var1 = `Dear, Training of`
-      let var2 = `${institution_name} is scheduled on ${slotdate} ${sessionTime}`
+      let var2 = `${institution_name} is scheduled on ${convertDateFormat(slotdate)} ${sessionTime}`
       let var3 = `Contact: ${coordinator_name} ${coordinator_mobile}`
       let var4 = `Thank you`
       let var5 = `Call - 0253-2315966`
