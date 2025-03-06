@@ -69,6 +69,7 @@ exports.addSessionslot = async (req, res) => {
         where: {
           isDelete: false,
           slotdate, // Ensure it's the same date
+          slotType:"inhouse",
           [Op.or]: [
             {
               time: {
