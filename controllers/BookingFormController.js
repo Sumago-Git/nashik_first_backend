@@ -551,12 +551,12 @@ exports.getAllEntriesByCategory = async (req, res) => {
       dateCondition = {
         [Op.or]: [
           { tempdate: { [Op.eq]: saturday } }, // Include Saturday's date
-          { tempdate: { [Op.gt]: today.format("YYYY-MM-DD") } }, // Include dates greater than today
+          { tempdate: { [Op.gte]: today.format("YYYY-MM-DD") } }, // Include dates greater than today
         ],
       };
     } else {
       dateCondition = {
-        tempdate: { [Op.gt]: today.format("YYYY-MM-DD") },
+        tempdate: { [Op.gte]: today.format("YYYY-MM-DD") },
       };
     }
 
