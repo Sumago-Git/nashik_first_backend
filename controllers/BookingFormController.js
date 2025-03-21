@@ -156,14 +156,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
             // Send email for each record created
             const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
             // const emailText = `Dear ${item.fname} ${sessionTime},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${item.learningNo}\nVehicle Type: ${vehicletypeString}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.\n\nBest Regards,\nYour Company`;
-            const emailText = `${
-              category == "School Students Training – Group" ||
-              category == "College/Organization Training – Group"
+            const emailText = `${category == "School Students Training – Group" ||
+                category == "College/Organization Training – Group"
                 ? `Dear ${coordinator_name}, \n Your ${category} booking for <b>'Road Safety & Traffic Awareness Training'</b> is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
                 : `Dear ${fname},<br>
             <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
             <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
-            }`;
+              }`;
             const emailHtml = `
               <h1>Booking Confirmation</h1>
               ${emailText}
@@ -312,14 +311,13 @@ exports.uploadOrAddBookingForm = async (req, res) => {
     // Send email for the newly created booking form
     const emailSubject = `Booking for ${category} is confirmed on ${slotDateandTime}`;
     // const emailText = `Dear ${fname} ${lname},\n\nYour booking has been successfully confirmed!\n\nDetails:\nLearning No: ${learningNo}\nSlot Date: ${slotdate}\nSession: ${slotsession}\n\nThank you for choosing us.`;
-    const emailText = `${
-      category == "School Students Training – Group" ||
-      category == "College/Organization Training – Group"
+    const emailText = `${category == "School Students Training – Group" ||
+        category == "College/Organization Training – Group"
         ? `Dear ${coordinator_name}, \n Your ${category} booking for <b>'Road Safety & Traffic Awareness Training'</b> is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
         : `Dear ${fname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
-    }`;
+      }`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
     ${emailText}
@@ -686,6 +684,8 @@ exports.updateTrainingStatus = async (req, res) => {
             category: bookingForm.category,
           },
           order: [["certificate_no", "DESC"]], // Order by certificate_no descending to get the last one
+          lock: true, // Lock the row to prevent race conditions
+          skipLocked: true, // Avoid deadlock issues
           transaction,
         });
 
@@ -1020,11 +1020,11 @@ exports.registerSlotInfo = async (req, res) => {
 
     // if bus selected
 
-    if(bus == "Yes"){
+    if (bus == "Yes") {
       function convertDateFormat(dateString) {
         let [month, day, year] = dateString.split('/');
         return `${day}/${month}/${year}`;
-    }
+      }
       let DLT_TE_ID_Bus = "1207162399931698582"
       const mobileNumbers = ["7350249707", "7796116555", "9823074700", "9822520022", "9924516432"]; // Add multiple numbers
       const mobile_Nos = mobileNumbers.join(",");
@@ -1053,14 +1053,13 @@ exports.registerSlotInfo = async (req, res) => {
     // const emailText = `Dear ${coordinator_name},<br>
     // <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     // <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`;
-    const emailText = `${
-      category == "School Students Training – Group" ||
-      category == "College/Organization Training – Group"
+    const emailText = `${category == "School Students Training – Group" ||
+        category == "College/Organization Training – Group"
         ? `Dear ${coordinator_name}, \n Your ${category} booking for 'Road Safety & Traffic Awareness Training' is confirmed on ${slotdate} ${slotsession}. \n Please ensure that all participants should reach at Traffic Education Park 10 minutes before. If any query, please contact 0253-2315966, 7796116555, info@nashikfirst.com, \n Google Map Location: https://maps.app.goo.gl/bHAX2MnPEgvfA87Z7 `
         : `Dear ${fname},<br>
     <p>Your booking for ${category} is confirmed on ${slotDateandTime}</p>
     <p>You will have to be present 30 minutes before at Traffic Education Park, Behind Tupsakhre Lawns, Nr. Mumbai Naka.</p>`
-    }`;
+      }`;
     const emailHtml = `
       <h1>Booking Confirmation</h1>
    ${emailText}
