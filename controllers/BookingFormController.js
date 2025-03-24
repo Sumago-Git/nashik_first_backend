@@ -580,11 +580,6 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 //   }
 // };
 
-const { Op } = require("sequelize");
-const moment = require("moment");
-const BookingForm = require("../models/BookingForm"); // Adjust import as needed
-const apiResponse = require("../helpers/apiResponse"); // Adjust import as needed
-
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
