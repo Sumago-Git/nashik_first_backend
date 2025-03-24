@@ -580,37 +580,39 @@ exports.getBookingEntriesByDateAndCategory = async (req, res) => {
 //   }
 // };
 
+const { Op } = require("sequelize");
+const moment = require("moment");
+const BookingForm = require("../models/BookingForm"); // Adjust import as needed
+const apiResponse = require("../helpers/apiResponse"); // Adjust import as needed
+
 exports.getAllEntriesByCategory = async (req, res) => {
   try {
     const { category } = req.body;
 
-    // Get today's date at the start of the day (Midnight 00:00:00)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to midnight
+    // Get today's start time (Midnight: 00:00:00)
+    const todayStart = moment().startOf("day").toDate();
 
     let dateCondition;
 
-    // Check if today is Sunday (0 = Sunday)
-    if (today.getDay() === 0) {
-      // Get Saturday's date
-      const saturday = new Date();
-      saturday.setDate(today.getDate() - 1); // Move to Saturday
-      saturday.setHours(0, 0, 0, 0); // Reset time to midnight
+    // If today is Sunday, include Saturday as well
+    if (moment().day() === 0) {
+      const saturdayStart = moment().subtract(1, "days").startOf("day").toDate();
 
       dateCondition = {
-        [Op.or]: [
-          { tempdate: { [Op.eq]: saturday } }, // Include Saturday
-          { tempdate: { [Op.gte]: today } },   // Include today and future dates
-        ],
+        tempdate: {
+          [Op.or]: [
+            { [Op.between]: [saturdayStart, todayStart] }, // Saturday full day
+            { [Op.gte]: todayStart }, // Today onwards
+          ],
+        },
       };
     } else {
-      // Fetch data from today onwards
       dateCondition = {
-        tempdate: { [Op.gte]: today },
+        tempdate: { [Op.gte]: todayStart }, // From today's midnight onwards
       };
     }
 
-    // Query the database for booking entries
+    // Fetch entries based on category and date condition
     const bookingEntries = await BookingForm.findAll({
       where: {
         category,
@@ -631,6 +633,8 @@ exports.getAllEntriesByCategory = async (req, res) => {
     );
   }
 };
+
+
 
 // exports.updateTrainingStatus = async (req, res) => {
 //   const transaction = await sequelize.transaction();
