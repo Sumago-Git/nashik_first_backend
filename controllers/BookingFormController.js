@@ -822,18 +822,18 @@ exports.updateBookingForm = async (req, res) => {
       }
 
       // Increase capacity of old session
-      if (oldSession) {
-        oldSession.capacity += 1;
-        await oldSession.save();
-      }
+      // if (oldSession) {
+      //   oldSession.capacity += 1;
+      //   await oldSession.save();
+      // }
 
       // Decrease capacity of new session (if available)
-      if (newSession.capacity > 0) {
-        newSession.capacity -= 1;
-        await newSession.save();
-      } else {
-        await newSession.save();
-      }
+      // if (newSession.capacity > 0) {
+      //   newSession.capacity -= 1;
+      //   await newSession.save();
+      // } else {
+      //   await newSession.save();
+      // }
     }
 
     // Update booking details
