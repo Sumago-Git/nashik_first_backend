@@ -823,13 +823,13 @@ exports.updateBookingForm = async (req, res) => {
 
       // Increase capacity of old session
       if (oldSession) {
-        oldSession.capacity -= 1;
+        oldSession.capacity += 1;
         await oldSession.save();
       }
 
       // Decrease capacity of new session (if available)
       if (newSession.capacity > 0) {
-        newSession.capacity += 1;
+        newSession.capacity -= 1;
         await newSession.save();
       } else {
         await newSession.save();
